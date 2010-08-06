@@ -3808,6 +3808,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
+      <!-- Use hardcoded channel so the site works. -->
       <string>http://viewer-help.secondlife.com/[LANGUAGE]/Second%20Life%20Release/[VERSION]/[TOPIC][DEBUG_MODE]</string>
     </map>
     <key>HomeSidePanelURL</key>

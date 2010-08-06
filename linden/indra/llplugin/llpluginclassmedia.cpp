@@ -704,7 +704,7 @@ void LLPluginClassMedia::setUserDataPath(const std::string &user_data_path)
 void LLPluginClassMedia::setLanguageCode(const std::string &language_code)
 {
 	LLPluginMessage message(LLPLUGIN_MESSAGE_CLASS_MEDIA, "set_language_code");
-	message.setValue("language", language_code);
+	message.setValue("language", utf8str_trim(language_code));
 	sendMessage(message);
 }
 
