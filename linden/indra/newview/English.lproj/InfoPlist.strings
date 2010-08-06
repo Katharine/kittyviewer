@@ -1,7 +1,7 @@
 /* Localized versions of Info.plist keys */
 
-CFBundleName = "Snowglobe";
+CFBundleName = "Kitty Viewer";
 
-CFBundleShortVersionString = "Snowglobe version 2.1.0.206611";
-CFBundleGetInfoString = Snowglobe version 2.1.0.206611, Copyright 2004-2010 Linden Research, Inc.";
+CFBundleShortVersionString = "Kitty Viewer version 2.1";
+CFBundleGetInfoString = "Kitty Viewer version 2.1, copyright 2010 Katharine Berry";
 

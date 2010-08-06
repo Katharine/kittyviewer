@@ -86,8 +86,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     # NOTE: setting -isysroot is NOT adequate: http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
     # see http://public.kitware.com/Bug/view.php?id=9959 + poppy
-    set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.4u.sdk)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.4)
+    set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5)
   endif (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 
   # GCC 4.2 is incompatible with the MacOSX 10.4 SDK
@@ -121,9 +121,9 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(GRID agni CACHE STRING "Target Grid")
 
 set(VIEWER ON CACHE BOOL "Build Second Life viewer.")
-set(VIEWER_CHANNEL "CommunityDeveloper" CACHE STRING "Viewer Channel Name")
+set(VIEWER_CHANNEL "Kitty Viewer Development" CACHE STRING "Viewer Channel Name")
 set(VIEWER_LOGIN_CHANNEL ${VIEWER_CHANNEL} CACHE STRING "Fake login channel for A/B Testing")
-set(VIEWER_BRANDING_ID "snowglobe" CACHE STRING "Viewer branding id (currently secondlife|snowglobe)")
+set(VIEWER_BRANDING_ID "kittyviewer" CACHE STRING "Viewer branding id (currently secondlife|snowglobe)")
 
 # *TODO: break out proper Branding-secondlife.cmake, Branding-snowglobe.cmake, etc
 if (${VIEWER_BRANDING_ID} MATCHES "secondlife")
@@ -132,6 +132,9 @@ if (${VIEWER_BRANDING_ID} MATCHES "secondlife")
 elseif (${VIEWER_BRANDING_ID} MATCHES "snowglobe")
   set(VIEWER_BRANDING_NAME "Snowglobe")
   set(VIEWER_BRANDING_NAME_CAMELCASE "Snowglobe")
+elseif (${VIEWER_BRANDING_ID} MATCHES "kittyviewer")
+  set(VIEWER_BRANDING_NAME "Kitty Viewer")
+  set(VIEWER_BRANDING_NAME_CAMELCASE "KittyViewer")
 endif (${VIEWER_BRANDING_ID} MATCHES "secondlife")
 
 set(STANDALONE OFF CACHE BOOL "Do not use Linden-supplied prebuilt libraries.")

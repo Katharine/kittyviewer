@@ -572,9 +572,10 @@ set(viewer_SOURCE_FILES
 set(VIEWER_BINARY_NAME "secondlife-bin" CACHE STRING
     "The name of the viewer executable to create.")
 
-if (LINUX)
+if (NOT WINDOWS)
   # We can't set these flags for Darwin, because they get passed to
   # the PPC compiler.  Ugh.
+  # (Note: we don't support PPC any more - KB)
 
   set_source_files_properties(
       llviewerjointmesh_sse.cpp
@@ -584,7 +585,7 @@ if (LINUX)
       llviewerjointmesh_sse2.cpp
       PROPERTIES COMPILE_FLAGS "-msse2 -mfpmath=sse"
       )
-endif (LINUX)
+endif (NOT WINDOWS)
 
 set(viewer_HEADER_FILES
     CMakeLists.txt
@@ -1823,7 +1824,7 @@ if (PACKAGE)
   if (DARWIN)
     set(VIEWER_DIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${product}.app")
     set(VIEWER_SYMBOL_FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/secondlife-symbols-darwin.tar.bz2")
-    set(VIEWER_EXE_GLOBS "'Snowglobe' SLPlugin")
+    set(VIEWER_EXE_GLOBS "'Kitty Viewer' SLPlugin")
     set(VIEWER_LIB_GLOB "*.dylib")
   endif (DARWIN)
   if (LINUX)

@@ -143,7 +143,8 @@ class ViewerManifest(LLManifest):
         return self.args['branding_id']
     def installer_prefix(self):
         mapping={"secondlife":'SecondLife_',
-                 "snowglobe":'Snowglobe_'}
+                 "snowglobe":'Snowglobe_',
+                 "kittyviewer": "KittyViewer_"}
         return mapping[self.viewer_branding_id()]
 
     def flags_list(self):
@@ -541,6 +542,19 @@ class WindowsManifest(ViewerManifest):
                 !define UNINSTALL_ICON "uninstall_icon_snowglobe.ico"
                 Caption "Snowglobe ${VERSION}"
                 """
+        elif self.viewer_branding_id()=="kittyviewer":
+                installer_file = "KittyViewer_%(version_dashes)s_Setup.exe"
+                grid_vars_template = """
+                OutFile "%(installer_file)s"
+                !define VIEWERNAME "Kitty Viewer"
+                !define INSTFLAGS "%(flags)s"
+                !define INSTNAME   "KittyViewer"
+                !define SHORTCUT   "Kitty Viewer"
+                !define URLNAME   "secondlife"
+                !define INSTALL_ICON "install_icon_snowglobe.ico"
+                !define UNINSTALL_ICON "uninstall_icon_snowglobe.ico"
+                Caption "Kitty Viewer ${VERSION}"
+                """
         else:
             # some other channel on some grid
             installer_file = "Second_Life_%(version_dashes)s_%(channel_oneword)s_Setup.exe"
@@ -631,6 +645,8 @@ class DarwinManifest(ViewerManifest):
                         self.path("secondlife_firstlook.icns", "secondlife.icns")
                 elif self.viewer_branding_id()=="snowglobe":
                     self.path("snowglobe.icns")
+                elif self.viewer_branding_id()=="kittyviewer":
+                    self.path("kittyviewer.icns")
                 self.path("SecondLife.nib")
                 
                 # Translations
@@ -748,12 +764,14 @@ class DarwinManifest(ViewerManifest):
 
     def app_name(self):
         mapping={"secondlife":"Second Life",
-                 "snowglobe":"Snowglobe"}
+                 "snowglobe":"Snowglobe",
+                 "kittyviewer": "Kitty Viewer"}
         return mapping[self.viewer_branding_id()]
         
     def info_plist_name(self):
         mapping={"secondlife":"Info-SecondLife.plist",
-                 "snowglobe":"Info-Snowglobe.plist"}
+                 "snowglobe":"Info-Snowglobe.plist",
+                 "kittyviewer": "Info-KittyViewer.plist"}
         return mapping[self.viewer_branding_id()]
 
     def package_finish(self):
@@ -809,6 +827,9 @@ class DarwinManifest(ViewerManifest):
 
             # We have a single branded installer for all snowglobe channels so snowglobe logic is a bit different
             if (self.app_name()=="Snowglobe"):
+                dmg_template = os.path.join ('installers', 'darwin', 'snowglobe-dmg')
+            elif (self.app_name()=="Kitty Viewer"):
+                # *TODO: Make our own template
                 dmg_template = os.path.join ('installers', 'darwin', 'snowglobe-dmg')
             else:
                 dmg_template = os.path.join(
@@ -912,17 +933,20 @@ class LinuxManifest(ViewerManifest):
 
     def wrapper_name(self):
         mapping={"secondlife":"secondlife",
-                 "snowglobe":"snowglobe"}
+                 "snowglobe":"snowglobe",
+                 "kittyviewer": "kittyviewer"}
         return mapping[self.viewer_branding_id()]
 
     def binary_name(self):
         mapping={"secondlife":"do-not-directly-run-secondlife-bin",
-                 "snowglobe":"snowglobe-do-not-run-directly"}
+                 "snowglobe":"snowglobe-do-not-run-directly",
+                 "kittyviewer": "kittyviewer-do-not-run-directly"}
         return mapping[self.viewer_branding_id()]
     
     def icon_name(self):
         mapping={"secondlife":"secondlife_icon.png",
-                 "snowglobe":"snowglobe_icon.png"}
+                 "snowglobe":"snowglobe_icon.png",
+                 "kittyviewer": "kittyviewer_icon.png"}
         return mapping[self.viewer_branding_id()]
 
     def package_finish(self):
