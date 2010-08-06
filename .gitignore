@@ -1,0 +1,7 @@
+linden/indra/build-*
+linden/libraries
+linden/installed.xml
+.svn
+.svnignore
+.DS_Store
+*.pyc

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="Text Chat" name="chat">
+	<text name="font_size">
+		Dimensioni caratteri:
+	</text>
+	<radio_group name="chat_font_size">
+		<radio_item label="Piccola" name="radio" value="0"/>
+		<radio_item label="Media" name="radio2" value="1"/>
+		<radio_item label="Grande" name="radio3" value="2"/>
+	</radio_group>
+	<text name="font_colors">
+		Colori caratteri:
+	</text>
+	<color_swatch label="Tuo" name="user"/>
+	<text name="text_box1">
+		Io
+	</text>
+	<color_swatch label="Altri" name="agent"/>
+	<text name="text_box2">
+		Altri
+	</text>
+	<color_swatch label="IM" name="im"/>
+	<text name="text_box3">
+		IM
+	</text>
+	<color_swatch label="Sistema" name="system"/>
+	<text name="text_box4">
+		Sistema
+	</text>
+	<color_swatch label="Errori script" name="script_error"/>
+	<text name="text_box5">
+		Errori script
+	</text>
+	<color_swatch label="Oggetti" name="objects"/>
+	<text name="text_box6">
+		Oggetti
+	</text>
+	<color_swatch label="Proprietario" name="owner"/>
+	<text name="text_box7">
+		Proprietario
+	</text>
+	<color_swatch label="URLs" name="links"/>
+	<text name="text_box9">
+		URLs
+	</text>
+	<check_box initial_value="true" label="Simula la battitura tasti quando scrivi" name="play_typing_animation"/>
+	<check_box label="Quando sono OFF-LINE, spediscimi gli IM in una e-mail" name="send_im_to_email"/>
+	<check_box label="Attiva IM in testo semplice e cronologia chat" name="plain_text_chat_history"/>
+	<text name="show_ims_in_label">
+		Mostra gli IM in:
+	</text>
+	<text name="requires_restart_label">
+		(richiede il riavvio)
+	</text>
+	<radio_group name="chat_window" tool_tip="Mostra i tuoi messaggi istantanei in diverse finestre, o in una finestra con più schede (richiede il riavvio)">
+		<radio_item label="Finestre separate" name="radio" value="0"/>
+		<radio_item label="Schede" name="radio2" value="1"/>
+	</radio_group>
+	<check_box label="Traduci Chat" name="translate_chat_checkbox" />
+	<text name="translate_language_text" width="110">
+		Chat Lingua:
+	</text>
+	<combo_box name="translate_language_combobox" width="146">
+		<combo_box.item name="System Default Language" label="Default di sistema" />
+		<combo_box.item name="English" label="English" />
+		<combo_box.item name="Danish" label="Dansk (Danese)" />
+		<combo_box.item name="German" label="Deutsch (Tedesco)" />
+		<combo_box.item name="Spanish" label="Español (Spagnolo)" />
+		<combo_box.item name="French" label="Français (Francese)" />
+		<combo_box.item name="Italian" label="Italiano" />
+		<combo_box.item name="Hungarian" label="Magyar (Ungherese)" />
+		<combo_box.item name="Dutch" label="Nederlands (Olandese)" />
+		<combo_box.item name="Polish" label="Polski (Polacco)" />
+		<combo_box.item name="Portugese" label="Portugués (Portoghese)" />
+		<combo_box.item name="Russian" label="Русский (Russo)" />
+		<combo_box.item name="Turkish" label="Türkçe (Turco)" />
+		<combo_box.item name="Ukrainian" label="Українська (Ukraino)" />
+		<combo_box.item name="Chinese" label="中文 (简体) (Cinese)" />
+		<combo_box.item name="Japanese" label="日本語 (Giapponese)" />
+		<combo_box.item name="Korean" label="한국어 (Coreano)" />
+	</combo_box>
+</panel>
