@@ -118,6 +118,7 @@ class ViewerManifest(LLManifest):
 
             # Files in the newview/ directory
             self.path("gpu_table.txt")
+            self.path("fonts")
 
     def login_channel(self):
         """Channel reported for login and upgrade purposes ONLY;
