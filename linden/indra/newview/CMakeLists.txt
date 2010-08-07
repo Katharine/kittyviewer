@@ -576,7 +576,6 @@ set(viewer_SOURCE_FILES
     pipeline.cpp
 # [KITTY VIEWER]
     kvgrowlmanager.cpp
-    kvgrowlnotifier.cpp
 # [/KITTY VIEWER]
     )
 
