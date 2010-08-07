@@ -12047,5 +12047,29 @@
       <key>Value</key>
       <integer>10</integer>
     </map>
+    <!-- [KITTY VIEWER] -->
+    <!-- All of our own settings should go down here. -->
+    <key>KittyEnableGrowl</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to provide Growl notifications</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>KittyGrowlWhenActive</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to growl even while the active window has focus.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
 </map>
 </llsd>

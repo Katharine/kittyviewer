@@ -574,6 +574,10 @@ set(viewer_SOURCE_FILES
     llxmlrpctransaction.cpp
     noise.cpp
     pipeline.cpp
+# [KITTY VIEWER]
+    kvgrowlmanager.cpp
+    kvgrowlnotifier.cpp
+# [/KITTY VIEWER]
     )
 
 set(VIEWER_BINARY_NAME "secondlife-bin" CACHE STRING
@@ -1102,6 +1106,10 @@ set(viewer_HEADER_FILES
     pipeline.h
     VertexCache.h
     VorbisFramework.h
+# [KITTY VIEWER]
+    kvgrowlmanager.h
+    kvgrowlnotifier.h
+# [/KITTY VIEWER]
     )
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)
@@ -1328,6 +1336,9 @@ set(viewer_APPSETTINGS_FILES
     app_settings/viewerart.xml
     ${CMAKE_SOURCE_DIR}/../etc/message.xml
     ${CMAKE_SOURCE_DIR}/../scripts/messages/message_template.msg
+# [KITTY VIEWER]
+    app_settings/growl_notifications.xml
+# [/KITTY_VIEWER]
     )
 
 source_group("App Settings" FILES ${viewer_APPSETTINGS_FILES})

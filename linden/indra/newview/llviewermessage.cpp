@@ -114,6 +114,8 @@
 
 #include "llnotificationmanager.h" //
 
+#include "kvgrowlmanager.h"
+
 #if LL_MSVC
 // disable boost::lexical_cast warning
 #pragma warning (disable:4702)
