@@ -40,7 +40,7 @@
 	
 	<panel.string
 		name="not_available">
-		(N\A)
+		(N/A)
 	</panel.string>
 	<panel.string
 		name="unknown">

@@ -32,7 +32,7 @@
      value="Teleport History" />
     <string
      name="not_available"
-     value="(N\A)" />
+     value="(N/A)" />
     <string
      name="unknown"
      value="(unknown)" />
