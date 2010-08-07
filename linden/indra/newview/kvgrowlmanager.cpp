@@ -55,13 +55,13 @@ KVGrowlManager::KVGrowlManager() : LLEventTimer(GROWL_THROTTLE_CLEANUP_PERIOD)
 	// Create a notifier appropriate to the platform.
 #if 1
 	this->mNotifier = new KVGrowlNotifier();
-	LL_INFOS("GrowlManagerInit") << "Created generic KVGrowlNotifier." << LL_ENDL;
+	LL_INFOS("GrowlInit") << "Created generic KVGrowlNotifier." << LL_ENDL;
 #endif
 	
 	// Don't do anything more if Growl isn't usable.
 	if(!mNotifier->isUsable())
 	{
-		LL_WARNS("GrowlManagerInit") << "Growl is unusable; bailing out." << LL_ENDL;
+		LL_WARNS("GrowlInit") << "Growl is unusable; bailing out." << LL_ENDL;
 		return;
 	}
 	
