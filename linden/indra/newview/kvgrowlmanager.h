@@ -33,6 +33,8 @@
 #include "lleventtimer.h"
 #include <map>
 
+class LLNotficationPtr;
+
 struct KVGrowlNotification
 {
 	std::string growlName;
@@ -63,6 +65,7 @@ private:
 	
 	void loadConfig();
 	static bool onLLNotification(const LLSD& notice);
+	static bool filterOldNotifications(LLNotificationPtr pNotification);
 	static void onInstantMessage(const LLSD& im);
 	static inline bool shouldNotify();
 };

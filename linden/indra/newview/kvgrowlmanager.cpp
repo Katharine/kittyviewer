@@ -29,6 +29,7 @@
 
 #include "llviewerprecompiledheaders.h"
 
+#include "llagentdata.h"
 #include "llappviewer.h"
 #include "lldir.h"
 #include "llfile.h"
@@ -71,8 +72,8 @@ KVGrowlManager::KVGrowlManager() : LLEventTimer(GROWL_THROTTLE_CLEANUP_PERIOD)
 	
 	// Hook into LLNotifications...
 	// We hook into all of them, even though (at the time of writing) nothing uses "alert", so more notifications can be added easily.
-	LLNotificationChannel::buildChannel("KVGrowlNotifications", "Visible", LLNotificationFilters::includeEverything);
-	LLNotifications::instance().getChannel("KVGrowlNotifications")->connectChanged(&KVGrowlManager::onLLNotification);
+	LLNotificationChannel::buildChannel("KVGrowlNotifications", "Visible", &filterOldNotifications);
+	LLNotifications::instance().getChannel("KVGrowlNotifications")->connectChanged(&onLLNotification);
 	
 	// Also hook into IM notifications.
 	LLIMModel::instance().mNewMsgSignal.connect(&KVGrowlManager::onInstantMessage);
@@ -199,8 +200,19 @@ bool KVGrowlManager::onLLNotification(const LLSD& notice)
 }
 
 //static
+bool KVGrowlManager::filterOldNotifications(LLNotificationPtr pNotification)
+{
+	// *HACK: I don't see any better way to avoid getting old, persisted messages...
+	return (pNotification->getDate().secondsSinceEpoch() >= LLDate::now().secondsSinceEpoch() - 10);
+}
+
+//static
 void KVGrowlManager::onInstantMessage(const LLSD& im)
 {
+	// Don't show messages from ourselves or the system.
+	LLUUID from_id = im["from_id"];
+	if(from_id == LLUUID::null || from_id == gAgentID)
+		return;
 	std::string message = im["message"];
 	std::string prefix = message.substr(0, 4);
 	if(prefix == "/me " || prefix == "/me'")
