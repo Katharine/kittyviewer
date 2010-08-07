@@ -167,17 +167,10 @@ class ViewerManifest(LLManifest):
         elif not self.default_channel():
             channel_flags = '--channel "%s"' % self.channel()
 
-        # Deal with settings 
-        setting_flags = ''
-        if not self.default_channel() or not self.default_grid():
-            if self.default_grid():
-                setting_flags = '--settings settings_%s.xml'\
-                                % self.channel_lowerword()
-            else:
-                setting_flags = '--settings settings_%s_%s.xml'\
-                                % (self.grid(), self.channel_lowerword())
+        # Don't deal with settings here; it's not reliable on Windows.
+        # Settings are set in the viewer code (settings_files.xml)
                                                 
-        return " ".join((channel_flags, grid_flags, setting_flags)).strip()
+        return " ".join((channel_flags, grid_flags)).strip()
 
 
 class WindowsManifest(ViewerManifest):

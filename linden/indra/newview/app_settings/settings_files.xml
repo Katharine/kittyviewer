@@ -68,7 +68,7 @@
             <key>Global</key>
             <map>
               <key>Name</key>
-              <string>settings.xml</string>
+              <string>settings_kittyviewer.xml</string>
               <key>NameFromSetting</key>
               <string>ClientSettingsFile</string>
             </map>
