@@ -823,8 +823,7 @@ class DarwinManifest(ViewerManifest):
             if (self.app_name()=="Snowglobe"):
                 dmg_template = os.path.join ('installers', 'darwin', 'snowglobe-dmg')
             elif (self.app_name()=="Kitty Viewer"):
-                # *TODO: Make our own template
-                dmg_template = os.path.join ('installers', 'darwin', 'snowglobe-dmg')
+                dmg_template = os.path.join ('installers', 'darwin', 'kittyviewer-dmg')
             else:
                 dmg_template = os.path.join(
                     'installers', 

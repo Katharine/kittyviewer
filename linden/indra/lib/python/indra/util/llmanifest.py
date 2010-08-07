@@ -102,6 +102,7 @@ def get_channel(srctree):
 DEFAULT_SRCTREE = os.path.dirname(sys.argv[0])
 DEFAULT_CHANNEL = 'Second Life Release'
 DEFAULT_CHANNEL_SNOWGLOBE = 'Snowglobe Release'
+DEFAULT_CHANNEL_KITTYVIEWER = 'Kitty Viewer Release'
 
 ARGUMENTS=[
     dict(name='actions',
@@ -287,6 +288,8 @@ class LLManifest(object):
             return self.args.get('channel', None) == DEFAULT_CHANNEL
         elif self.viewer_branding_id()=="snowglobe":
             return self.args.get('channel', None) == DEFAULT_CHANNEL_SNOWGLOBE
+        elif self.viewer_branding_id()=="kittyviewer":
+            return self.args.get('channel', None) == DEFAULT_CHANNEL_KITTYVIEWER
         raise ValueError, "Invalid branding id: " + self.viewer_branding_id()
 
     def construct(self):
