@@ -202,6 +202,8 @@
 #include "lldxhardware.h"
 #endif
 
+#include "kvgrowlmanager.h"
+
 //
 // exported globals
 //
@@ -374,6 +376,8 @@ bool idle_startup()
 		//
 		// Initialize stuff that doesn't need data from simulators
 		//
+		
+		KVGrowlManager::InitiateManager();
 
 		if (LLFeatureManager::getInstance()->isSafe())
 		{

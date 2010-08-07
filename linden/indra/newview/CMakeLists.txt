@@ -42,6 +42,10 @@ include(ViewerMiscLibs)
 include(LLLogin)
 include(CMakeCopyIfDifferent)
 
+# [KITTY VIEWER]
+include(Growl)
+# [/KITTY VIEWER]
+
 include_directories(
     ${DBUSGLIB_INCLUDE_DIRS}
     ${ELFIO_INCLUDE_DIR}
@@ -64,6 +68,9 @@ include_directories(
     ${LSCRIPT_INCLUDE_DIRS}
     ${LSCRIPT_INCLUDE_DIRS}/lscript_compile
     ${LLLOGIN_INCLUDE_DIRS}
+# [KITTY VIEWER]
+    ${GROWL_INCLUDE_DIRS}
+# [/KITTY VIEWER]
     )
 
 set(viewer_SOURCE_FILES
@@ -567,6 +574,9 @@ set(viewer_SOURCE_FILES
     llxmlrpctransaction.cpp
     noise.cpp
     pipeline.cpp
+# [KITTY VIEWER]
+    kvgrowlmanager.cpp
+# [/KITTY VIEWER]
     )
 
 set(VIEWER_BINARY_NAME "secondlife-bin" CACHE STRING
@@ -1095,12 +1105,22 @@ set(viewer_HEADER_FILES
     pipeline.h
     VertexCache.h
     VorbisFramework.h
+# [KITTY VIEWER]
+    kvgrowlmanager.h
+    kvgrowlnotifier.h
+# [/KITTY VIEWER]
     )
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)
 
 if (DARWIN)
   LIST(APPEND viewer_SOURCE_FILES llappviewermacosx.cpp)
+# [KITTY VIEWER]
+  LIST(APPEND viewer_HEADER_FILES kvgrowlnotifiermacosx-objc.h)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx-objc.mm)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx.h)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx.cpp)
+# [/KITTY VIEWER]
 
   find_library(AGL_LIBRARY AGL)
   find_library(APPKIT_LIBRARY AppKit)
@@ -1321,6 +1341,9 @@ set(viewer_APPSETTINGS_FILES
     app_settings/viewerart.xml
     ${CMAKE_SOURCE_DIR}/../etc/message.xml
     ${CMAKE_SOURCE_DIR}/../scripts/messages/message_template.msg
+# [KITTY VIEWER]
+    app_settings/growl_notifications.xml
+# [/KITTY_VIEWER]
     )
 
 source_group("App Settings" FILES ${viewer_APPSETTINGS_FILES})
@@ -1676,6 +1699,9 @@ target_link_libraries(${VIEWER_BINARY_NAME}
     ${CRYPTO_LIBRARIES}
     ${LLLOGIN_LIBRARIES}
     ${GOOGLE_PERFTOOLS_LIBRARIES}
+# [KITTY VIEWER]
+    ${GROWL_LIBRARY}
+# [/KITTY VIEWER]
     )
 
 build_version(viewer)
