@@ -300,7 +300,7 @@ static std::string get_viewer_release_notes_url()
 	if (! LLStringUtil::endsWith(url, "/"))
 		url += "/";
 	url += gSavedSettings.getString("VersionChannelName") + "/";
-	url += LLVersionInfo::getShortVersion();
+	url += LLVersionInfo::getVersion();
 	return LLWeb::escapeURL(url);
 }
 
