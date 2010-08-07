@@ -38,13 +38,22 @@
      name="friends_online_notify_checkbox"
      top_pad="4"
      width="300" />
+    <check_box
+     control_name="KittyEnableGrowl"
+     height="16"
+     label="Enable Growl notifications"
+     layout="topleft"
+     left="10"
+     name="growl_enable_checkbox"
+     top_pad="4"
+     width="300" />
     <text
      type="string"
      length="1"
      follows="top|left"
      height="12"
      layout="topleft"
-     left="10"
+     left_delta="0"
      name="show_label"
      top_pad="8"
      width="450">
@@ -52,7 +61,7 @@
     </text>
     <scroll_list
      follows="top|left|right"
-     height="140"
+     height="130"
      layout="topleft"
      left="10"
      multi_select="true"
@@ -100,7 +109,7 @@
     </text>
     <scroll_list
      follows="top|left|right"
-     height="140"
+     height="130"
      layout="topleft"
      left="10"
      multi_select="true"
