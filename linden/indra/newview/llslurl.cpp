@@ -190,15 +190,6 @@ LLSLURL::LLSLURL(const std::string& slurl)
 		   (slurl_uri.scheme() == LLSLURL::SLURL_HTTPS_SCHEME) || 
 		   (slurl_uri.scheme() == LLSLURL::SLURL_X_GRID_LOCATION_INFO_SCHEME))
 		{
-			// *HACK: ignore http://secondlife.com/ URLs so that we can use
-			// http://secondlife.com/app/ redirect URLs
-			// This is only necessary while the server returns Release Note
-			// urls using this format rather that pointing to the wiki
-			if ((slurl_uri.scheme() == LLSLURL::SLURL_HTTP_SCHEME ||
-				 slurl_uri.scheme() == LLSLURL::SLURL_HTTPS_SCHEME) &&
-				slurl_uri.hostName() == LLSLURL::SECONDLIFE_COM)
-			  return;
-
 		    // We're dealing with either a Standalone style slurl or slurl.com slurl
 		  if ((slurl_uri.hostName() == LLSLURL::SLURL_COM) ||
 		      (slurl_uri.hostName() == LLSLURL::WWW_SLURL_COM) || 
@@ -229,12 +220,6 @@ LLSLURL::LLSLURL(const std::string& slurl)
 				path_array.erase(0);
 				// it's a location
 				mType = LOCATION;
-			}
-			else if (path_array[0].asString() == LLSLURL::SLURL_APP_PATH)
-			{
-				mType = APP;
-				path_array.erase(0);
-				// leave app appended.  
 			}
 			else
 			{
