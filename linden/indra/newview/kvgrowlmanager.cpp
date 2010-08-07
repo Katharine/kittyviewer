@@ -46,14 +46,18 @@
 #include "kvgrowlnotifier.h"
 
 // Platform-specific includes
-// (None yet)
+#ifdef LL_DARWIN
+#include "kvgrowlnotifiermacosx.h"
+#endif
 
 KVGrowlManager *gGrowlManager = NULL;
 
 KVGrowlManager::KVGrowlManager() : LLEventTimer(GROWL_THROTTLE_CLEANUP_PERIOD)
 {
 	// Create a notifier appropriate to the platform.
-#if 1
+#if LL_DARWIN
+	this->mNotifier = new KVGrowlNotifierMacOSX();
+#else
 	this->mNotifier = new KVGrowlNotifier();
 	LL_INFOS("GrowlInit") << "Created generic KVGrowlNotifier." << LL_ENDL;
 #endif

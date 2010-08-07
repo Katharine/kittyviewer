@@ -1116,6 +1116,12 @@ source_group("CMake Rules" FILES ViewerInstall.cmake)
 
 if (DARWIN)
   LIST(APPEND viewer_SOURCE_FILES llappviewermacosx.cpp)
+# [KITTY VIEWER]
+  LIST(APPEND viewer_HEADER_FILES kvgrowlnotifiermacosx-objc.h)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx-objc.mm)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx.h)
+  LIST(APPEND viewer_SOURCE_FILES kvgrowlnotifiermacosx.cpp)
+# [/KITTY VIEWER]
 
   find_library(AGL_LIBRARY AGL)
   find_library(APPKIT_LIBRARY AppKit)
