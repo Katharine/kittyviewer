@@ -1559,6 +1559,27 @@ anguage Infrstructure (CLI) international standard</string>
           </map>
         </map>
       </map>
+      <!-- [KITTY VIEWER] -->
+      <key>Growl</key>
+      <map>
+        <key>copyright</key>
+        <string>The Growl Project</string>
+        <key>description</key>
+        <string>A unified notification system for Mac OS X</string>
+        <key>license</key>
+        <string>bsd</string>
+        <key>packages</key>
+        <map>
+          <key>darwin</key>
+          <map>
+            <key>md5sum</key>
+            <string>333023a47a79b6b70f28f2cb98bc7b53</string>
+            <key>url</key>
+            <uri>http://viewer.kathar.in/libraries/growl-1.2.1-darwin.tar.bz2</uri>
+          </map>
+        </map>
+      </map>
+      <!-- [/KITTY VIEWER] -->
     </map>
     <key>licenses</key>
     <map>

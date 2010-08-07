@@ -42,6 +42,10 @@ include(ViewerMiscLibs)
 include(LLLogin)
 include(CMakeCopyIfDifferent)
 
+# [KITTY VIEWER]
+include(Growl)
+# [/KITTY VIEWER]
+
 include_directories(
     ${DBUSGLIB_INCLUDE_DIRS}
     ${ELFIO_INCLUDE_DIR}
@@ -64,6 +68,9 @@ include_directories(
     ${LSCRIPT_INCLUDE_DIRS}
     ${LSCRIPT_INCLUDE_DIRS}/lscript_compile
     ${LLLOGIN_INCLUDE_DIRS}
+# [KITTY VIEWER]
+    ${GROWL_INCLUDE_DIRS}
+# [/KITTY VIEWER]
     )
 
 set(viewer_SOURCE_FILES
@@ -1676,6 +1683,9 @@ target_link_libraries(${VIEWER_BINARY_NAME}
     ${CRYPTO_LIBRARIES}
     ${LLLOGIN_LIBRARIES}
     ${GOOGLE_PERFTOOLS_LIBRARIES}
+# [KITTY VIEWER]
+    ${GROWL_LIBRARY}
+# [/KITTY VIEWER]
     )
 
 build_version(viewer)

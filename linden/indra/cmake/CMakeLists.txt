@@ -108,6 +108,9 @@ set(cmake_SOURCE_FILES
     WebKitLibPlugin.cmake
     XmlRpcEpi.cmake
     ZLIB.cmake
+# [KITTY VIEWER]
+    Growl.cmake
+# [/KITTY VIEWER]
     )
 
 source_group("Shared Rules" FILES ${cmake_SOURCE_FILES})
