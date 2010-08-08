@@ -44,7 +44,7 @@
 class LLAudioStreamManagerFMOD
 {
 public:
-	LLAudioStreamManagerFMOD(const std::string& url);
+	LLAudioStreamManagerFMOD(const std::string& url, LLStreamingAudio_FMOD *interface);
 	int	startStream();
 	bool stopStream(); // Returns true if the stream was successfully stopped.
 	bool ready();
@@ -53,10 +53,14 @@ public:
 
 	int getOpenState();
 protected:
+	static signed char F_CALLBACKAPI metadataCallback(char *name, char *value, void *userdata);
+	LLStreamingAudio_FMOD *mStreamingInterface;
 	FSOUND_STREAM* mInternetStream;
 	bool mReady;
 
 	std::string mInternetStreamURL;
+	std::string mArtist;
+	std::string mTitle;
 };
 
 
@@ -103,7 +107,7 @@ void LLStreamingAudio_FMOD::start(const std::string& url)
 	if (!url.empty())
 	{
 		llinfos << "Starting internet stream: " << url << llendl;
-		mCurrentInternetStreamp = new LLAudioStreamManagerFMOD(url);
+		mCurrentInternetStreamp = new LLAudioStreamManagerFMOD(url, this);
 		mURL = url;
 	}
 	else
@@ -282,9 +286,10 @@ void LLStreamingAudio_FMOD::setGain(F32 vol)
 ///////////////////////////////////////////////////////
 // manager of possibly-multiple internet audio streams
 
-LLAudioStreamManagerFMOD::LLAudioStreamManagerFMOD(const std::string& url) :
+LLAudioStreamManagerFMOD::LLAudioStreamManagerFMOD(const std::string& url, LLStreamingAudio_FMOD* interface) :
 	mInternetStream(NULL),
-	mReady(false)
+	mReady(false),
+	mStreamingInterface(interface)
 {
 	mInternetStreamURL = url;
 	mInternetStream = FSOUND_Stream_Open(url.c_str(), FSOUND_NORMAL | FSOUND_NONBLOCKING, 0, 0);
@@ -360,4 +365,24 @@ int LLAudioStreamManagerFMOD::getOpenState()
 {
 	int open_state = FSOUND_Stream_GetOpenState(mInternetStream);
 	return open_state;
+}
+
+//static
+signed char F_CALLBACKAPI LLAudioStreamManagerFMOD::metadataCallback(char *name, char *value, void *userdata)
+{
+	LLAudioStreamManagerFMOD* self = (LLAudioStreamManagerFMOD*)userdata;
+	if(!strcmp("ARTIST", name))
+	{
+		self->mArtist = std::string(value);
+		self->mStreamingInterface->mMetadataSignal(self->mArtist, self->mTitle);
+		return true;
+	}
+
+	if (!strcmp("TITLE", name))
+	{
+		self->mTitle = std::string(value);
+		self->mStreamingInterface->mMetadataSignal(self->mArtist, self->mTitle);
+		return true;
+	}
+	return true;
 }
