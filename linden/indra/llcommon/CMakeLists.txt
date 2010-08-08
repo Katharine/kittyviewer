@@ -152,9 +152,10 @@ set(llcommon_HEADER_FILES
     lleventapi.h
     lleventcoro.h
     lleventdispatcher.h
+    lleventemitter.h
     lleventfilter.h
     llevents.h
-    lleventemitter.h
+    lleventtimer.h
     llextendedstatus.h
     llfasttimer.h
     llfile.h
