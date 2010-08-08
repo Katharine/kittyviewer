@@ -55,9 +55,6 @@
 
 static LLDefaultChildRegistry::Register<LLAvatarList> r("avatar_list");
 
-// Last interaction time update period.
-static const F32 LIT_UPDATE_PERIOD = 5;
-
 // Maximum number of avatars that can be added to a list in one pass.
 // Used to limit time spent for avatar list update per frame.
 static const unsigned ADD_LIMIT = 50;
@@ -123,11 +120,12 @@ LLAvatarList::LLAvatarList(const Params& p)
 , mShowLastInteractionTime(p.show_last_interaction_time)
 , mContextMenu(NULL)
 , mDirty(true) // to force initial update
-, mLITUpdateTimer(NULL)
+, mExtraDataUpdateTimer(new LLTimer())
 , mShowIcons(true)
 , mShowInfoBtn(p.show_info_btn)
 , mShowProfileBtn(p.show_profile_btn)
 , mShowSpeakingIndicator(p.show_speaking_indicator)
+, mShowExtraInformation(p.show_speaking_indicator) // May be overridden later.
 {
 	setCommitOnSelectionChange(true);
 
@@ -136,21 +134,26 @@ LLAvatarList::LLAvatarList(const Params& p)
 
 	if (mShowLastInteractionTime)
 	{
-		mLITUpdateTimer = new LLTimer();
-		mLITUpdateTimer->setTimerExpirySec(0); // zero to force initial update
-		mLITUpdateTimer->start();
+		mExtraDataUpdatePeriod = 5;
+		mExtraDataUpdateTimer->setTimerExpirySec(0); // zero to force initial update
+		mExtraDataUpdateTimer->start();
 	}
 }
 
 LLAvatarList::~LLAvatarList()
 {
-	delete mLITUpdateTimer;
+	delete mExtraDataUpdateTimer;
 }
 
 void LLAvatarList::setShowIcons(std::string param_name)
 {
 	mIconParamName= param_name;
 	mShowIcons = gSavedSettings.getBOOL(mIconParamName);
+}
+
+void LLAvatarList::setShowExtraInformation(bool show)
+{
+	mShowExtraInformation = show;
 }
 
 // virtual
@@ -164,10 +167,10 @@ void LLAvatarList::draw()
 	if (mDirty)
 		refresh();
 
-	if (mShowLastInteractionTime && mLITUpdateTimer->hasExpired())
+	if (mExtraDataUpdatePeriod && mExtraDataUpdateTimer->hasExpired())
 	{
-		updateLastInteractionTimes();
-		mLITUpdateTimer->setTimerExpirySec(LIT_UPDATE_PERIOD); // restart the timer
+		updateExtraData();
+		mExtraDataUpdateTimer->setTimerExpirySec(mExtraDataUpdatePeriod); // restart the timer
 	}
 }
 
@@ -361,6 +364,26 @@ boost::signals2::connection LLAvatarList::setItemDoubleClickCallback(const mouse
 	return mItemDoubleClickSignal.connect(cb);
 }
 
+boost::signals2::connection LLAvatarList::setExtraDataCallback(const extra_data_signal_t::slot_type& cb)
+{
+	return mExtraDataSignal.connect(cb);
+}
+
+void LLAvatarList::setExtraDataUpdatePeriod(F32 period)
+{
+	mExtraDataUpdatePeriod = period;
+	if(period > 0)
+	{
+		mExtraDataUpdateTimer->setTimerExpirySec(period);
+		mExtraDataUpdateTimer->start();
+	}
+	else
+	{
+		mExtraDataUpdateTimer->stop();
+	}
+
+}
+
 //virtual
 S32 LLAvatarList::notifyParent(const LLSD& info)
 {
@@ -378,7 +401,7 @@ void LLAvatarList::addNewItem(const LLUUID& id, const std::string& name, BOOL is
 	item->setName(name);
 	item->setAvatarId(id, mSessionID, mIgnoreOnlineStatus);
 	item->setOnline(mIgnoreOnlineStatus ? true : is_online);
-	item->showLastInteractionTime(mShowLastInteractionTime);
+	item->showExtraInformation(mShowExtraInformation);
 
 	item->setAvatarIconVisible(mShowIcons);
 	item->setShowInfoBtn(mShowInfoBtn);
@@ -448,6 +471,25 @@ void LLAvatarList::updateLastInteractionTimes()
 	}
 }
 
+void LLAvatarList::updateExtraData()
+{
+	if(mShowLastInteractionTime)
+	{
+		updateLastInteractionTimes();
+	}
+	else if(!mExtraDataSignal.empty())
+	{
+		std::vector<LLPanel*> items;
+		getItems(items);
+		
+		for( std::vector<LLPanel*>::const_iterator it = items.begin(); it != items.end(); it++)
+		{
+			LLAvatarListItem* item = static_cast<LLAvatarListItem*>(*it);
+			item->setExtraInformation(*mExtraDataSignal(item->getAvatarId()));
+		}
+	}
+}
+
 void LLAvatarList::onItemDoubleClicked(LLUICtrl* ctrl, S32 x, S32 y, MASK mask)
 {
 	mItemDoubleClickSignal(ctrl, x, y, mask);
@@ -509,7 +551,7 @@ BOOL LLAvalineListItem::postBuild()
 	if (rv)
 	{
 		setOnline(true);
-		showLastInteractionTime(false);
+		showExtraInformation(false);
 		setShowProfileBtn(false);
 		setShowInfoBtn(false);
 		mAvatarIcon->setValue("Avaline_Icon");

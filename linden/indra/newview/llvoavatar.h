@@ -733,6 +733,7 @@ public:
 	void	   		clearChat();
 	void	   		startTyping() { mTyping = TRUE; mTypingTimer.reset(); }
 	void			stopTyping() { mTyping = FALSE; }
+	bool			isTyping() { return mTyping; }
 private:
 	BOOL			mVisibleChat;
 

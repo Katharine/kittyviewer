@@ -65,10 +65,10 @@
      height="15"
      layout="topleft"
      left_pad="5"
-     right="-72"
-     name="last_interaction"
+     right="-77"
+     name="extra_information"
      text_color="LtGray_50"
-     value="0s"
+     value=""
      width="35" />
     <button
      follows="right"

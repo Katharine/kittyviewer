@@ -66,7 +66,7 @@ LLAvatarListItem::LLAvatarListItem(bool not_from_ui_factory/* = true*/)
 :	LLPanel(),
 	mAvatarIcon(NULL),
 	mAvatarName(NULL),
-	mLastInteractionTime(NULL),
+	mExtraInformation(NULL),
 	mSpeakingIndicator(NULL),
 	mInfoBtn(NULL),
 	mProfileBtn(NULL),
@@ -92,7 +92,7 @@ BOOL  LLAvatarListItem::postBuild()
 {
 	mAvatarIcon = getChild<LLAvatarIconCtrl>("avatar_icon");
 	mAvatarName = getChild<LLTextBox>("avatar_name");
-	mLastInteractionTime = getChild<LLTextBox>("last_interaction");
+	mExtraInformation = getChild<LLTextBox>("extra_information");
 	
 	mSpeakingIndicator = getChild<LLOutputMonitorCtrl>("speaking_indicator");
 	mInfoBtn = getChild<LLButton>("info_btn");
@@ -235,19 +235,30 @@ void LLAvatarListItem::setAvatarId(const LLUUID& id, const LLUUID& session_id, b
 	}
 }
 
-void LLAvatarListItem::showLastInteractionTime(bool show)
+void LLAvatarListItem::showExtraInformation(bool show)
 {
 	if (show)
 		return;
 
-	mLastInteractionTime->setVisible(false);
+	mExtraInformation->setVisible(false);
 	updateChildren();
 }
 
+void LLAvatarListItem::setExtraInformation(const std::string& information)
+{
+	S32 width = mExtraInformation->getDefaultFont()->getWidth(information);
+	LLRect new_size = mExtraInformation->getRect();
+	new_size.mLeft = new_size.mRight - width;
+	mExtraInformation->setRect(new_size);
+	mExtraInformation->setValue(information);
+}
+
+// This will overwrite any extra information otherwise being displayed
 void LLAvatarListItem::setLastInteractionTime(U32 secs_since)
 {
-	mLastInteractionTime->setValue(formatSeconds(secs_since));
+	setExtraInformation(formatSeconds(secs_since));
 }
+	
 
 void LLAvatarListItem::setShowInfoBtn(bool show)
 {
@@ -439,19 +450,19 @@ void LLAvatarListItem::initChildrenWidths(LLAvatarListItem* avatar_item)
 	//info btn width + padding
 	S32 info_btn_width = avatar_item->mProfileBtn->getRect().mLeft - avatar_item->mInfoBtn->getRect().mLeft;
 
-	// last interaction time textbox width + padding
-	S32 last_interaction_time_width = avatar_item->mInfoBtn->getRect().mLeft - avatar_item->mLastInteractionTime->getRect().mLeft;
+	//extra information padding only
+	S32 extra_information_padding = avatar_item->mInfoBtn->getRect().mLeft - avatar_item->mExtraInformation->getRect().mRight;
 
 	// icon width + padding
 	S32 icon_width = avatar_item->mAvatarName->getRect().mLeft - avatar_item->mAvatarIcon->getRect().mLeft;
 
 	sLeftPadding = avatar_item->mAvatarIcon->getRect().mLeft;
-	sRightNamePadding = avatar_item->mLastInteractionTime->getRect().mLeft - avatar_item->mAvatarName->getRect().mRight;
+	sRightNamePadding = avatar_item->mExtraInformation->getRect().mLeft - avatar_item->mAvatarName->getRect().mRight;
 
 	S32 index = ALIC_COUNT;
 	sChildrenWidths[--index] = icon_width;
 	sChildrenWidths[--index] = 0; // for avatar name we don't need its width, it will be calculated as "left available space"
-	sChildrenWidths[--index] = last_interaction_time_width;
+	sChildrenWidths[--index] = extra_information_padding;
 	sChildrenWidths[--index] = info_btn_width;
 	sChildrenWidths[--index] = profile_btn_width;
 	sChildrenWidths[--index] = speaking_indicator_width;
@@ -481,6 +492,11 @@ void LLAvatarListItem::updateChildren()
 		if (!control->getVisible()) continue;
 
 		S32 ctrl_width = sChildrenWidths[i]; // including space between current & left controls
+		// This one changes, so we can't cache it.
+		if(ALIC_EXTRA_INFORMATION == i)
+		{
+			ctrl_width += mExtraInformation->getRect().getWidth();
+		}
 
 		// decrease available for 
 		name_new_width -= ctrl_width;
@@ -545,8 +561,8 @@ LLView* LLAvatarListItem::getItemChildView(EAvatarListItemChildIndex child_view_
 	case ALIC_NAME:
 		child_view = mAvatarName;
 		break;
-	case ALIC_INTERACTION_TIME:
-		child_view = mLastInteractionTime;
+	case ALIC_EXTRA_INFORMATION:
+		child_view = mExtraInformation;
 		break;
 	case ALIC_SPEAKER_INDICATOR:
 		child_view = mSpeakingIndicator; 
