@@ -316,6 +316,7 @@ int LLAudioStreamManagerFMOD::startStream()
 
 	// Make sure the stream is set to 2D mode.
 	FSOUND_Stream_SetMode(mInternetStream, FSOUND_2D);
+	FSOUND_Stream_Net_SetMetadataCallback(mInternetStream, metadataCallback, this);
 
 	return FSOUND_Stream_PlayEx(FSOUND_FREE, mInternetStream, NULL, true);
 }
@@ -374,7 +375,7 @@ signed char F_CALLBACKAPI LLAudioStreamManagerFMOD::metadataCallback(char *name,
 	if(!strcmp("ARTIST", name))
 	{
 		self->mArtist = std::string(value);
-		self->mStreamingInterface->mMetadataSignal(self->mArtist, self->mTitle);
+		LL_INFOS("StreamTitles") << "Got new artist; waiting on new title." << LL_ENDL;
 		return true;
 	}
 
@@ -382,6 +383,7 @@ signed char F_CALLBACKAPI LLAudioStreamManagerFMOD::metadataCallback(char *name,
 	{
 		self->mTitle = std::string(value);
 		self->mStreamingInterface->mMetadataSignal(self->mArtist, self->mTitle);
+		LL_INFOS("StreamTitles") << "Sent metadata signal." << LL_ENDL;
 		return true;
 	}
 	return true;
