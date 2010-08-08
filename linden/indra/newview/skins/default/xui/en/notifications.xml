@@ -6382,7 +6382,8 @@ Mute everyone?
    name="KittyStreamMetadata"
    type="notifytip">
 Now Playing:
-[TITLE] - [ARTIST]
+[TITLE]
+[ARTIST]
   </notification>
 
   <notification
