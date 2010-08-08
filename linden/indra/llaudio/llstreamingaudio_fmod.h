@@ -43,6 +43,7 @@ class LLAudioStreamManagerFMOD;
 
 class LLStreamingAudio_FMOD : public LLStreamingAudioInterface
 {
+	friend class LLAudioStreamManagerFMOD;
  public:
 	LLStreamingAudio_FMOD();
 	/*virtual*/ ~LLStreamingAudio_FMOD();
@@ -55,6 +56,7 @@ class LLStreamingAudio_FMOD : public LLStreamingAudioInterface
 	/*virtual*/ void setGain(F32 vol);
 	/*virtual*/ F32 getGain();
 	/*virtual*/ std::string getURL();
+	/*virtual*/ metadata_signal_t* getMetadataSignal() { return &mMetadataSignal; }
 
 private:
 	LLAudioStreamManagerFMOD *mCurrentInternetStreamp;
@@ -63,6 +65,8 @@ private:
 
 	std::string mURL;
 	F32 mGain;
+
+	metadata_signal_t mMetadataSignal;
 };
 
 

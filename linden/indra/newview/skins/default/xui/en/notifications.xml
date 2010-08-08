@@ -6376,6 +6376,25 @@ Mute everyone?
     <unique/>
   </notification>
 
+<!-- [KITTY VIEWER] -->
+  <notification
+   icon="notifytip.tga"
+   name="KittyStreamMetadata"
+   type="notifytip">
+Now Playing:
+[TITLE]
+[ARTIST]
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="KittyStreamMetadataNoArtist"
+   type="notifytip">
+Now Playing:
+[TITLE]
+  </notification>
+<!-- [/KITTY VIEWER] -->
+
   <global name="UnsupportedCPU">
 - Your CPU speed does not meet the minimum requirements.
   </global>

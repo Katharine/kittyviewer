@@ -173,5 +173,24 @@
       <key>GrowlBody</key>
       <string>[MESSAGE]</string>
     </map>
+    <key>KittyStreamMetadata</key>
+    <map>
+      <key>GrowlName</key>
+      <string>Stream title/artist</string>
+      <key>GrowlTitle</key>
+      <string>Now Playing</string>
+      <key>GrowlBody</key>
+      <string>[TITLE]
+[ARTIST]</string>
+    </map>
+    <key>KittyStreamMetadataNoArtist</key>
+    <map>
+      <key>GrowlName</key>
+      <string>Stream title/artist</string>
+      <key>GrowlTitle</key>
+      <string>Now Playing</string>
+      <key>GrowlBody</key>
+      <string>[TITLE]</string>
+    </map>
   </map>
 </llsd>
