@@ -96,12 +96,13 @@ public:
 	void setHighlight(const std::string& highlight);
 	void setState(EItemState item_style);
 	void setAvatarId(const LLUUID& id, const LLUUID& session_id, bool ignore_status_changes = false, bool is_resident = true);
-	void setLastInteractionTime(U32 secs_since);
+	void setExtraInformation(const std::string& information);
 	//Show/hide profile/info btn, translating speaker indicator and avatar name coordinates accordingly
 	void setShowProfileBtn(bool show);
 	void setShowInfoBtn(bool show);
 	void showSpeakingIndicator(bool show);
-	void showLastInteractionTime(bool show);
+	void setLastInteractionTime(U32 secs_since);
+	void showExtraInformation(bool show);
 	void setAvatarIconVisible(bool visible);
 	
 	const LLUUID& getAvatarId() const;
@@ -139,7 +140,7 @@ private:
 		ALIC_SPEAKER_INDICATOR,
 		ALIC_PROFILE_BUTTON,
 		ALIC_INFO_BUTTON,
-		ALIC_INTERACTION_TIME,
+		ALIC_EXTRA_INFORMATION,
 		ALIC_NAME,
 		ALIC_ICON,
 		ALIC_COUNT,
@@ -174,7 +175,7 @@ private:
 	LLView* getItemChildView(EAvatarListItemChildIndex child_index);
 
 	LLTextBox* mAvatarName;
-	LLTextBox* mLastInteractionTime;
+	LLTextBox* mExtraInformation;
 	LLStyle::Params mAvatarNameStyle;
 	
 	LLButton* mInfoBtn;

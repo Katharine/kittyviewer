@@ -378,7 +378,7 @@ void LLAvatarList::addNewItem(const LLUUID& id, const std::string& name, BOOL is
 	item->setName(name);
 	item->setAvatarId(id, mSessionID, mIgnoreOnlineStatus);
 	item->setOnline(mIgnoreOnlineStatus ? true : is_online);
-	item->showLastInteractionTime(mShowLastInteractionTime);
+	item->showExtraInformation(mShowLastInteractionTime);
 
 	item->setAvatarIconVisible(mShowIcons);
 	item->setShowInfoBtn(mShowInfoBtn);
@@ -509,7 +509,7 @@ BOOL LLAvalineListItem::postBuild()
 	if (rv)
 	{
 		setOnline(true);
-		showLastInteractionTime(false);
+		showExtraInformation(false);
 		setShowProfileBtn(false);
 		setShowInfoBtn(false);
 		mAvatarIcon->setValue("Avaline_Icon");

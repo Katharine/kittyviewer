@@ -72,7 +72,7 @@ public:
 		if (rv)
 		{
 			setOnline(true);
-			showLastInteractionTime(false);
+			showExtraInformation(false);
 			setShowProfileBtn(false);
 			setShowInfoBtn(false);
 			mAvatarIcon->setValue("Avaline_Icon");
