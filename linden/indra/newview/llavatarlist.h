@@ -87,6 +87,7 @@ public:
 
 	void toggleIcons();
 	void setSpeakingIndicatorsVisible(bool visible);
+	void setShowExtraInformation(bool visible);
 	void sortByName();
 	void setShowIcons(std::string param_name);
 	bool getIconsVisible() const { return mShowIcons; }
@@ -123,6 +124,7 @@ private:
 
 	bool mIgnoreOnlineStatus;
 	bool mShowLastInteractionTime;
+	bool mShowExtraInformation;
 	bool mDirty;
 	bool mShowIcons;
 	bool mShowInfoBtn;

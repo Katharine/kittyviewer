@@ -125,6 +125,7 @@ LLAvatarList::LLAvatarList(const Params& p)
 , mShowInfoBtn(p.show_info_btn)
 , mShowProfileBtn(p.show_profile_btn)
 , mShowSpeakingIndicator(p.show_speaking_indicator)
+, mShowExtraInformation(p.show_speaking_indicator) // May be overridden later.
 {
 	setCommitOnSelectionChange(true);
 
@@ -148,6 +149,11 @@ void LLAvatarList::setShowIcons(std::string param_name)
 {
 	mIconParamName= param_name;
 	mShowIcons = gSavedSettings.getBOOL(mIconParamName);
+}
+
+void LLAvatarList::setShowExtraInformation(bool show)
+{
+	mShowExtraInformation = show;
 }
 
 // virtual
@@ -395,7 +401,7 @@ void LLAvatarList::addNewItem(const LLUUID& id, const std::string& name, BOOL is
 	item->setName(name);
 	item->setAvatarId(id, mSessionID, mIgnoreOnlineStatus);
 	item->setOnline(mIgnoreOnlineStatus ? true : is_online);
-	item->showExtraInformation(mShowLastInteractionTime);
+	item->showExtraInformation(mShowExtraInformation);
 
 	item->setAvatarIconVisible(mShowIcons);
 	item->setShowInfoBtn(mShowInfoBtn);
