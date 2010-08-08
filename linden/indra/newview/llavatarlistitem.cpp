@@ -246,6 +246,10 @@ void LLAvatarListItem::showExtraInformation(bool show)
 
 void LLAvatarListItem::setExtraInformation(const std::string& information)
 {
+	S32 width = mExtraInformation->getDefaultFont()->getWidth(information);
+	LLRect new_size = mExtraInformation->getRect();
+	new_size.mLeft = new_size.mRight - width;
+	mExtraInformation->setRect(new_size);
 	mExtraInformation->setValue(information);
 }
 
@@ -446,8 +450,8 @@ void LLAvatarListItem::initChildrenWidths(LLAvatarListItem* avatar_item)
 	//info btn width + padding
 	S32 info_btn_width = avatar_item->mProfileBtn->getRect().mLeft - avatar_item->mInfoBtn->getRect().mLeft;
 
-	// last interaction time textbox width + padding
-	S32 extra_information_width = avatar_item->mInfoBtn->getRect().mLeft - avatar_item->mExtraInformation->getRect().mLeft;
+	//extra information padding only
+	S32 extra_information_padding = avatar_item->mInfoBtn->getRect().mLeft - avatar_item->mExtraInformation->getRect().mRight;
 
 	// icon width + padding
 	S32 icon_width = avatar_item->mAvatarName->getRect().mLeft - avatar_item->mAvatarIcon->getRect().mLeft;
@@ -458,7 +462,7 @@ void LLAvatarListItem::initChildrenWidths(LLAvatarListItem* avatar_item)
 	S32 index = ALIC_COUNT;
 	sChildrenWidths[--index] = icon_width;
 	sChildrenWidths[--index] = 0; // for avatar name we don't need its width, it will be calculated as "left available space"
-	sChildrenWidths[--index] = extra_information_width;
+	sChildrenWidths[--index] = extra_information_padding;
 	sChildrenWidths[--index] = info_btn_width;
 	sChildrenWidths[--index] = profile_btn_width;
 	sChildrenWidths[--index] = speaking_indicator_width;
@@ -488,6 +492,11 @@ void LLAvatarListItem::updateChildren()
 		if (!control->getVisible()) continue;
 
 		S32 ctrl_width = sChildrenWidths[i]; // including space between current & left controls
+		// This one changes, so we can't cache it.
+		if(ALIC_EXTRA_INFORMATION == i)
+		{
+			ctrl_width += mExtraInformation->getRect().getWidth();
+		}
 
 		// decrease available for 
 		name_new_width -= ctrl_width;
