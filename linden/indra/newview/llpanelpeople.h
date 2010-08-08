@@ -62,6 +62,7 @@ public:
 
 	// internals
 	class Updater;
+	typedef std::map < LLUUID, LLVector3d > id_to_pos_map_t;
 
 private:
 
@@ -146,6 +147,8 @@ private:
 
 	void					onFriendListRefreshComplete(LLUICtrl*ctrl, const LLSD& param);
 
+	std::string			getAvatarInformation(const LLUUID& avatar);
+
 	void					setAccordionCollapsedByUser(LLUICtrl* acc_tab, bool collapsed);
 	void					setAccordionCollapsedByUser(const std::string& name, bool collapsed);
 	bool					isAccordionCollapsedByUser(LLUICtrl* acc_tab);
@@ -171,6 +174,8 @@ private:
 
 	std::string				mFilterSubString;
 	std::string				mFilterSubStringOrig;
+	
+	id_to_pos_map_t		mAvatarPositions;
 };
 
 #endif //LL_LLPANELPEOPLE_H

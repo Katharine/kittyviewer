@@ -64,6 +64,7 @@
 #include "llrecentpeople.h"
 #include "llviewercontrol.h"		// for gSavedSettings
 #include "llviewermenu.h"			// for gMenuHolder
+#include "llviewerobjectlist.h"	// for gObjectList
 #include "llvoiceclient.h"
 #include "llworld.h"
 #include "llspeakers.h"
@@ -132,27 +133,11 @@ protected:
 class LLAvatarItemDistanceComparator : public LLAvatarItemComparator
 {
 public:
-	typedef std::map < LLUUID, LLVector3d > id_to_pos_map_t;
 	LLAvatarItemDistanceComparator() {};
 
-	void updateAvatarsPositions(std::vector<LLVector3d>& positions, uuid_vec_t& uuids)
+	void updateAvatarsPositions(LLPanelPeople::id_to_pos_map_t positions)
 	{
-		std::vector<LLVector3d>::const_iterator
-			pos_it = positions.begin(),
-			pos_end = positions.end();
-
-		uuid_vec_t::const_iterator
-			id_it = uuids.begin(),
-			id_end = uuids.end();
-
-		LLAvatarItemDistanceComparator::id_to_pos_map_t pos_map;
-
-		mAvatarsPositions.clear();
-
-		for (;pos_it != pos_end && id_it != id_end; ++pos_it, ++id_it )
-		{
-			mAvatarsPositions[*id_it] = *pos_it;
-		}
+		mAvatarsPositions = positions;
 	};
 
 protected:
@@ -166,7 +151,7 @@ protected:
 		return dist1 < dist2;
 	}
 private:
-	id_to_pos_map_t mAvatarsPositions;
+	LLPanelPeople::id_to_pos_map_t mAvatarsPositions;
 };
 
 /** Comparator for comparing nearby avatar items by last spoken time */
@@ -517,6 +502,7 @@ BOOL LLPanelPeople::postBuild()
 	mNearbyList->setNoItemsMsg(getString("no_one_near"));
 	mNearbyList->setNoFilteredItemsMsg(getString("no_one_filtered_near"));
 	mNearbyList->setShowIcons("NearbyListShowIcons");
+	mNearbyList->setShowExtraInformation(true);
 
 	mRecentList = getChild<LLPanel>(RECENT_TAB_NAME)->getChild<LLAvatarList>("avatar_list");
 	mRecentList->setNoItemsCommentText(getString("no_recent_people"));
@@ -632,6 +618,7 @@ BOOL LLPanelPeople::postBuild()
 
 	mOnlineFriendList->setRefreshCompleteCallback(boost::bind(&LLPanelPeople::onFriendListRefreshComplete, this, _1, _2));
 	mAllFriendList->setRefreshCompleteCallback(boost::bind(&LLPanelPeople::onFriendListRefreshComplete, this, _1, _2));
+	mNearbyList->setExtraDataCallback(boost::bind(&LLPanelPeople::getAvatarInformation, this, _1));
 
 	return TRUE;
 }
@@ -723,11 +710,20 @@ void LLPanelPeople::updateNearbyList()
 		return;
 
 	std::vector<LLVector3d> positions;
-
 	LLWorld::getInstance()->getAvatars(&mNearbyList->getIDs(), &positions, gAgent.getPositionGlobal(), gSavedSettings.getF32("NearMeRange"));
+	
+	std::vector<LLVector3d>::const_iterator pos_it = positions.begin(), pos_end = positions.end();
+	uuid_vec_t::const_iterator id_it = mNearbyList->getIDs().begin(), id_end = mNearbyList->getIDs().end();
+	
+	mAvatarPositions.clear();
+	
+	for (;pos_it != pos_end && id_it != id_end; ++pos_it, ++id_it )
+	{
+		mAvatarPositions[*id_it] = *pos_it;
+	}
 	mNearbyList->setDirty();
 
-	DISTANCE_COMPARATOR.updateAvatarsPositions(positions, mNearbyList->getIDs());
+	DISTANCE_COMPARATOR.updateAvatarsPositions(mAvatarPositions);
 	LLActiveSpeakerMgr::instance().update(TRUE);
 }
 
@@ -962,6 +958,7 @@ void LLPanelPeople::onVisibilityChange(const LLSD& new_visibility)
 	{
 		// Don't update anything while we're invisible.
 		mNearbyListUpdater->setActive(FALSE);
+		mNearbyList->setExtraDataUpdatePeriod(0); // Disables
 	}
 	else
 	{
@@ -1026,6 +1023,7 @@ void LLPanelPeople::onTabSelected(const LLSD& param)
 {
 	std::string tab_name = getChild<LLPanel>(param.asString())->getName();
 	mNearbyListUpdater->setActive(tab_name == NEARBY_TAB_NAME);
+	mNearbyList->setExtraDataUpdatePeriod((tab_name == NEARBY_TAB_NAME) ? NEARBY_LIST_UPDATE_INTERVAL : 0);
 	updateButtons();
 
 	showFriendsAccordionsIfNeeded();
@@ -1509,4 +1507,10 @@ bool LLPanelPeople::isAccordionCollapsedByUser(const std::string& name)
 	return isAccordionCollapsedByUser(getChild<LLUICtrl>(name));
 }
 
+std::string LLPanelPeople::getAvatarInformation(const LLUUID& avatar)
+{
+	F32 distance = dist_vec(gAgent.getPositionGlobal(), mAvatarPositions[avatar]);
+	std::string output = llformat("%im", llround(distance));
+	return output;
+}
 // EOF
