@@ -328,7 +328,7 @@
      left="25"
      name="voice_chat_settings"
      width="200"
-     top="240">
+     top="225">
 	  Voice Chat Settings
     </text>
     <text
@@ -413,7 +413,7 @@
      name="device_settings_panel"
      class="panel_voice_device_settings"
      width="501"
-     top="285">
+     top="300">
       <panel.string
         name="default_text">
         Default
@@ -454,7 +454,7 @@
      left="165"
      max_chars="128"
      name="voice_input_device"
-     top_pad="-2"
+     top="7"
      width="200" />
    <text
      type="string"
@@ -535,7 +535,7 @@
              left="80"
              name="speaker_icon"
              mouse_opaque="false"
-             top_pad="-8"
+             top_pad="5"
              visible="true"
              width="22" />
     <text
@@ -557,7 +557,7 @@
      left="165"
      max_chars="128"
      name="voice_output_device"
-     top_pad="-2"
+     top_pad="-19"
      width="200" />
     </panel>
     </panel>
