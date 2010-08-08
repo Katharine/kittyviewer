@@ -203,6 +203,7 @@
 #endif
 
 #include "kvgrowlmanager.h"
+#include "kvstreamtitles.h"
 
 //
 // exported globals
@@ -2681,6 +2682,9 @@ void LLStartUp::multimediaInit()
 
 	// LLViewerMedia::initClass();
 	LLViewerParcelMedia::initClass();
+	
+	// Stream title display
+	new KVStreamTitles();
 }
 
 void LLStartUp::fontInit()

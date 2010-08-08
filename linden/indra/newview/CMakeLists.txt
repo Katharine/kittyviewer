@@ -576,6 +576,7 @@ set(viewer_SOURCE_FILES
     pipeline.cpp
 # [KITTY VIEWER]
     kvgrowlmanager.cpp
+    kvstreamtitles.cpp
 # [/KITTY VIEWER]
     )
 
@@ -1108,6 +1109,7 @@ set(viewer_HEADER_FILES
 # [KITTY VIEWER]
     kvgrowlmanager.h
     kvgrowlnotifier.h
+    kvstreamtitles.h
 # [/KITTY VIEWER]
     )
 
