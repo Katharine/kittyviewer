@@ -37,10 +37,14 @@
 
 #include "stdtypes.h" // from llcommon
 
-// Entirely abstract.  Based exactly on the historic API.
+#include <boost/signals2.hpp>
+
+// Based on the historic API.
 class LLStreamingAudioInterface
 {
  public:
+	typedef boost::signals2::signal<void(const std::string&, const std::string&)> metadata_signal_t;
+
 	virtual ~LLStreamingAudioInterface() {}
 
 	virtual void start(const std::string& url) = 0;
@@ -52,6 +56,7 @@ class LLStreamingAudioInterface
 	virtual void setGain(F32 vol) = 0;
 	virtual F32 getGain() = 0;
 	virtual std::string getURL() = 0;
+	virtual metadata_signal_t* getMetadataSignal() { return NULL; } // So as to avoid forcing all streamers to implement.
 };
 
 #endif // LL_STREAMINGAUDIO_H
