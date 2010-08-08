@@ -64,6 +64,8 @@ public:
 						show_speaking_indicator;
 		Params();
 	};
+	
+	typedef boost::signals2::signal<std::string(const LLUUID&)> extra_data_signal_t;
 
 	LLAvatarList(const Params&);
 	virtual	~LLAvatarList();
@@ -97,6 +99,9 @@ public:
 	boost::signals2::connection setRefreshCompleteCallback(const commit_signal_t::slot_type& cb);
 
 	boost::signals2::connection setItemDoubleClickCallback(const mouse_signal_t::slot_type& cb);
+	
+	boost::signals2::connection setExtraDataCallback(const extra_data_signal_t::slot_type& cb);
+	void setExtraDataUpdatePeriod(F32 period);
 
 	virtual S32 notifyParent(const LLSD& info);
 
@@ -111,6 +116,7 @@ protected:
 		uuid_vec_t& vadded,
 		uuid_vec_t& vremoved);
 	void updateLastInteractionTimes();
+	void updateExtraData();
 	void onItemDoubleClicked(LLUICtrl* ctrl, S32 x, S32 y, MASK mask);
 
 private:
@@ -123,7 +129,9 @@ private:
 	bool mShowProfileBtn;
 	bool mShowSpeakingIndicator;
 
-	LLTimer*				mLITUpdateTimer; // last interaction time update timer
+	F32 mExtraDataUpdatePeriod;
+
+	LLTimer*				mExtraDataUpdateTimer;
 	std::string				mIconParamName;
 	std::string				mNameFilter;
 	uuid_vec_t				mIDs;
@@ -133,6 +141,7 @@ private:
 
 	commit_signal_t mRefreshCompleteSignal;
 	mouse_signal_t mItemDoubleClickSignal;
+	extra_data_signal_t mExtraDataSignal;
 };
 
 /** Abstract comparator for avatar items */
