@@ -65,6 +65,7 @@
 #include "llviewercontrol.h"		// for gSavedSettings
 #include "llviewermenu.h"			// for gMenuHolder
 #include "llviewerobjectlist.h"	// for gObjectList
+#include "llvoavatar.h"
 #include "llvoiceclient.h"
 #include "llworld.h"
 #include "llspeakers.h"
@@ -1510,7 +1511,12 @@ bool LLPanelPeople::isAccordionCollapsedByUser(const std::string& name)
 std::string LLPanelPeople::getAvatarInformation(const LLUUID& avatar)
 {
 	F32 distance = dist_vec(gAgent.getPositionGlobal(), mAvatarPositions[avatar]);
-	std::string output = llformat("%im", llround(distance));
+	LLVOAvatar* av = (LLVOAvatar*)gObjectList.findObject(avatar);
+	std::string output = llformat("%i m", llround(distance));
+	if(av && av->isTyping())
+	{
+		output += "; typing";
+	}
 	return output;
 }
 // EOF
