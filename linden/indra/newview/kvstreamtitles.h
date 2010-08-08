@@ -31,12 +31,19 @@
 #define KV_KVSTREAMTITLES_H
 
 #include "llevents.h"
+#include "lleventtimer.h"
 
-class KVStreamTitles : LLEventTrackable
+class KVStreamTitles : public LLEventTimer, public LLEventTrackable
 {
 public:
 	KVStreamTitles();
-	static void onStreamMetadata(const std::string& artist, const std::string& title);
+	/* virtual */ BOOL tick();
+	void onStreamMetadata(const std::string& artist, const std::string& title);
+
+private:
+	bool mNewData;
+	std::string mArtist;
+	std::string mTitle;
 };
 
 #endif // KV_KVSTREAMTITLES_H

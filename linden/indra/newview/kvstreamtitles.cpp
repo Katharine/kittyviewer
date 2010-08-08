@@ -38,7 +38,9 @@
 #include "llnotificationsutil.h"
 #include "llviewercontrol.h"
 
-KVStreamTitles::KVStreamTitles()
+#include <boost/bind.hpp>
+
+KVStreamTitles::KVStreamTitles() : LLEventTimer(1.0)
 {
 	if(!gAudiop)
 	{
@@ -54,29 +56,42 @@ KVStreamTitles::KVStreamTitles()
 		return;
 	}
 	LL_INFOS("StreamTitles") << "Stream titles initialised without incident." << LL_ENDL;
-	gAudiop->getStreamingAudioImpl()->getMetadataSignal()->connect(&onStreamMetadata);
+	gAudiop->getStreamingAudioImpl()->getMetadataSignal()->connect(boost::bind(&KVStreamTitles::onStreamMetadata, this, _1, _2));
 }
 
-//static
+// We have to poll this, because if we just send the notification from the metadata callback, SL eventually tries to
+// perform OpenGL operations from the audio streaming thread and promptly crashes.
+// There's probably a better solution to this, but...
+BOOL KVStreamTitles::tick()
+{
+	if(!mNewData)
+		return false;
+	mNewData = false;
+
+	LLSD args;
+	args["TITLE"] = mTitle;
+	if(mArtist.length() > 0)
+	{
+		args["ARTIST"] = mArtist;
+		LLNotificationsUtil::add("KittyStreamMetadata", args);
+	}
+	else
+	{
+		LLNotificationsUtil::add("KittyStreamMetadataNoArtist", args);
+	}
+	return false;
+}
+
 void KVStreamTitles::onStreamMetadata(const std::string& artist, const std::string& title)
 {
 	if(title.length() == 0)
 		return;
-	if(LLStartUp::getStartupState() < STATE_STARTED)
-		return;
+
 	LL_INFOS("StreamTitles") << "Got stream metadata; now playing '" << title << "' by '" << artist << "'." << LL_ENDL;
 	if(gSavedSettings.getBOOL("KittyShowStreamMetadata"))
 	{
-		LLSD args;
-		args["TITLE"] = title;
-		if(artist.length() > 0)
-		{
-			args["ARTIST"] = artist;
-			LLNotificationsUtil::add("KittyStreamMetadata", args);
-		}
-		else
-		{
-			LLNotificationsUtil::add("KittyStreamMetadataNoArtist", args);
-		}
+		mNewData = true;
+		mArtist = artist;
+		mTitle = title;
 	}
 }
