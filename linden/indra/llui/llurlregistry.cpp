@@ -50,6 +50,7 @@ LLUrlRegistry::LLUrlRegistry()
 	registerUrl(new LLUrlEntrySLURL());
 	registerUrl(new LLUrlEntryHTTP());
 	registerUrl(new LLUrlEntryHTTPLabel());
+	registerUrl(new LLUrlEntryJira());
 	registerUrl(new LLUrlEntryAgent());
 	registerUrl(new LLUrlEntryGroup());
 	registerUrl(new LLUrlEntryParcel());
@@ -138,7 +139,12 @@ static bool stringHasUrl(const std::string &text)
 			text.find(".edu") != std::string::npos ||
 			text.find(".org") != std::string::npos ||
 			text.find("<nolink>") != std::string::npos ||
-			text.find("<icon") != std::string::npos);
+			text.find("<icon") != std::string::npos ||
+			text.find("VWR-") != std::string::npos ||
+			text.find("SVC-") != std::string::npos ||
+			text.find("SNOW-") != std::string::npos ||
+			text.find("WEB-") != std::string::npos || 
+			text.find("MISC-") != std::string::npos);
 }
 
 bool LLUrlRegistry::findUrl(const std::string &text, LLUrlMatch &match, const LLUrlLabelCallback &cb)

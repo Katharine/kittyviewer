@@ -313,5 +313,13 @@ public:
 	/*virtual*/ std::string getIcon(const std::string &url);
 };
 
-
+///
+/// LLUrlEntryJira describes a PJIRA link (VWR-, SVC-, etc.)
+///
+class LLUrlEntryJira : public LLUrlEntryBase
+{
+public:
+	LLUrlEntryJira();
+	/* virtual */ std::string getUrl(const std::string &string) const;
+};
 #endif

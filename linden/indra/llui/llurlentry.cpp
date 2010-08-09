@@ -824,3 +824,16 @@ std::string LLUrlEntryIcon::getIcon(const std::string &url)
 	LLStringUtil::trim(mIcon);
 	return mIcon;
 }
+
+//
+// LLUrlEntryJira describes a PJIRA link (VWR-, SVC-, etc.)
+//
+LLUrlEntryJira::LLUrlEntryJira()
+{
+	mPattern = boost::regex("(VWR|SVC|WEB|MISC|SNOW)-\\d+", boost::regex::perl|boost::regex::icase);
+}
+
+std::string LLUrlEntryJira::getUrl(const std::string &string) const
+{
+	return "https://jira.secondlife.com/browse/" + string;
+}
