@@ -40,6 +40,7 @@
 
 #include "llcompilequeue.h"
 #include "llcallfloater.h"
+#include "kvflickrauthfloater.h"
 #include "llfloaterabout.h"
 #include "llfloateranimpreview.h"
 #include "llfloaterauction.h"
@@ -163,6 +164,7 @@ void LLViewerFloaterReg::registerFloaters()
 
 	LLFloaterReg::add("event", "floater_event.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterEvent>);
 	
+	LLFloaterReg::add("flickr_auth", "floater_flickr_auth.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<KVFlickrAuthFloater>);
 	LLFloaterReg::add("font_test", "floater_font_test.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterFontTest>);
 
 	LLFloaterReg::add("gestures", "floater_gesture.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterGesture>);
