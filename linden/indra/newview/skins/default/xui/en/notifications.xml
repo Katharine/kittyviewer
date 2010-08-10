@@ -6402,6 +6402,36 @@ You must authenticate [APP_NAME] before you can upload images to Flickr. Please 
 
 (If you have already authorised [APP_NAME] and are still logged in, this process may be automatic)
   </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrHTTPFail"
+   type="alertmodal">
+Communication with Flickr failed. We don't know why.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrTokenRejected"
+   type="alertmodal">
+Flickr rejected your authentication token. This is probably because you revoked [APP_NAME]'s permissions. Please grant permission and try again.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrGenericFail"
+   type="alertmodal">
+Communication with Flickr failed ([CODE]):
+
+[ERROR]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrUploadCancelledAuthRejected"
+   type="notifytip">
+The upload was cancelled because you did not grant [APP_NAME] permission to access your Flickr account.
+  </notification>
 <!-- [/KITTY VIEWER] -->
 
   <global name="UnsupportedCPU">

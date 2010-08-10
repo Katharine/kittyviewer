@@ -10,6 +10,10 @@
  help_topic="flickr_uploader"
  title="UPLOAD TO FLICKR"
  width="450">
+    <floater.string
+     name="no_account">
+        (not authorised)
+    </floater.string>
     <text
      type="string"
      length="1"
@@ -48,7 +52,6 @@
      left_delta="108"
      name="tags_form"
      top_delta="-4"
-     value="&quot;Second Life&quot;"
      width="150" />
     <text
      type="string"
@@ -69,6 +72,7 @@
      left_delta="108"
      name="rating_combo"
      top_delta="-4"
+     value="2"
      width="105">
         <icons_combo_box.drop_down_button
          image_overlay="Parcel_M_Light"
@@ -176,5 +180,6 @@
      left_delta="-106"
      name="upload_btn"
      top_delta="0"
+     enabled="false"
      width="100" />
 </floater>

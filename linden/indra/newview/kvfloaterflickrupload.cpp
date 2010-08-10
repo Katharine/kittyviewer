@@ -31,23 +31,19 @@
 
 #include "kvfloaterflickrupload.h"
 
-#include "llgl.h"
-
-#include "llui.h"
-#include "lllineeditor.h"
-#include "llbutton.h"
-#include "lltexteditor.h"
 #include "llfloaterreg.h"
-#include "llnotificationsutil.h"
-#include "llviewercontrol.h"
-#include "llviewernetwork.h"
-#include "lluictrlfactory.h"
-#include "lluploaddialog.h"
-#include "llviewerregion.h"
-
+#include "llgl.h"
 #include "llimage.h"
+#include "llnotificationsutil.h"
+#include "llui.h"
+#include "lluploaddialog.h"
+#include "llviewercontrol.h"
 #include "llviewertexture.h"
-#include "llagentui.h"
+
+#include "kvflickr.h"
+#include "kvfloaterflickrauth.h"
+
+#include <boost/bind.hpp>
 
 KVFloaterFlickrUpload::KVFloaterFlickrUpload(const LLSD& key) : LLFloater(key),
 mCompressedImage(NULL),
@@ -58,6 +54,7 @@ mViewerImage(NULL)
 KVFloaterFlickrUpload::~KVFloaterFlickrUpload()
 {
 	mCompressedImage = NULL;
+	mViewerImage = NULL;
 }
 
 // static
@@ -73,6 +70,97 @@ KVFloaterFlickrUpload* KVFloaterFlickrUpload::showFromSnapshot(LLImageFormatted 
 	instance->mPosTakenGlobal = pos_taken_global;
 	
 	return instance;
+}
+
+BOOL KVFloaterFlickrUpload::postBuild()
+{
+	// Set the various UI fields to their default values.
+	childSetValue("rating_combo", gSavedSettings.getLLSD("KittyFlickrLastRating"));
+	childSetValue("tags_form", gSavedSettings.getLLSD("KittyFlickrLastTags"));
+	childSetValue("show_position_check", gSavedSettings.getLLSD("KittyFlickrShowPosition"));
+
+	// Connect the buttons up
+	childSetAction("cancel_btn", onClickCancel, this);
+	childSetAction("upload_btn", onClickUpload, this);
+
+	// Check that we actually can do an upload.
+	LLSD query;
+	query["auth_token"] = gSavedPerAccountSettings.getLLSD("KittyFlickrToken");
+	KVFlickrRequest::request("flickr.auth.checkToken", query, boost::bind(&KVFloaterFlickrUpload::confirmToken, this, _1, _2));
+
+	return true;
+}
+
+void KVFloaterFlickrUpload::confirmToken(bool success, const LLSD &response)
+{
+	if(!success)
+	{
+		LLNotificationsUtil::add("KittyFlickrHTTPFail");
+		closeFloater(false);
+		return;
+	}
+	if(response["stat"].asString() == "ok")
+	{
+		// Just in case the username changed. This can happen.
+		std::string username = response["auth"]["user"]["username"];
+		gSavedPerAccountSettings.setString("KittyFlickrUsername", username);
+		childSetValue("account_name", username);
+		childSetEnabled("upload_btn", true);
+	}
+	else
+	{
+		// Uh oh.
+		if(response["code"].asInteger() == 98) // Invalid auth token
+		{
+			// Mark the account as invalid
+			childSetValue("account_name", getString("no_account"));
+			// Need to authenticate.
+			gSavedPerAccountSettings.setString("KittyFlickrToken", "");
+			gSavedPerAccountSettings.setString("KittyFlickrUsername", "");
+			gSavedPerAccountSettings.setString("KittyFlickrNSID", "");
+			KVFloaterFlickrAuth *floater = KVFloaterFlickrAuth::showFloater(boost::bind(&KVFloaterFlickrUpload::authCallback, this, _1));
+			// Link it to us to protect it from freeze frame mode, if need be.
+			if(floater && !gSavedSettings.getBOOL("CloseSnapshotOnKeep"))
+			{
+				gFloaterView->removeChild(floater);
+				addChild(floater);
+			}
+			LLNotificationsUtil::add("KittyFlickrTokenRejected");
+		}
+		else
+		{
+			LLSD args;
+			args["CODE"] = response["code"];
+			args["ERROR"] = response["message"];
+			LLNotificationsUtil::add("KittyFlickrGenericFail", args);
+		}
+	}
+}
+
+void KVFloaterFlickrUpload::authCallback(bool authorised)
+{
+	if(authorised)
+	{
+		childSetValue("account_name", gSavedPerAccountSettings.getString("KittyFlickrUsername"));
+		childSetEnabled("upload_btn", true);
+	}
+	else
+	{
+		LLNotificationsUtil::add("KittyFlickrUploadCancelledAuthRejected");
+		closeFloater(false);
+	}
+}
+
+void KVFloaterFlickrUpload::saveSettings()
+{
+	gSavedSettings.setS32("KittyFlickrLastRating", childGetValue("rating_combo"));
+	gSavedSettings.setString("KittyFlickrLastTags", childGetValue("tags_form"));
+	gSavedSettings.setBOOL("KittyFlickrShowPosition", childGetValue("show_position_check"));
+}
+
+void KVFloaterFlickrUpload::uploadSnapshot()
+{
+	// Meep.
 }
 
 // This function stolen from LLFloaterPostcard
@@ -126,4 +214,25 @@ void KVFloaterFlickrUpload::draw()
 			glMatrixMode(GL_MODELVIEW);
 		}
 	}
+}
+
+//static
+void KVFloaterFlickrUpload::onClickCancel(void* data)
+{
+	if(data)
+	{
+		KVFloaterFlickrUpload *self = (KVFloaterFlickrUpload*)data;
+		self->closeFloater(false);
+	}
+}
+
+//static
+void KVFloaterFlickrUpload::onClickUpload(void* data)
+{
+	if(!data)
+		return;
+	KVFloaterFlickrUpload *self = (KVFloaterFlickrUpload*)data;
+	self->uploadSnapshot();
+	self->saveSettings();
+	self->closeFloater(false);
 }

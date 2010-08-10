@@ -43,8 +43,17 @@ class KVFloaterFlickrUpload : public LLFloater
 public:
 	KVFloaterFlickrUpload(const LLSD& key);
 	~KVFloaterFlickrUpload();
-	void draw();
 
+	BOOL postBuild();
+	void draw();
+	void saveSettings();
+	void uploadSnapshot();
+
+	void confirmToken(bool success, const LLSD &response);
+	void authCallback(bool authorised);
+
+	static void onClickCancel(void* data);
+	static void onClickUpload(void* data);
 	static KVFloaterFlickrUpload* showFromSnapshot(LLImageFormatted *compressed, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global);
 
 private:
