@@ -6393,6 +6393,15 @@ Now Playing:
 Now Playing:
 [TITLE]
   </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrNeedAuth"
+   type="alertmodal">
+You must authenticate [APP_NAME] before you can upload images to Flickr. Please login in and authorise [APP_NAME], then select "Upload to Flickr" again.
+
+(If you have already authorised [APP_NAME] and are still logged in, this process may be automatic)
+  </notification>
 <!-- [/KITTY VIEWER] -->
 
   <global name="UnsupportedCPU">
