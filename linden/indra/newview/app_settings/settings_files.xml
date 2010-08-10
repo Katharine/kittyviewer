@@ -95,7 +95,7 @@
             <key>PerAccount</key>
             <map>
               <key>Name</key>
-              <string>settings_per_account.xml</string>
+              <string>settings_per_account_kittyviewer.xml</string>
               <key>NameFromSetting</key>
               <string>PerAccountSettingsFile</string>
             </map>

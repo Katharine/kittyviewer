@@ -844,10 +844,10 @@ bool idle_startup()
 		LLFile::mkdir(gDirUtilp->getLindenUserDir());
 
 		// Set PerAccountSettingsFile to the default value.
-		std::string per_account_settings_file = LLAppViewer::instance()->getSettingsFilename("Default", "PerAccount");
+		std::string per_account_settings_file = LLAppViewer::instance()->getSettingsFilename("Account", "PerAccount");
 		gSavedSettings.setString("PerAccountSettingsFile",
 			gDirUtilp->getExpandedFilename(LL_PATH_PER_SL_ACCOUNT, 
-				LLAppViewer::instance()->getSettingsFilename("Default", "PerAccount")));
+				LLAppViewer::instance()->getSettingsFilename("Account", "PerAccount")));
 
 		// Note: can't store warnings files per account because some come up before login
 		
