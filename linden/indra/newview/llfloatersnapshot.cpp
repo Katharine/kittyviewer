@@ -67,6 +67,7 @@
 #include "llagentui.h"
 
 #include "kvfloaterflickrauth.h"
+#include "kvfloaterflickrupload.h"
 
 // Linden library includes
 #include "llfontgl.h"
@@ -171,6 +172,7 @@ public:
 	void updateSnapshot(BOOL new_snapshot, BOOL new_thumbnail = FALSE, F32 delay = 0.f);
 	void saveWeb();
 	LLFloaterPostcard* savePostcard();
+	KVFloaterFlickrUpload* uploadToFlickr();
 	void saveTexture();
 	BOOL saveLocal();
 
@@ -977,6 +979,24 @@ LLFloaterPostcard* LLSnapshotLivePreview::savePostcard()
 	return floater;
 }
 
+KVFloaterFlickrUpload* LLSnapshotLivePreview::uploadToFlickr()
+{	
+	// calculate and pass in image scale in case image data only use portion
+	// of viewerimage buffer
+	LLVector2 image_scale(1.f, 1.f);
+	if (!isImageScaled())
+	{
+		image_scale.setVec(llmin(1.f, (F32)mWidth[mCurImageIndex] / (F32)getCurrentImage()->getWidth()), llmin(1.f, (F32)mHeight[mCurImageIndex] / (F32)getCurrentImage()->getHeight()));
+	}
+
+	KVFloaterFlickrUpload* floater = KVFloaterFlickrUpload::showFromSnapshot(mFormattedImage, mViewerImage[mCurImageIndex], image_scale, mPosTakenGlobal);
+	mFormattedImage = NULL;
+	mDataSize = 0;
+	updateSnapshot(FALSE, FALSE);
+
+	return floater;
+}
+
 void LLSnapshotLivePreview::saveTexture()
 {
 	// gen a new uuid for this asset
@@ -1511,11 +1531,10 @@ void LLFloaterSnapshot::Impl::onClickKeep(void* data)
 	{
 		switch (previewp->getSnapshotType())
 		{
-		  case LLSnapshotLivePreview::SNAPSHOT_WEB:
-			previewp->saveWeb();
-			break;
-
-		  case LLSnapshotLivePreview::SNAPSHOT_POSTCARD:
+			case LLSnapshotLivePreview::SNAPSHOT_WEB:
+				previewp->saveWeb();
+				break;
+			case LLSnapshotLivePreview::SNAPSHOT_POSTCARD:
 			{
 				LLFloaterPostcard* floater = previewp->savePostcard();
 				// if still in snapshot mode, put postcard floater in snapshot floaterview
@@ -1527,18 +1546,26 @@ void LLFloaterSnapshot::Impl::onClickKeep(void* data)
 					view->addDependentFloater(floater, FALSE);
 				}
 			}
-			break;
-
-		  case LLSnapshotLivePreview::SNAPSHOT_TEXTURE:
-			previewp->saveTexture();
-			break;
-
-		  case LLSnapshotLivePreview::SNAPSHOT_LOCAL:
-			previewp->saveLocal();
-			break;
-
-		  default:
-			break;
+				break;
+			case LLSnapshotLivePreview::SNAPSHOT_FLICKR:
+			{
+				KVFloaterFlickrUpload* floater = previewp->uploadToFlickr();
+				if (floater && !gSavedSettings.getBOOL("CloseSnapshotOnKeep"))
+				{
+					gFloaterView->removeChild(floater);
+					gSnapshotFloaterView->addChild(floater);
+					view->addDependentFloater(floater, FALSE);
+				}
+			}
+				break;
+			case LLSnapshotLivePreview::SNAPSHOT_TEXTURE:
+				previewp->saveTexture();
+				break;
+			case LLSnapshotLivePreview::SNAPSHOT_LOCAL:
+				previewp->saveLocal();
+				break;
+			default:
+				break;
 		}
 
 		if (gSavedSettings.getBOOL("CloseSnapshotOnKeep"))
