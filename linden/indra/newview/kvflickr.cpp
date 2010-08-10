@@ -30,10 +30,11 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llbufferstream.h"
-#include "lluri.h"
-#include "llmd5.h"
 #include "llhttpclient.h"
-#include "jsoncpp/reader.h"
+#include "llmd5.h"
+#include "llsd.h"
+#include "llsdserialize.h"
+#include "lluri.h"
 
 #include "kvflickr.h"
 
@@ -82,51 +83,6 @@ std::string KVFlickrRequest::getSignatureForCall(const LLSD& parameters)
 	return std::string(hex_hash);
 }
 
-void JsonToLLSD(const Json::Value &root, LLSD &output)
-{
-	if(root.isObject())
-	{
-		Json::Value::Members keys = root.getMemberNames();
-		for(Json::Value::Members::const_iterator itr = keys.begin(); itr != keys.end(); ++itr)
-		{
-			LLSD elem;
-			JsonToLLSD(root[*itr], elem);
-			output[*itr] = elem;
-		}
-	}
-	else if(root.isArray())
-	{
-		for(Json::Value::const_iterator itr = root.begin(); itr != root.end(); ++itr)
-		{
-			LLSD elem;
-			JsonToLLSD(*itr, elem);
-			output.append(elem);
-		}
-	}
-	else
-	{
-		switch(root.type())
-		{
-			case Json::intValue:
-				output = root.asInt();
-				break;
-			case Json::realValue:
-			case Json::uintValue:
-				output = root.asDouble();
-				break;
-			case Json::stringValue:
-				output = root.asString();
-				break;
-			case Json::booleanValue:
-				output = root.asBool();
-			case Json::nullValue:
-				output = NULL;
-			default:
-				break;
-		}
-	}
-}
-
 KVFlickrResponse::KVFlickrResponse(KVFlickrResponseCallback &callback) : 
 	mCallback(callback)
 {
@@ -138,25 +94,17 @@ void KVFlickrResponse::completedRaw(
 							   const LLChannelDescriptors& channels,
 							   const LLIOPipe::buffer_ptr_t& buffer)
 {
+	LLSD response;
 	LLBufferStream istr(channels, buffer.get());
-	std::stringstream strstrm;
-	strstrm << istr.rdbuf();
-	std::string result = std::string(strstrm.str());
-	Json::Value root;
-	Json::Reader reader;
-
-	bool success = reader.parse(result, root);
-	if(!success)
+	LLPointer<LLSDParser> parser = new LLSDNotationParser();
+	if(parser->parse(istr, response, LLSDSerialize::SIZE_UNLIMITED) == LLSDParser::PARSE_FAILURE)
 	{
+		LL_WARNS("FlickrAPI") << "Got invalid JSON." << LL_ENDL;
 		mCallback(false, LLSD());
-		return;
 	}
 	else
 	{
-		LL_INFOS("FlickrAPI") << "Got response string: " << result << LL_ENDL;
-		LLSD response;
-		JsonToLLSD(root, response);
-		LL_INFOS("FlickrAPI") << "As LLSD: " << response << LL_ENDL;
+		LL_INFOS("FlickrAPI") << "Got good response: " << response << LL_ENDL;
 		mCallback(isGoodStatus(status), response);
 	}
 }
