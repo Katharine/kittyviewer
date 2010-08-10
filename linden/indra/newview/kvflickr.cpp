@@ -29,10 +29,37 @@
 
 #include "llviewerprecompiledheaders.h"
 
+#include "llbufferstream.h"
 #include "lluri.h"
 #include "llmd5.h"
+#include "llhttpclient.h"
+#include "jsoncpp/reader.h"
 
 #include "kvflickr.h"
+
+class KVFlickrResponse : public LLHTTPClient::Responder
+{
+public:
+	KVFlickrResponse(KVFlickrResponseCallback &callback);
+	/* virtual */ void completedRaw(
+									U32 status,
+									const std::string& reason,
+									const LLChannelDescriptors& channels,
+									const LLIOPipe::buffer_ptr_t& buffer);
+private:
+	KVFlickrResponseCallback mCallback;
+};
+
+void KVFlickrRequest::request(const std::string& method, const LLSD& args, KVFlickrResponseCallback callback) 
+{
+	LLSD params(args);
+	params["format"] = "json";
+	params["method"] = method;
+	params["api_key"] = FLICKR_API_KEY;
+	params["nojsoncallback"] = 1;
+	params["api_sig"] = getSignatureForCall(params); // This must be the last one set.
+	LLHTTPClient::get("http://flickr.com/services/rest/", params, new KVFlickrResponse(callback));
+}
 
 //static
 std::string KVFlickrRequest::getSignatureForCall(const LLSD& parameters)
@@ -54,3 +81,83 @@ std::string KVFlickrRequest::getSignatureForCall(const LLSD& parameters)
 	hashed.hex_digest(hex_hash);
 	return std::string(hex_hash);
 }
+
+void JsonToLLSD(const Json::Value &root, LLSD &output)
+{
+	if(root.isObject())
+	{
+		Json::Value::Members keys = root.getMemberNames();
+		for(Json::Value::Members::const_iterator itr = keys.begin(); itr != keys.end(); ++itr)
+		{
+			LLSD elem;
+			JsonToLLSD(root[*itr], elem);
+			output[*itr] = elem;
+		}
+	}
+	else if(root.isArray())
+	{
+		for(Json::Value::const_iterator itr = root.begin(); itr != root.end(); ++itr)
+		{
+			LLSD elem;
+			JsonToLLSD(*itr, elem);
+			output.append(elem);
+		}
+	}
+	else
+	{
+		switch(root.type())
+		{
+			case Json::intValue:
+				output = root.asInt();
+				break;
+			case Json::realValue:
+			case Json::uintValue:
+				output = root.asDouble();
+				break;
+			case Json::stringValue:
+				output = root.asString();
+				break;
+			case Json::booleanValue:
+				output = root.asBool();
+			case Json::nullValue:
+				output = NULL;
+			default:
+				break;
+		}
+	}
+}
+
+KVFlickrResponse::KVFlickrResponse(KVFlickrResponseCallback &callback) : 
+	mCallback(callback)
+{
+}
+
+void KVFlickrResponse::completedRaw(
+							   U32 status,
+							   const std::string& reason,
+							   const LLChannelDescriptors& channels,
+							   const LLIOPipe::buffer_ptr_t& buffer)
+{
+	LLBufferStream istr(channels, buffer.get());
+	std::stringstream strstrm;
+	strstrm << istr.rdbuf();
+	std::string result = std::string(strstrm.str());
+	Json::Value root;
+	Json::Reader reader;
+
+	bool success = reader.parse(result, root);
+	if(!success)
+	{
+		mCallback(false, LLSD());
+		return;
+	}
+	else
+	{
+		LL_INFOS("FlickrAPI") << "Got response string: " << result << LL_ENDL;
+		LLSD response;
+		JsonToLLSD(root, response);
+		LL_INFOS("FlickrAPI") << "As LLSD: " << response << LL_ENDL;
+		mCallback(isGoodStatus(status), response);
+	}
+}
+	

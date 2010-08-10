@@ -32,12 +32,17 @@
 
 #include "llsd.h"
 
+#include <boost/bind.hpp>
+
 #define FLICKR_API_KEY "ebc94a4d2651c33404b0fb8ee1b78958"
 #define FLICKR_API_SECRET "73efdfa10ebe7625"
+
+typedef boost::function<void(bool success, const LLSD& response)> KVFlickrResponseCallback;
 
 class KVFlickrRequest
 {
 public:
+	static void request(const std::string& method, const LLSD& args, KVFlickrResponseCallback callback);
 	static std::string getSignatureForCall(const LLSD& parameters);
 };
 
