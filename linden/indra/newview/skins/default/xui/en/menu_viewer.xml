@@ -2601,6 +2601,12 @@
                  parameter="http://secondlife.com/app/search/slurls.html"/>
             </menu_item_call>
             <menu_item_call
+             label="Flickr Authentication Test"
+             name="Flickr Authentication Test">
+                <menu_item_call.on_click
+                 function="Advanced.FlickrTest" />
+            </menu_item_call>
+            <menu_item_call
              label="Dump SelectMgr"
              name="Dump SelectMgr">
                 <menu_item_call.on_click
