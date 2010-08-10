@@ -40,17 +40,17 @@
 class KVFlickrResponse : public LLHTTPClient::Responder
 {
 public:
-	KVFlickrResponse(KVFlickrResponseCallback &callback);
+	KVFlickrResponse(KVFlickrRequest::response_callback_t &callback);
 	/* virtual */ void completedRaw(
 									U32 status,
 									const std::string& reason,
 									const LLChannelDescriptors& channels,
 									const LLIOPipe::buffer_ptr_t& buffer);
 private:
-	KVFlickrResponseCallback mCallback;
+	KVFlickrRequest::response_callback_t mCallback;
 };
 
-void KVFlickrRequest::request(const std::string& method, const LLSD& args, KVFlickrResponseCallback callback) 
+void KVFlickrRequest::request(const std::string& method, const LLSD& args, response_callback_t callback) 
 {
 	LLSD params(args);
 	params["format"] = "json";
@@ -127,7 +127,7 @@ void JsonToLLSD(const Json::Value &root, LLSD &output)
 	}
 }
 
-KVFlickrResponse::KVFlickrResponse(KVFlickrResponseCallback &callback) : 
+KVFlickrResponse::KVFlickrResponse(KVFlickrRequest::response_callback_t &callback) : 
 	mCallback(callback)
 {
 }
