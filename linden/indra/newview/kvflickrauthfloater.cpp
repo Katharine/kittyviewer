@@ -33,6 +33,8 @@
 #include "llsd.h"
 #include "llslurl.h"
 #include "lluri.h"
+#include "llurlaction.h"
+#include "llviewercontrol.h"
 
 #include "kvflickr.h"
 #include "kvflickrauthfloater.h"
@@ -40,12 +42,10 @@
 KVFlickrAuthFloater::KVFlickrAuthFloater(const LLSD& key) :
 	LLFloater(key)
 {
-	LL_INFOS("FlickrAPI") << "Auth floater alive." << LL_ENDL;
 }
 
 BOOL KVFlickrAuthFloater::postBuild()
 {
-	LL_INFOS("FlickrAPI") << "Flickr auth postBuild." << LL_ENDL;
 	mBrowser = getChild<LLMediaCtrl>("browser");
 	mBrowser->addObserver(this);
 
@@ -73,25 +73,59 @@ void KVFlickrAuthFloater::handleMediaEvent(LLPluginClassMedia* media, EMediaEven
 	{
 		std::string uri_string = media->getLocation();
 		LLURI uri(uri_string);
+		// We use this moronic data: hack because the internal browser crashes on
+		// secondlife:/// redirects, doesn't raise any events on nonexistent links,
+		// and gets confused by about:blank. At least this is prettier.
 		if(uri.scheme() == "data")
 		{
 			// Turns out we have to parse query string out ourselves because LLURI won't do it
-			// unless it's a, http(s), ftp, secondlife or x-grid-location-info link.
+			// unless it's a http(s), ftp, secondlife or x-grid-location-info link.
 			std::string::size_type q = uri_string.find('?');
 			if(q != std::string::npos)
 			{
 				std::string query_string = uri_string.substr(q + 1);
-				LL_INFOS("FlickrAPI") << "Query string: " << query_string << LL_ENDL;
 				LLSD query = LLURI::queryMap(query_string);
 				if(query.has("frob"))
 				{
 					std::string frob = query["frob"];
-					LL_INFOS("FlickrAPI") << "Frob: " << frob << LL_ENDL;
-					closeFloater(false);
+					LLSD params;
+					params["frob"] = frob;
+					KVFlickrRequest::request("flickr.auth.getToken", params, boost::bind(&KVFlickrAuthFloater::gotToken, this, _1, _2));
 				}
 			}
 		}
+		// We don't get anything if authentication is rejected; they're just redirected to the
+		// home page. This is mildly problematic, given the restricted view they're in.
+		// Therefore, if they click outside where we want them to be, we close the view.
+		// If they go to the homepage (because they clicked "Home", the logo, or (most importantly)
+		// the "Do not allow" button), it is noted that they refused permission. Otherwise,
+		// we open the link they clicked in a standard browser. In either case we close
+		// our floater.
+		else if(uri.hostName() == "www.flickr.com" && uri.path() != "/services/auth/")
+		{
+			if(uri.path() == "/")
+			{
+				LL_WARNS("FlickrAPI") << "API permission refused." << LL_ENDL;
+			}
+			else
+			{
+				LLUrlAction::openURL(uri_string);
+			}
+			closeFloater(false);
+		}
 	}
+}
+
+void KVFlickrAuthFloater::gotToken(bool success, const LLSD& response)
+{
+	std::string token = response["auth"]["token"]["_content"];
+	std::string username = response["auth"]["user"]["username"];
+	std::string nsid = response["auth"]["user"]["nsid"];
+	LL_INFOS("FlickrAPI") << "Got token " << token << " for user " << username << " (" << nsid << ")." << LL_ENDL;
+	gSavedPerAccountSettings.setString("KittyFlickrToken", token);
+	gSavedPerAccountSettings.setString("KittyFlickrUsername", username);
+	gSavedPerAccountSettings.setString("KittyFlickrNSID", nsid);
+	closeFloater(false);
 }
 
 //static

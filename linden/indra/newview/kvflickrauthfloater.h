@@ -49,6 +49,7 @@ public:
 	static void showFloater();
 	
 private:
+	void gotToken(bool success, const LLSD& response);
 	LLMediaCtrl* mBrowser;
 };
 
