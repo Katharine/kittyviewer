@@ -1886,7 +1886,15 @@ void LLFloaterSnapshot::Impl::onCommitSnapshotType(LLUICtrl* ctrl, void* data)
 		if(type == LLSnapshotLivePreview::SNAPSHOT_FLICKR && gSavedPerAccountSettings.getString("KittyFlickrToken") == "")
 		{
 			LLNotificationsUtil::add("KittyFlickrNeedAuth");
-			KVFlickrAuthFloater::showFloater();
+			KVFlickrAuthFloater *floater = KVFlickrAuthFloater::showFloater();
+			// This makes sure we can still use the auth floater in freeze-frame mode by attaching it
+			// to the snapshot floater.
+			if(floater)
+			{
+				gFloaterView->removeChild(floater);
+				gSnapshotFloaterView->addChild(floater);
+				view->addDependentFloater(floater, false);
+			}
 		}
 		else
 		{

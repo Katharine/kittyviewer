@@ -46,7 +46,7 @@ public:
 	// inherited from LLViewerMediaObserver
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* media, EMediaEvent event);
 	
-	static void showFloater();
+	static KVFlickrAuthFloater* showFloater();
 	
 private:
 	void gotToken(bool success, const LLSD& response);

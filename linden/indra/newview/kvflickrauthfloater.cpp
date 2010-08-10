@@ -129,7 +129,7 @@ void KVFlickrAuthFloater::gotToken(bool success, const LLSD& response)
 }
 
 //static
-void KVFlickrAuthFloater::showFloater()
+KVFlickrAuthFloater* KVFlickrAuthFloater::showFloater()
 {
 	KVFlickrAuthFloater *floater = dynamic_cast<KVFlickrAuthFloater*>(LLFloaterReg::getInstance("flickr_auth"));
 	if(floater)
@@ -137,9 +137,11 @@ void KVFlickrAuthFloater::showFloater()
 		floater->setVisible(true);
 		floater->setFrontmost(true);
 		floater->center();
+		return floater;
 	}
 	else
 	{
 		LL_WARNS("FlickrAPI") << "Can't find flickr auth!" << LL_ENDL;
+		return NULL;
 	}
 }
