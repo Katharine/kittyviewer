@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule (.+?)/(.+?)/([0-9.]+)/([^/]+)(/debug)? help.php?language=$1&channel=$2&version=$3&topic=$4
