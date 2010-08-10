@@ -66,7 +66,7 @@
 #include "llworld.h"
 #include "llagentui.h"
 
-#include "kvflickrauthfloater.h"
+#include "kvfloaterflickrauth.h"
 
 // Linden library includes
 #include "llfontgl.h"
@@ -1886,7 +1886,7 @@ void LLFloaterSnapshot::Impl::onCommitSnapshotType(LLUICtrl* ctrl, void* data)
 		if(type == LLSnapshotLivePreview::SNAPSHOT_FLICKR && gSavedPerAccountSettings.getString("KittyFlickrToken") == "")
 		{
 			LLNotificationsUtil::add("KittyFlickrNeedAuth");
-			KVFlickrAuthFloater *floater = KVFlickrAuthFloater::showFloater();
+			KVFloaterFlickrAuth *floater = KVFloaterFlickrAuth::showFloater();
 			// This makes sure we can still use the auth floater in freeze-frame mode by attaching it
 			// to the snapshot floater.
 			if(floater)

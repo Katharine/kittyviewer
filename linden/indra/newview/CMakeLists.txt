@@ -578,7 +578,7 @@ set(viewer_SOURCE_FILES
     kvgrowlmanager.cpp
     kvstreamtitles.cpp
     kvflickr.cpp
-    kvflickrauthfloater.cpp
+    kvfloaterflickrauth.cpp
 # [/KITTY VIEWER]
     )
 
@@ -1113,7 +1113,7 @@ set(viewer_HEADER_FILES
     kvgrowlnotifier.h
     kvstreamtitles.h
     kvflickr.h
-    kvflickrauthfloater.h
+    kvfloaterflickrauth.h
 # [/KITTY VIEWER]
     )
 

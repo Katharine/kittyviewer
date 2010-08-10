@@ -111,7 +111,7 @@
 #include "lleconomy.h"
 #include "boost/unordered_map.hpp"
 
-#include "kvflickrauthfloater.h"
+#include "kvfloaterflickrauth.h"
 
 using namespace LLVOAvatarDefines;
 
@@ -7273,7 +7273,7 @@ void handle_web_browser_test(const LLSD& param)
 void handle_flickr_test()
 {
 	LL_INFOS("FlickrAPI") << "Menu clicked." << LL_ENDL;
-	KVFlickrAuthFloater::showFloater();
+	KVFloaterFlickrAuth::showFloater();
 }
 
 void handle_buy_currency_test(void*)

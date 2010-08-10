@@ -27,18 +27,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KV_KVFLICKRAUTHFLOATER_H
-#define KV_KVFLICKRAUTHFLOATER_H
+#ifndef KV_KVFLOATERFLICKRAUTH_H
+#define KV_KVFLOATERFLICKRAUTH_H
 
 #include "llfloater.h"
 #include "llmediactrl.h"
 
-class KVFlickrAuthFloater : 
+class KVFloaterFlickrAuth : 
 public LLFloater, 
 public LLViewerMediaObserver
 {
 public:
-	KVFlickrAuthFloater(const LLSD& key);
+	KVFloaterFlickrAuth(const LLSD& key);
 	
 	/*virtual*/ BOOL postBuild();
 	/*virtual*/ void onClose(bool app_quitting);
@@ -46,11 +46,11 @@ public:
 	// inherited from LLViewerMediaObserver
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* media, EMediaEvent event);
 	
-	static KVFlickrAuthFloater* showFloater();
+	static KVFloaterFlickrAuth* showFloater();
 	
 private:
 	void gotToken(bool success, const LLSD& response);
 	LLMediaCtrl* mBrowser;
 };
 
-#endif  // KV_KVFLICKRAUTHFLOATER_H
+#endif  // KV_KVFLOATERFLICKRAUTH_H

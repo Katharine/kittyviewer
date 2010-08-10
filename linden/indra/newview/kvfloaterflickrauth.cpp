@@ -37,14 +37,14 @@
 #include "llviewercontrol.h"
 
 #include "kvflickr.h"
-#include "kvflickrauthfloater.h"
+#include "kvfloaterflickrauth.h"
 
-KVFlickrAuthFloater::KVFlickrAuthFloater(const LLSD& key) :
+KVFloaterFlickrAuth::KVFloaterFlickrAuth(const LLSD& key) :
 	LLFloater(key)
 {
 }
 
-BOOL KVFlickrAuthFloater::postBuild()
+BOOL KVFloaterFlickrAuth::postBuild()
 {
 	mBrowser = getChild<LLMediaCtrl>("browser");
 	mBrowser->addObserver(this);
@@ -62,12 +62,12 @@ BOOL KVFlickrAuthFloater::postBuild()
 	return true;
 }
 
-void KVFlickrAuthFloater::onClose(bool app_quitting)
+void KVFloaterFlickrAuth::onClose(bool app_quitting)
 {
 	destroy(); // Die die die!
 }
 
-void KVFlickrAuthFloater::handleMediaEvent(LLPluginClassMedia* media, EMediaEvent event)
+void KVFloaterFlickrAuth::handleMediaEvent(LLPluginClassMedia* media, EMediaEvent event)
 {
 	if(event == MEDIA_EVENT_LOCATION_CHANGED)
 	{
@@ -90,7 +90,7 @@ void KVFlickrAuthFloater::handleMediaEvent(LLPluginClassMedia* media, EMediaEven
 					std::string frob = query["frob"];
 					LLSD params;
 					params["frob"] = frob;
-					KVFlickrRequest::request("flickr.auth.getToken", params, boost::bind(&KVFlickrAuthFloater::gotToken, this, _1, _2));
+					KVFlickrRequest::request("flickr.auth.getToken", params, boost::bind(&KVFloaterFlickrAuth::gotToken, this, _1, _2));
 				}
 			}
 		}
@@ -116,7 +116,7 @@ void KVFlickrAuthFloater::handleMediaEvent(LLPluginClassMedia* media, EMediaEven
 	}
 }
 
-void KVFlickrAuthFloater::gotToken(bool success, const LLSD& response)
+void KVFloaterFlickrAuth::gotToken(bool success, const LLSD& response)
 {
 	std::string token = response["auth"]["token"]["_content"];
 	std::string username = response["auth"]["user"]["username"];
@@ -129,9 +129,9 @@ void KVFlickrAuthFloater::gotToken(bool success, const LLSD& response)
 }
 
 //static
-KVFlickrAuthFloater* KVFlickrAuthFloater::showFloater()
+KVFloaterFlickrAuth* KVFloaterFlickrAuth::showFloater()
 {
-	KVFlickrAuthFloater *floater = dynamic_cast<KVFlickrAuthFloater*>(LLFloaterReg::getInstance("flickr_auth"));
+	KVFloaterFlickrAuth *floater = dynamic_cast<KVFloaterFlickrAuth*>(LLFloaterReg::getInstance("flickr_auth"));
 	if(floater)
 	{
 		floater->setVisible(true);
