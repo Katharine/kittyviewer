@@ -33,24 +33,30 @@
 #include "llfloater.h"
 #include "llmediactrl.h"
 
+#include <boost/bind.hpp>
+
 class KVFloaterFlickrAuth : 
 public LLFloater, 
 public LLViewerMediaObserver
 {
 public:
+	typedef boost::function<void(bool)> auth_callback_t;
+
 	KVFloaterFlickrAuth(const LLSD& key);
-	
+
 	/*virtual*/ BOOL postBuild();
 	/*virtual*/ void onClose(bool app_quitting);
-	
+
 	// inherited from LLViewerMediaObserver
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* media, EMediaEvent event);
-	
+
 	static KVFloaterFlickrAuth* showFloater();
-	
+	static KVFloaterFlickrAuth* showFloater(auth_callback_t callback);
+
 private:
 	void gotToken(bool success, const LLSD& response);
 	LLMediaCtrl* mBrowser;
+	auth_callback_t mCallback;
 };
 
 #endif  // KV_KVFLOATERFLICKRAUTH_H

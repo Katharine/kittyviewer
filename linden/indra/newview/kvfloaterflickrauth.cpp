@@ -40,7 +40,7 @@
 #include "kvfloaterflickrauth.h"
 
 KVFloaterFlickrAuth::KVFloaterFlickrAuth(const LLSD& key) :
-	LLFloater(key)
+	LLFloater(key), mCallback(NULL), mBrowser(NULL)
 {
 }
 
@@ -64,6 +64,13 @@ BOOL KVFloaterFlickrAuth::postBuild()
 
 void KVFloaterFlickrAuth::onClose(bool app_quitting)
 {
+	// If we still have an mCallback here, we know it wasn't successful,
+	// because we always set it to NULL after using it.
+	if(mCallback)
+	{
+		mCallback(false);
+		mCallback = NULL;
+	}
 	destroy(); // Die die die!
 }
 
@@ -103,11 +110,8 @@ void KVFloaterFlickrAuth::handleMediaEvent(LLPluginClassMedia* media, EMediaEven
 		// our floater.
 		else if(uri.hostName() == "www.flickr.com" && uri.path() != "/services/auth/")
 		{
-			if(uri.path() == "/")
-			{
-				LL_WARNS("FlickrAPI") << "API permission refused." << LL_ENDL;
-			}
-			else
+			LL_WARNS("FlickrAPI") << "API permission not granted." << LL_ENDL;
+			if(uri.path() != "/")
 			{
 				LLUrlAction::openURL(uri_string);
 			}
@@ -125,15 +129,27 @@ void KVFloaterFlickrAuth::gotToken(bool success, const LLSD& response)
 	gSavedPerAccountSettings.setString("KittyFlickrToken", token);
 	gSavedPerAccountSettings.setString("KittyFlickrUsername", username);
 	gSavedPerAccountSettings.setString("KittyFlickrNSID", nsid);
+	if(mCallback)
+	{
+		mCallback((token != ""));
+		mCallback = NULL;
+	}
 	closeFloater(false);
 }
 
 //static
 KVFloaterFlickrAuth* KVFloaterFlickrAuth::showFloater()
 {
+	return KVFloaterFlickrAuth::showFloater(NULL);
+}
+
+//static
+KVFloaterFlickrAuth* KVFloaterFlickrAuth::showFloater(auth_callback_t callback)
+{
 	KVFloaterFlickrAuth *floater = dynamic_cast<KVFloaterFlickrAuth*>(LLFloaterReg::getInstance("flickr_auth"));
 	if(floater)
 	{
+		floater->mCallback = callback;
 		floater->setVisible(true);
 		floater->setFrontmost(true);
 		floater->center();
