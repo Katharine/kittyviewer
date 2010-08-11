@@ -165,7 +165,7 @@
      follows="left|bottom"
      left="10"
      top="307"
-     label="Include position" />
+     label="Include location" />
     <button
      follows="right|bottom"
      height="23"
