@@ -30,6 +30,7 @@
 #ifndef KV_KVFLICKR_H
 #define KV_KVFLICKR_H
 
+#include "llimage.h"
 #include "llsd.h"
 
 #include <boost/bind.hpp>
@@ -43,7 +44,8 @@ public:
 	typedef boost::function<void(bool success, const LLSD& response)> response_callback_t;
 	
 	static void request(const std::string& method, const LLSD& args, response_callback_t callback);
-	static std::string getSignatureForCall(const LLSD& parameters);
+	static void uploadPhoto(const LLSD& args, LLImageFormatted *image, response_callback_t callback);
+	static std::string getSignatureForCall(const LLSD& parameters, bool encoded);
 };
 
 #endif

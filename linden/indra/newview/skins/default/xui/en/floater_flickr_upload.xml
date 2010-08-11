@@ -14,6 +14,10 @@
      name="no_account">
         (not authorised)
     </floater.string>
+    <floater.string
+     name="uploading">
+        Uploading to Flickr...
+    </floater.string>
     <text
      type="string"
      length="1"

@@ -53,7 +53,7 @@ BOOL KVFloaterFlickrAuth::postBuild()
 	LLSD query;
 	query["api_key"] = std::string(FLICKR_API_KEY);
 	query["perms"] = "write";
-	query["api_sig"] = KVFlickrRequest::getSignatureForCall(query);
+	query["api_sig"] = KVFlickrRequest::getSignatureForCall(query, true);
 	std::string query_string = LLURI::mapToQueryString(query);
 	LL_INFOS("FlickrAPI") << "Auth query: " << query_string << LL_ENDL;
 	std::string full_url = "http://www.flickr.com/services/auth/" + query_string;

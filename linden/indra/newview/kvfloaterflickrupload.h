@@ -51,6 +51,7 @@ public:
 
 	void confirmToken(bool success, const LLSD &response);
 	void authCallback(bool authorised);
+	void imageUploaded(bool success, const LLSD& response);
 
 	static void onClickCancel(void* data);
 	static void onClickUpload(void* data);
