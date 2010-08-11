@@ -33,6 +33,7 @@
 #include "lluri.h"
 #include "llmd5.h"
 #include "llhttpclient.h"
+#include "llxmltree.h"
 #include "jsoncpp/reader.h"
 
 #include "kvflickr.h"
@@ -177,7 +178,51 @@ void KVFlickrUploadResponse::completedRaw(
 	std::stringstream strstrm;
 	strstrm << istr.rdbuf();
 	std::string result = std::string(strstrm.str());
-	LL_INFOS("FlickrAPI") << "Got response from photo upload: " << result << LL_ENDL;
+
+	LLSD output;
+	bool success;
+
+	LLXmlTree tree;
+	if(!tree.parseString(result))
+	{
+		LL_WARNS("FlickrAPI") << "Couldn't parse flickr response: " << result << LL_ENDL;
+		mCallback(false, LLSD());
+		return;
+	}
+	LLXmlTreeNode* root = tree.getRoot();
+	if(!root->hasName("rsp"))
+	{
+		LL_WARNS("FlickrAPI") << "Bad root node: " << root->getName() << LL_ENDL;
+		mCallback(false, LLSD());
+		return;
+	}
+	std::string stat;
+	root->getAttributeString("stat", stat);
+	output["stat"] = stat;
+	if(stat == "ok")
+	{
+		success = true;
+		LLXmlTreeNode* photoid_node = root->getChildByName("photoid");
+		if(photoid_node)
+		{
+			output["photoid"] = photoid_node->getContents();
+		}
+	}
+	else
+	{
+		success = false;
+		LLXmlTreeNode* err_node = root->getChildByName("err");
+		if(err_node)
+		{
+			S32 code;
+			std::string msg;
+			err_node->getAttributeS32("code", code);
+			err_node->getAttributeString("msg", msg);
+			output["code"] = code;
+			output["msg"] = msg;
+		}
+	}
+	mCallback(success, output);
 }
 
 void JsonToLLSD(const Json::Value &root, LLSD &output)
