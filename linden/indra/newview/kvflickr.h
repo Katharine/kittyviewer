@@ -35,6 +35,9 @@
 
 #include <boost/bind.hpp>
 
+// *NOTE: These values are publically available.
+// They must be changed for distribution builds, and you might want to
+// change them if you're compiling your own, too.
 #define FLICKR_API_KEY "ebc94a4d2651c33404b0fb8ee1b78958"
 #define FLICKR_API_SECRET "73efdfa10ebe7625"
 
