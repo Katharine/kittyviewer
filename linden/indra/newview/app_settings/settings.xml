@@ -12115,5 +12115,16 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>KittyFlickrIncludeSLURL</key>
+    <map>
+      <key>Comment</key>
+      <string>If showing the position of an image, whether an SLurl should be included in the description.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
 </map>
 </llsd>

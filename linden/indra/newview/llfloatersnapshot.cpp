@@ -214,6 +214,7 @@ private:
 	F32							mFlashAlpha;
 	BOOL						mNeedsFlash;
 	LLVector3d					mPosTakenGlobal;
+	LLQuaternion				mRotTaken;
 	S32							mSnapshotQuality;
 	S32							mDataSize;
 	ESnapshotType				mSnapshotType;
@@ -918,6 +919,7 @@ BOOL LLSnapshotLivePreview::onIdle( void* snapshot_preview )
 			previewp->generateThumbnailImage(TRUE) ;
 
 			previewp->mPosTakenGlobal = gAgentCamera.getCameraPositionGlobal();
+			previewp->mRotTaken = LLViewerCamera::getInstance()->getQuaternion();
 			previewp->mShineCountdown = 4; // wait a few frames to avoid animation glitch due to readback this frame
 		}
 	}
@@ -989,7 +991,7 @@ KVFloaterFlickrUpload* LLSnapshotLivePreview::uploadToFlickr()
 		image_scale.setVec(llmin(1.f, (F32)mWidth[mCurImageIndex] / (F32)getCurrentImage()->getWidth()), llmin(1.f, (F32)mHeight[mCurImageIndex] / (F32)getCurrentImage()->getHeight()));
 	}
 
-	KVFloaterFlickrUpload* floater = KVFloaterFlickrUpload::showFromSnapshot(mFormattedImage, mViewerImage[mCurImageIndex], image_scale, mPosTakenGlobal);
+	KVFloaterFlickrUpload* floater = KVFloaterFlickrUpload::showFromSnapshot(mFormattedImage, mViewerImage[mCurImageIndex], image_scale, mPosTakenGlobal, mRotTaken);
 	mFormattedImage = NULL;
 	mDataSize = 0;
 	updateSnapshot(FALSE, FALSE);

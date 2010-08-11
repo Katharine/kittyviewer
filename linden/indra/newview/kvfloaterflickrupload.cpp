@@ -33,9 +33,11 @@
 
 #include "llagent.h"
 #include "llfloaterreg.h"
+#include "llfloatersnapshot.h"
 #include "llgl.h"
 #include "llimage.h"
 #include "llnotificationsutil.h"
+#include "llslurl.h"
 #include "llui.h"
 #include "lluploaddialog.h"
 #include "llviewercontrol.h"
@@ -61,7 +63,7 @@ KVFloaterFlickrUpload::~KVFloaterFlickrUpload()
 }
 
 // static
-KVFloaterFlickrUpload* KVFloaterFlickrUpload::showFromSnapshot(LLImageFormatted *compressed, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global)
+KVFloaterFlickrUpload* KVFloaterFlickrUpload::showFromSnapshot(LLImageFormatted *compressed, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global, const LLQuaternion& rot_taken)
 {
 	// Take the images from the caller
 	// It's now our job to clean them up
@@ -71,6 +73,7 @@ KVFloaterFlickrUpload* KVFloaterFlickrUpload::showFromSnapshot(LLImageFormatted 
 	instance->mViewerImage = img;
 	instance->mImageScale = img_scale;
 	instance->mPosTakenGlobal = pos_taken_global;
+	instance->mRotTaken = rot_taken;
 	
 	return instance;
 }
@@ -123,10 +126,14 @@ void KVFloaterFlickrUpload::confirmToken(bool success, const LLSD &response)
 			gSavedPerAccountSettings.setString("KittyFlickrNSID", "");
 			KVFloaterFlickrAuth *floater = KVFloaterFlickrAuth::showFloater(boost::bind(&KVFloaterFlickrUpload::authCallback, this, _1));
 			// Link it to us to protect it from freeze frame mode, if need be.
-			if(floater && !gSavedSettings.getBOOL("CloseSnapshotOnKeep"))
+			if(floater && getDependee()) // (if we're depending on something, so should it)
 			{
 				gFloaterView->removeChild(floater);
-				addChild(floater);
+				gSnapshotFloaterView->addChild(floater);
+				// Even though we don't really want this to depend on the snapshot view
+				// being open, if we manipulate it after closing the snapshot view,
+				// it will crash.
+				getDependee()->addDependentFloater(floater, false);
 			}
 			LLNotificationsUtil::add("KittyFlickrTokenRejected");
 		}
@@ -166,9 +173,9 @@ void KVFloaterFlickrUpload::uploadSnapshot()
 	mTitle = childGetValue("title_form").asString();
 	LLSD params;
 	params["title"] = childGetValue("title_form");
-	params["description"] = childGetValue("description_form");
 	params["safety_level"] = childGetValue("rating_combo");
 	std::string tags = childGetValue("tags_form");
+	std::string description = childGetValue("description_form");
 	if(childGetValue("show_position_check").asBoolean())
 	{
 		// Work out where this was taken.
@@ -189,9 +196,37 @@ void KVFloaterFlickrUpload::uploadSnapshot()
 		region_tags << " secondlife:x=" << llround(region_pos[VX]);
 		region_tags << " secondlife:y=" << llround(region_pos[VY]);
 		region_tags << " secondlife:z=" << llround(region_pos[VZ]);
+
+		// Now let's give some precise camera values.
+		region_tags << " secondlife:camera_pos_x=" << (mPosTakenGlobal[VX] - region->getOriginGlobal()[VX]);
+		region_tags << " secondlife:camera_pos_y=" << (mPosTakenGlobal[VY] - region->getOriginGlobal()[VY]);
+		region_tags << " secondlife:camera_pos_z=" << mPosTakenGlobal[VZ];
+		region_tags << " secondlife:camera_rot_x=" << mRotTaken.mQ[VX];
+		region_tags << " secondlife:camera_rot_y=" << mRotTaken.mQ[VY];
+		region_tags << " secondlife:camera_rot_z=" << mRotTaken.mQ[VZ];
+		region_tags << " secondlife:camera_rot_s=" << mRotTaken.mQ[VS];
 		tags += region_tags.str();
+
+		// Include an SLurl in the description, too (maybe).
+		if(gSavedSettings.getBOOL("KittyFlickrIncludeSLURL"))
+		{
+			LLSLURL url(region_name, region_pos);
+			std::ostringstream region_desc;
+			region_desc << "<em><a href='" << url.getSLURLString() << "'>";
+			region_desc << "Taken at " << region_name << " (";
+			region_desc << llround(region_pos[VX]) << ", ";
+			region_desc << llround(region_pos[VY]) << ", ";
+			region_desc << llround(region_pos[VZ]) << ")";
+			region_desc << "</a></em>";
+			if(description != "")
+			{
+				description += "\n\n";
+			}
+			description += region_desc.str();
+		}
 	}
 	params["tags"] = tags;
+	params["description"] = description;
 	LL_INFOS("FlickrAPI") << "Uploading snapshot with metadata: " << params << LL_ENDL;
 
 	params["auth_token"] = gSavedPerAccountSettings.getLLSD("KittyFlickrToken");
@@ -296,4 +331,9 @@ void KVFloaterFlickrUpload::onClickUpload(void* data)
 	self->uploadSnapshot();
 	self->saveSettings();
 	self->setVisible(false);
+	// Make sure that, if we were attached to anything, that we detach from it.
+	// Otherwise bad things happen.
+	LLFloater *dependee = self->getDependee();
+	if(dependee)
+		dependee->removeDependentFloater(self);
 }

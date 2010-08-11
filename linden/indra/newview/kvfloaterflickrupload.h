@@ -55,13 +55,14 @@ public:
 
 	static void onClickCancel(void* data);
 	static void onClickUpload(void* data);
-	static KVFloaterFlickrUpload* showFromSnapshot(LLImageFormatted *compressed, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global);
+	static KVFloaterFlickrUpload* showFromSnapshot(LLImageFormatted *compressed, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global, const LLQuaternion& rot_taken);
 
 private:
 	LLPointer<LLImageFormatted> mCompressedImage;
 	LLPointer<LLViewerTexture> mViewerImage;
 	LLVector2 mImageScale;
 	LLVector3d mPosTakenGlobal;
+	LLQuaternion mRotTaken;
 	std::string mTitle; // Used in the confirmation announcement.
 };
 
