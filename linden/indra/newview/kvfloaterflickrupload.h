@@ -62,6 +62,7 @@ private:
 	LLPointer<LLViewerTexture> mViewerImage;
 	LLVector2 mImageScale;
 	LLVector3d mPosTakenGlobal;
+	std::string mTitle; // Used in the confirmation announcement.
 };
 
 

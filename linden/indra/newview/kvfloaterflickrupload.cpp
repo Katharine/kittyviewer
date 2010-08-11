@@ -163,6 +163,7 @@ void KVFloaterFlickrUpload::saveSettings()
 
 void KVFloaterFlickrUpload::uploadSnapshot()
 {
+	mTitle = childGetValue("title_form").asString();
 	LLSD params;
 	params["title"] = childGetValue("title_form");
 	params["description"] = childGetValue("description_form");
@@ -201,6 +202,26 @@ void KVFloaterFlickrUpload::uploadSnapshot()
 void KVFloaterFlickrUpload::imageUploaded(bool success, const LLSD& response)
 {
 	LLUploadDialog::modalUploadFinished();
+	LLSD args;
+	args["TITLE"] = mTitle;
+	if(success)
+	{
+		args["ID"] = response["photoid"];
+		LLNotificationsUtil::add("KittyFlickrUploadComplete", args);
+	}
+	else if(response.has("stat"))
+	{
+		args["CODE"] = response["code"];
+		args["ERROR"] = response["msg"];
+		LLNotificationsUtil::add("KittyFlickrUploadFailed", args);
+	}
+	else
+	{
+		LLNotificationsUtil::add("KittyFlickrUploadFailedNoError");
+	}
+
+	// We're pretty much done now.
+	closeFloater(false);
 }
 
 // This function stolen from LLFloaterPostcard
@@ -274,5 +295,5 @@ void KVFloaterFlickrUpload::onClickUpload(void* data)
 	KVFloaterFlickrUpload *self = (KVFloaterFlickrUpload*)data;
 	self->uploadSnapshot();
 	self->saveSettings();
-	self->closeFloater(false);
+	self->setVisible(false);
 }

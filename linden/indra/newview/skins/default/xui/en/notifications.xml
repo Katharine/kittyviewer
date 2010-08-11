@@ -6432,6 +6432,29 @@ Communication with Flickr failed ([CODE]):
    type="notifytip">
 The upload was cancelled because you did not grant [APP_NAME] permission to access your Flickr account.
   </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrUploadComplete"
+   type="notifytip">
+[http://www.flickr.com/photos/upload/edit/?ids=[ID] [TITLE]] has been successfully uploaded to Flickr.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrUploadFailed"
+   type="alert">
+Failed to upload "[TITLE]" to Flickr (error [CODE]):
+
+[ERROR]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="KittyFlickrUploadFailedNoError"
+   type="alert">
+Failed dismally to upload "[TITLE]" to Flickr. Dunno why.
+  </notification>
 <!-- [/KITTY VIEWER] -->
 
   <global name="UnsupportedCPU">
