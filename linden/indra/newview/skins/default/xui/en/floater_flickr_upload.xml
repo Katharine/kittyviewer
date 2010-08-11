@@ -156,7 +156,6 @@
      word_wrap="true" 
      top_pad="10"
      width="427">
-        Type a description of the snapshot here (optional).
     </text_editor>
     <check_box
      name="show_position_check"
