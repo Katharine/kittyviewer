@@ -187,6 +187,18 @@ std::string LLURI::escape(const std::string& str)
 	return escape(str, default_allowed, true);
 }
 
+//static
+std::string LLURI::escapeQueryValue(const std::string& s)
+{
+	return ::escapeQueryValue(s);
+}
+
+//static
+std::string LLURI::escapeQueryVariable(const std::string& s)
+{
+	return ::escapeQueryVariable(s);
+}
+
 LLURI::LLURI()
 {
 }
@@ -602,10 +614,10 @@ std::string LLURI::mapToQueryString(const LLSD& queryMap)
 			{
 				ostr << "&";
 			}
-			ostr << escapeQueryVariable(iter->first);
+			ostr << ::escapeQueryVariable(iter->first);
 			if(iter->second.isDefined())
 			{
-				ostr << "=" <<  escapeQueryValue(iter->second.asString());
+				ostr << "=" <<  ::escapeQueryValue(iter->second.asString());
 			}
 		}
 		query_string = ostr.str();

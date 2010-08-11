@@ -111,6 +111,8 @@
 #include "lleconomy.h"
 #include "boost/unordered_map.hpp"
 
+#include "kvfloaterflickrauth.h"
+
 using namespace LLVOAvatarDefines;
 
 static boost::unordered_map<std::string, LLStringExplicit> sDefaultItemLabels;
@@ -7268,6 +7270,12 @@ void handle_web_browser_test(const LLSD& param)
 	LLWeb::loadURLInternal(url);
 }
 
+void handle_flickr_test()
+{
+	LL_INFOS("FlickrAPI") << "Menu clicked." << LL_ENDL;
+	KVFloaterFlickrAuth::showFloater();
+}
+
 void handle_buy_currency_test(void*)
 {
 	std::string url =
@@ -7996,6 +8004,7 @@ void initialize_menus()
 
 	// Advanced > UI
 	commit.add("Advanced.WebBrowserTest", boost::bind(&handle_web_browser_test, _2));
+	commit.add("Advanced.FlickrTest", boost::bind(&handle_flickr_test));
 	view_listener_t::addMenu(new LLAdvancedBuyCurrencyTest(), "Advanced.BuyCurrencyTest");
 	view_listener_t::addMenu(new LLAdvancedDumpSelectMgr(), "Advanced.DumpSelectMgr");
 	view_listener_t::addMenu(new LLAdvancedDumpInventory(), "Advanced.DumpInventory");
