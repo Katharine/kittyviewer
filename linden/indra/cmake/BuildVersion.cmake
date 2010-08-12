@@ -1,15 +1,10 @@
 # -*- cmake -*-
 
-include(Python)
+include(VersionControl)
 
 macro (build_version _target)
-  execute_process(
-      COMMAND ${PYTHON_EXECUTABLE} ${SCRIPTS_DIR}/build_version.py
-        llversion${_target}.h ${LLCOMMON_INCLUDE_DIRS}
-      OUTPUT_VARIABLE ${_target}_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      )
-
+  load_version_data()
+  set(${_target}_VERSION "${VERSION_VIEWER}")
   if (${_target}_VERSION)
     message(STATUS "Version of ${_target} is ${${_target}_VERSION}")
   else (${_target}_VERSION)

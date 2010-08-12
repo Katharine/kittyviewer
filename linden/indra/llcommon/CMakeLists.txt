@@ -12,6 +12,7 @@ include(LLSharedLibs)
 include(GoogleBreakpad)
 include(GooglePerfTools)
 include(Copy3rdPartyLibs)
+include(VersionControl)
 
 include_directories(
     ${EXPAT_INCLUDE_DIRS}
@@ -227,7 +228,6 @@ set(llcommon_HEADER_FILES
     lluuid.h
     lluuidhashmap.h
     llversionserver.h
-    llversionviewer.h
     llworkerthread.h
     ll_template_cast.h
     metaclass.h
@@ -245,6 +245,21 @@ set(llcommon_HEADER_FILES
     timing.h
     u64.h
     )
+
+# Generate llversionviewer.h
+
+# [KITTY VIEWER]
+# *HACK: For some reason the required variables are not defined. So we recalculate.
+# I am tired of fighting with cmake and don't care to find out why.
+load_version_data()
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/llversionviewer.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/llversionviewer.h
+  @ONLY
+)
+
+list(APPEND llcommon_HEADER_FILES "${CMAKE_CURRENT_BINARY_DIR}/llversionviewer.h")
+# [/KITTY VIEWER]
 
 set_source_files_properties(${llcommon_HEADER_FILES}
                             PROPERTIES HEADER_FILE_ONLY TRUE)

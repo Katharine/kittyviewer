@@ -120,14 +120,6 @@ class ViewerManifest(LLManifest):
             self.path("gpu_table.txt")
             self.path("fonts")
 
-    def login_channel(self):
-        """Channel reported for login and upgrade purposes ONLY;
-        used for A/B testing"""
-        # NOTE: Do not return the normal channel if login_channel
-        # is not specified, as some code may branch depending on
-        # whether or not this is present
-        return self.args.get('login_channel')
-
     def buildtype(self):
         return self.args['buildtype']
     def grid(self):
@@ -159,17 +151,11 @@ class ViewerManifest(LLManifest):
                          "--helperuri http://preview-%(grid)s.secondlife.com/helpers/" %\
                            {'grid':self.grid()}
 
-        # set command line flags for channel
-        channel_flags = ''
-        if self.login_channel() and self.login_channel() != self.channel():
-            # Report a special channel during login, but use default
-            channel_flags = '--channel "%s"' % (self.login_channel())
-        elif not self.default_channel():
-            channel_flags = '--channel "%s"' % self.channel()
+        # Deal with channels in the viewer source (they're inserted into llversionviewer.h now)
 
         # Don't deal with settings here; it's not reliable on Windows.
         # Settings are set in the viewer code (settings_files.xml)
-                                                
+        
         return " ".join((channel_flags, grid_flags)).strip()
 
 
@@ -180,8 +166,10 @@ class WindowsManifest(ViewerManifest):
                 return "SecondLife.exe"
             else:
                 return "SecondLifePreview.exe"
-        elif(self.viewer_branding_id=="snowglobe"):
+        elif(self.viewer_branding_id()=="snowglobe"):
             return "Snowglobe.exe"
+        elif self.viewer_branding_id() == "kittyviewer" and self.default_channel_for_brand():
+            return "KittyViewer.exe"
         else:
             return ''.join(self.channel().split()) + '.exe'
 
