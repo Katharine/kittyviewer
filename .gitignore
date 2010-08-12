@@ -1,7 +1,16 @@
 linden/indra/build-*
 linden/libraries
 linden/installed.xml
+linden/LICENSE*
 .svn
 .svnignore
 .DS_Store
 *.pyc
+
+# Windows-specific
+linden/indra/newview/*.dll
+linden/indra/newview/vivox-runtime/i686-win32
+linden/indra/build_win32_appConfig.py
+linden/indra/newview/build_win32_appConfig.py
+
+linden/indra/newview/avatar_lad.log
