@@ -14,10 +14,10 @@ macro(vcs_get_revision _output_variable)
       OUTPUT_STRIP_TRAILING_WHITESPACE
       ERROR_STRIP_TRAILING_WHITESPACE
       )
-    if (NOT ${_git_describe_result})
+    if (_git_describe_error)
       message(STATUS "git describe failed: ${_git_describe_error}")
       set(${_output_variable} "0.0.0.0")
-    else (NOT ${_git_describe_result})
+    else (_git_describe_error)
       set(KV_FULL_REGEX "v([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)")
       if (NOT "${_git_describe_output}" MATCHES "${KV_FULL_REGEX}")
         string(REGEX REPLACE 
@@ -32,7 +32,7 @@ macro(vcs_get_revision _output_variable)
           ${_output_variable}
           ${_git_describe_output})
       endif (NOT "${_git_describe_output}" MATCHES "${KV_FULL_REGEX}")
-    endif (NOT ${_git_describe_result})
+    endif (_git_describe_error)
   else (Git_EXECUTABLE)
     set(${_output_variable} "0.0.0.0")
   endif (Git_EXECUTABLE)
