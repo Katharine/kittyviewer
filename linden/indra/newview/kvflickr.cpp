@@ -69,7 +69,7 @@ void KVFlickrRequest::request(const std::string& method, const LLSD& args, respo
 	LLSD params(args);
 	params["format"] = "json";
 	params["method"] = method;
-	params["api_key"] = FLICKR_API_KEY;
+	params["api_key"] = KV_FLICKR_API_KEY;
 	params["nojsoncallback"] = 1;
 	params["api_sig"] = getSignatureForCall(params, true); // This must be the last one set.
 	LLHTTPClient::get("http://flickr.com/services/rest/", params, new KVFlickrResponse(callback));
@@ -79,7 +79,7 @@ void KVFlickrRequest::request(const std::string& method, const LLSD& args, respo
 void KVFlickrRequest::uploadPhoto(const LLSD& args, LLImageFormatted *image, response_callback_t callback)
 {
 	LLSD params(args);
-	params["api_key"] = FLICKR_API_KEY;
+	params["api_key"] = KV_FLICKR_API_KEY;
 	params["api_sig"] = getSignatureForCall(params, false);
 
 	// It would be nice if there was an easy way to do multipart form data. Oh well.
@@ -143,7 +143,7 @@ std::string KVFlickrRequest::getSignatureForCall(const LLSD& parameters, bool en
 		keys.push_back(itr->first);
 	}
 	std::sort(keys.begin(), keys.end());
-	std::string to_hash(FLICKR_API_SECRET);
+	std::string to_hash(KV_FLICKR_API_SECRET);
 	for(std::vector<std::string>::const_iterator itr  = keys.begin(); itr != keys.end(); ++itr)
 	{
 		to_hash += *itr;

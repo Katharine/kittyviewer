@@ -70,6 +70,7 @@ include_directories(
     ${LLLOGIN_INCLUDE_DIRS}
 # [KITTY VIEWER]
     ${GROWL_INCLUDE_DIRS}
+    ${CMAKE_BINARY_DIR}/newview
 # [/KITTY VIEWER]
     )
 
@@ -1118,6 +1119,16 @@ set(viewer_HEADER_FILES
     kvfloaterflickrupload.h
 # [/KITTY VIEWER]
     )
+
+# [KITTY VIEWER]
+# Generate the Flickr Keys header
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/kvflickrkeys.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/kvflickrkeys.h
+  @ONLY
+)
+list(APPEND viewer_HEADER_FILES ${CMAKE_CURRENT_BINARY_DIR}/kvflickrkeys.h)
+# [/KITTY VIEWER]
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)
 
