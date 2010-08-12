@@ -78,7 +78,7 @@ def find_vc_dir():
 
 def find_mt_path():
     vc_dir = find_vc_dir()
-    mt_path = '\"%sbin\\mt.exe\"' % vc_dir
+    mt_path = '\"%sVC\\bin\\mt.exe\"' % vc_dir
     return mt_path
     
 def test_assembly_binding(src_filename, assembly_name, assembly_ver):

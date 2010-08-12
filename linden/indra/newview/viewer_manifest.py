@@ -194,10 +194,10 @@ class WindowsManifest(ViewerManifest):
             self.cmakedirs(os.path.dirname(dst))
             self.created_paths.append(dst)
             if not os.path.isdir(src):
-                if(self.args['configuration'].lower() == 'debug'):
-                    test_assembly_binding(src, "Microsoft.VC80.DebugCRT", "8.0.50727.4053")
-                else:
-                    test_assembly_binding(src, "Microsoft.VC80.CRT", "8.0.50727.4053")
+##                if(self.args['configuration'].lower() == 'debug'):
+##                    test_assembly_binding(src, "Microsoft.VC80.DebugCRT", "8.0.50727.4053")
+##                else:
+##                    test_assembly_binding(src, "Microsoft.VC80.CRT", "8.0.50727.4053")
                 self.ccopy(src,dst)
             else:
                 raise Exception("Directories are not supported by test_CRT_and_copy_action()")
