@@ -30,7 +30,7 @@ macro(vcs_get_revision _output_variable)
           ${_git_describe_output})
       else (NOT "${_git_describe_output}" MATCHES "${KV_FULL_REGEX}")
         string(REGEX REPLACE 
-          "v([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)"
+          "v([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)-.*"
           "\\1.\\2.\\3.\\4"
           ${_output_variable}
           ${_git_describe_output})
@@ -73,26 +73,3 @@ macro(split_version_parts _version _major _minor _patch _build)
   string(REGEX REPLACE "${INDRA_VERSION_RE}" "\\3" ${_patch} "${_version}")
   string(REGEX REPLACE "${INDRA_VERSION_RE}" "\\4" ${_build} "${_version}")
 endmacro(split_version_parts)
-
-# configure_files - macro to simplify calling configure_file on source files
-#
-# arguments:
-#   GENERATED FILES - variable to hold a list of generated files
-#   FILES           - names of files to be configured.
-macro(configure_files GENERATED_FILES)
-  set(_files_to_add "")
-  foreach (_template_file ${ARGV})
-    if (NOT "${GENERATED_FILES}" STREQUAL "${_template_file}")
-      configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/${_template_file}.in
-        ${CMAKE_CURRENT_BINARY_DIR}/${_template_file}
-        @ONLY
-        )
-      set(_files_to_add 
-          ${_files_to_add} 
-          ${CMAKE_CURRENT_BINARY_DIR}/${_template_file}
-          )
-    endif (NOT "${GENERATED_FILES}" STREQUAL "${_template_file}")
-  endforeach(_template_file)
-  set(${GENERATED_FILES} ${_files_to_add})
-endmacro(configure_files)
