@@ -141,22 +141,7 @@ class ViewerManifest(LLManifest):
         return mapping[self.viewer_branding_id()]
 
     def flags_list(self):
-        """ Convenience function that returns the command-line flags
-        for the grid"""
-
-        # Set command line flags relating to the target grid
-        grid_flags = ''
-        if not self.default_grid():
-            grid_flags = "--grid %(grid)s "\
-                         "--helperuri http://preview-%(grid)s.secondlife.com/helpers/" %\
-                           {'grid':self.grid()}
-
-        # Deal with channels in the viewer source (they're inserted into llversionviewer.h now)
-
-        # Don't deal with settings here; it's not reliable on Windows.
-        # Settings are set in the viewer code (settings_files.xml)
-        
-        return " ".join((channel_flags, grid_flags)).strip()
+        return '--multiple'
 
 
 class WindowsManifest(ViewerManifest):
