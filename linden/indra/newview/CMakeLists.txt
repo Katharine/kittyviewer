@@ -1772,6 +1772,7 @@ if (LINUX)
       --branding_id=${VIEWER_BRANDING_ID}
       --build=${CMAKE_CURRENT_BINARY_DIR}
       --buildtype=${CMAKE_BUILD_TYPE}
+      --version=${viewer_VERSION}
       --configuration=${CMAKE_CFG_INTDIR}
       --dest=${CMAKE_CURRENT_BINARY_DIR}/packaged
       --grid=${GRID}
@@ -1842,6 +1843,7 @@ if (DARWIN)
           --build=${CMAKE_CURRENT_BINARY_DIR}
           --dest=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${product}.app
           --grid=${GRID}
+          --version=${viewer_VERSION}
           --branding_id=${VIEWER_BRANDING_ID}
           --source=${CMAKE_CURRENT_SOURCE_DIR}
           --touch=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/.${product}.touched

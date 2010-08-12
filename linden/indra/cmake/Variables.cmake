@@ -24,7 +24,7 @@ set(SCRIPTS_PREFIX ../scripts)
 set(SERVER_PREFIX)
 set(VIEWER_PREFIX)
 set(INTEGRATION_TESTS_PREFIX)
-set(LL_TESTS ON CACHE BOOL "Build and run unit and integration tests (disable for build timing runs to reduce variation")
+set(LL_TESTS OFF CACHE BOOL "Build and run unit and integration tests (disable for build timing runs to reduce variation")
 
 set(LIBS_CLOSED_DIR ${CMAKE_SOURCE_DIR}/${LIBS_CLOSED_PREFIX})
 set(LIBS_OPEN_DIR ${CMAKE_SOURCE_DIR}/${LIBS_OPEN_PREFIX})
@@ -136,9 +136,11 @@ elseif (${VIEWER_BRANDING_ID} MATCHES "kittyviewer")
   set(VIEWER_BRANDING_NAME_CAMELCASE "KittyViewer")
 endif (${VIEWER_BRANDING_ID} MATCHES "secondlife")
 
+# [KITTY VIEWER]
 # Flickr API keys.
-set(FLICKR_API_KEY "ebc94a4d2651c33404b0fb8ee1b78958")
-set(FLICKR_API_SECRET "73efdfa10ebe7625")
+set(FLICKR_API_KEY "ebc94a4d2651c33404b0fb8ee1b78958" CACHE STRING "Flickr API key")
+set(FLICKR_API_SECRET "73efdfa10ebe7625" CACHE STRING "Flickr API secret")
+# [/KITTY VIEWER]
 
 set(STANDALONE OFF CACHE BOOL "Do not use Linden-supplied prebuilt libraries.")
 

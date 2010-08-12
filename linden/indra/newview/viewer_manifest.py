@@ -800,7 +800,10 @@ class DarwinManifest(ViewerManifest):
             if (self.app_name()=="Snowglobe"):
                 dmg_template = os.path.join ('installers', 'darwin', 'snowglobe-dmg')
             elif (self.app_name()=="Kitty Viewer"):
-                dmg_template = os.path.join ('installers', 'darwin', 'kittyviewer-dmg')
+                if self.default_channel_for_brand():
+                    dmg_template = os.path.join ('installers', 'darwin', 'kittyviewer-dmg')
+                else:
+                    dmg_template = os.path.join ('installers', 'darwin', self.channel_lowerword() + '-dmg')
             else:
                 dmg_template = os.path.join(
                     'installers', 
