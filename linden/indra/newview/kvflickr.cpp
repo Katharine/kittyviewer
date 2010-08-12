@@ -117,7 +117,6 @@ void KVFlickrRequest::uploadPhoto(const LLSD& args, LLImageFormatted *image, res
 	std::string post_str = post_stream.str();
 	size_t total_data_size = image->getDataSize() + post_str.length() + boundary.length() + 6; // + 6 = "\r\n" + "--" + "--"
 	char* post_data = new char[total_data_size + 1];
-	char* end_address = post_data + total_data_size;
 	memcpy(post_data, post_str.data(), post_str.length());
 	char* address = post_data + post_str.length();
 	memcpy(address, image->getData(), image->getDataSize());
@@ -125,7 +124,7 @@ void KVFlickrRequest::uploadPhoto(const LLSD& args, LLImageFormatted *image, res
 	std::string post_tail = "\r\n--" + boundary + "--";
 	memcpy(address, post_tail.data(), post_tail.length());
 	address += post_tail.length();
-	llassert(address <= end_address /* After all that, check we didn't overrun */);
+	llassert(address <= post_data + total_data_size /* After all that, check we didn't overrun */);
 	
 	// We have a post body! Now we can go about building the actual request...
 	LLSD headers;
