@@ -74,6 +74,11 @@ std::string LLURI::escape(
 	// me. If someone wante to come up with a more precise heuristic
 	// with some data to back up the assertion that 'sort is good'
 	// then feel free to change this test a bit.
+	
+	// *NOTE: LLVM compiles code that crashes when std::sort is called on
+	// an std::string with -O2 (or greater) and -arch i386, so avoid
+	// doing so.
+#ifndef __llvm__
 	if(!is_allowed_sorted && (str.size() > 2 * allowed.size()))
 	{
 		// if it's already sorted, or if the url is quite long, we
@@ -82,6 +87,7 @@ std::string LLURI::escape(
 		std::sort(sorted_allowed.begin(), sorted_allowed.end());
 		return escape(str, sorted_allowed, true);
 	}
+#endif
 
 	std::ostringstream ostr;
 	std::string::const_iterator it = str.begin();
@@ -152,10 +158,8 @@ namespace
 {
 	const std::string unreserved()
 	{
-		static const std::string s =   
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-			"0123456789"
-			"-._~";
+		// These are pre-sorted to save on sorting at runtime, which upsets LLVM.
+		static const std::string s = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
 		return s;
 	}
 	const std::string sub_delims()
@@ -177,14 +181,7 @@ namespace
 //static
 std::string LLURI::escape(const std::string& str)
 {
-	static std::string default_allowed = unreserved();
-	static bool initialized = false;
-	if(!initialized)
-	{
-		std::sort(default_allowed.begin(), default_allowed.end());
-		initialized = true;
-	}
-	return escape(str, default_allowed, true);
+	return escape(str, unreserved(), true);
 }
 
 //static

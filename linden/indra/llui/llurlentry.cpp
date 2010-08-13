@@ -79,19 +79,11 @@ std::string LLUrlEntryBase::unescapeUrl(const std::string &url) const
 
 std::string LLUrlEntryBase::escapeUrl(const std::string &url) const
 {
-	static std::string no_escape_chars;
-	static bool initialized = false;
-	if (!initialized)
-	{
-		no_escape_chars = 
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			"abcdefghijklmnopqrstuvwxyz"
-			"0123456789"
-			"-._~!$?&()*+,@:;=/%#";
-
-		std::sort(no_escape_chars.begin(), no_escape_chars.end());
-		initialized = true;
-	}
+	static std::string no_escape_chars = 
+		"!#$%&()*+,-./0123456789:;="
+		"?@ABCDEFGHIJKLMNOPQRSTUVWX"
+		"YZ_abcdefghijklmnopqrstuvw"
+		"xyz~";
 	return LLURI::escape(url, no_escape_chars, true);
 }
 
