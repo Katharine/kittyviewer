@@ -50,7 +50,8 @@ class LLWLParamSet {
 	friend class LLWLParamManager;
 
 public:
-	std::string mName;	
+	std::string mName;
+	LLUUID mInventoryID;
 	
 private:
 
