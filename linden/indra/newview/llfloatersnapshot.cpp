@@ -1920,9 +1920,12 @@ void LLFloaterSnapshot::Impl::onCommitSnapshotType(LLUICtrl* ctrl, void* data)
 			// to the snapshot floater.
 			if(floater)
 			{
-				gFloaterView->removeChild(floater);
-				gSnapshotFloaterView->addChild(floater);
-				view->addDependentFloater(floater, false);
+				if(floater->getParent() == gFloaterView)
+				{
+					gFloaterView->removeChild(floater);
+					gSnapshotFloaterView->addChild(floater);
+					view->addDependentFloater(floater, false);
+				}
 			}
 		}
 		else
