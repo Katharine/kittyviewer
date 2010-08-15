@@ -644,4 +644,7 @@ with the same filename but different name
   <texture name="buy_over" file_name="widgets/buy_over.png" preload="true" scale.left="2" scale.top="15" scale.right="67" scale.bottom="4"/>
   <texture name="buy_press" file_name="widgets/buy_press.png" preload="true" scale.left="2" scale.top="15" scale.right="67" scale.bottom="4"/>
   
+  <!-- Kitty Viewer Art -->
+  <texture name="Inv_WindLight" file_name="icons/Inv_WindLight.png" preload="false" />
+  <texture name="Inv_WaterLight" file_name="icons/Inv_WaterLight.png" preload="false" />
 </textures>

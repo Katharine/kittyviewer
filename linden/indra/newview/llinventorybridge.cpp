@@ -72,7 +72,9 @@
 #include "llviewerobjectlist.h"
 #include "llviewerwindow.h"
 #include "llvoavatarself.h"
+#include "llwaterparammanager.h"
 #include "llwearablelist.h"
+#include "llwlparammanager.h"
 
 typedef std::pair<LLUUID, LLUUID> two_uuids_t;
 typedef std::list<two_uuids_t> two_uuids_list_t;
@@ -3644,8 +3646,113 @@ void LLNotecardBridge::openItem()
 	LLViewerInventoryItem* item = getItem();
 	if (item)
 	{
-		LLInvFVBridgeAction::doAction(item->getType(),mUUID,getInventoryModel());
+		if(isSkySetting())
+		{
+			LLWLParamManager::instance()->loadPresetNotecard(item->getName(), item->getAssetUUID(), mUUID);
+		}
+		else if(isWaterSetting())
+		{
+			LLWaterParamManager::instance()->loadPresetNotecard(item->getName(), item->getAssetUUID(), mUUID);
+		}
+		else
+		{
+			LLInvFVBridgeAction::doAction(item->getType(),mUUID,getInventoryModel());
+		}
 	}
+}
+
+void LLNotecardBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
+{
+	menuentry_vec_t items;
+	menuentry_vec_t disabled_items;
+	if(isItemInTrash())
+	{
+		addTrashContextMenuOptions(items, disabled_items);
+	}
+	else
+	{
+		items.push_back(std::string("Share"));
+		if (!canShare())
+		{
+			disabled_items.push_back(std::string("Share"));
+		}
+		
+		if(isWindLight())
+		{
+			if(isSkySetting())
+			{
+				items.push_back(std::string("Use WindLight Settings"));
+			}
+			else if(isWaterSetting())
+			{
+				items.push_back(std::string("Use WaterLight Settings"));
+			}
+			items.push_back(std::string("Edit WindLight Settings"));
+		}
+		else
+		{
+			addOpenRightClickMenuOption(items);
+		}
+		items.push_back(std::string("Properties"));
+		
+		getClipboardEntries(true, items, disabled_items, flags);
+	}
+	hide_context_entries(menu, items, disabled_items);
+}
+
+void LLNotecardBridge::performAction(LLInventoryModel* model, std::string action)
+{
+	if ("load_windlight" == action)
+	{
+		LLInventoryItem* itemp = model->getItem(mUUID);
+		if(!itemp) return;
+		LLWLParamManager::instance()->loadPresetNotecard(itemp->getName(), itemp->getAssetUUID(), mUUID);
+	}
+	else if ("load_waterlight" == action)
+	{
+		LLInventoryItem* itemp = model->getItem(mUUID);
+		if(!itemp) return;
+		LLWaterParamManager::instance()->loadPresetNotecard(itemp->getName(), itemp->getAssetUUID(), mUUID);
+	}
+	else if ("edit_windlight" == action)
+	{
+		LLFloaterReg::showInstance("preview_notecard", LLSD(mUUID), TAKE_FOCUS_YES);
+	}
+	else
+	{
+		LLItemBridge::performAction(model, action);
+	}
+}
+
+LLUIImagePtr LLNotecardBridge::getIcon() const
+{
+	if(isSkySetting())
+	{
+		return LLUI::getUIImage("Inv_WindLight");
+	}
+	else if(isWaterSetting())
+	{
+		return LLUI::getUIImage("Inv_WaterLight");
+	}
+	else
+	{
+		return LLInventoryIcon::getIcon(LLAssetType::AT_NOTECARD);
+	}
+}
+
+bool LLNotecardBridge::isSkySetting() const
+{
+	return (getName().length() > 2 && getName().compare(getName().length() - 3, 3, ".wl") == 0);
+}
+
+bool LLNotecardBridge::isWaterSetting() const
+{
+	return (getName().length() > 2 && getName().compare(getName().length() - 3, 3, ".ww") == 0);
+}
+
+bool LLNotecardBridge::isWindLight() const
+{
+	return (isSkySetting() || isWaterSetting());
 }
 
 // +=================================================+

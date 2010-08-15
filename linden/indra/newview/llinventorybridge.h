@@ -395,6 +395,12 @@ public:
 					 const LLUUID& uuid) :
 		LLItemBridge(inventory, root, uuid) {}
 	virtual void openItem();
+	virtual void buildContextMenu(LLMenuGL& menu, U32 flags);
+	virtual void performAction(LLInventoryModel* model, std::string action);
+	virtual LLUIImagePtr getIcon() const;
+	bool isSkySetting() const;
+	bool isWaterSetting() const;
+	bool isWindLight() const;
 };
 
 class LLGestureBridge : public LLItemBridge
