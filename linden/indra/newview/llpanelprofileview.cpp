@@ -105,6 +105,7 @@ void LLPanelProfileView::onOpen(const LLSD& key)
 	if(id.notNull() && getAvatarId() != id)
 	{
 		setAvatarId(id);
+		childSetValue("agent_id", id);
 	}
 
 	// Update the avatar name.

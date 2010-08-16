@@ -45,6 +45,21 @@
       value="(Loading...)"
       use_ellipses="true"
       width="275" />
+    <text_editor
+      h_pad="0"
+      v_pad="0"
+      allow_scroll="false"
+      bg_visible="false"
+      read_only = "true"
+      follows="top|left|right"
+      height="13"
+      layout="topleft"
+      left="45"
+      name="agent_id"
+      text_color="LtGray"
+      value="00000000-0000-0000-0000-000000000000"
+      top_pad="-1"
+      width="275" />
     <text
      follows="top|left"
      height="13"
@@ -53,10 +68,11 @@
      name="status"
      text_color="LtGray_50"
      value="Online"
-     width="150" />
+     width="150"
+     top_pad="-2" />
     <tab_container
      follows="all"
-     height="538"
+     height="530"
      halign="center"
      layout="topleft"
      left="5"
