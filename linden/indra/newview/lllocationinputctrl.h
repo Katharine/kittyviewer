@@ -150,8 +150,9 @@ private:
 	void 					updateContextMenu();
 	void					updateWidgetlayout();
 	void					changeLocationPresentation();
-
+	
 	void					onInfoButtonClicked();
+	void					onInfoButtonRightClicked();
 	void					onLocationHistoryChanged(LLLocationHistory::EChangeType event);
 	void					onLocationPrearrange(const LLSD& data);
 	void 					onTextEditorRightClicked(S32 x, S32 y, MASK mask);

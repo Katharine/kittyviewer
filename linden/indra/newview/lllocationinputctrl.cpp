@@ -38,6 +38,7 @@
 
 // common includes
 #include "llbutton.h"
+#include "llfloaterreg.h"
 #include "llfocusmgr.h"
 #include "llhelp.h"
 #include "llmenugl.h"
@@ -244,6 +245,7 @@ LLLocationInputCtrl::LLLocationInputCtrl(const LLLocationInputCtrl::Params& p)
 	LLButton::Params info_params = p.info_button;
 	mInfoBtn = LLUICtrlFactory::create<LLButton>(info_params);
 	mInfoBtn->setClickedCallback(boost::bind(&LLLocationInputCtrl::onInfoButtonClicked, this));
+	mInfoBtn->setRightMouseUpCallback(boost::bind(&LLLocationInputCtrl::onInfoButtonRightClicked, this));
 	addChild(mInfoBtn);
 
 	// "Add landmark" button.
@@ -597,6 +599,11 @@ void LLLocationInputCtrl::reshape(S32 width, S32 height, BOOL called_from_parent
 void LLLocationInputCtrl::onInfoButtonClicked()
 {
 	LLSideTray::getInstance()->showPanel("panel_places", LLSD().with("type", "agent"));
+}
+
+void LLLocationInputCtrl::onInfoButtonRightClicked()
+{
+	LLFloaterReg::showInstance("about_land");
 }
 
 void LLLocationInputCtrl::onForSaleButtonClicked()

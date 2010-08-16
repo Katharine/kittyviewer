@@ -93,6 +93,11 @@ private:
 	void onInfoButtonClicked();
 
 	/**
+	 * Handles right clicks on the info buttons.
+	 */
+	void onInfoButtonRightClicked();
+
+	/**
 	 * Called when agent changes the parcel.
 	 */
 	void onAgentParcelChange();

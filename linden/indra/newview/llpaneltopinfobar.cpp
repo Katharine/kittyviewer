@@ -38,6 +38,7 @@
 #include "llagent.h"
 #include "llagentui.h"
 #include "llclipboard.h"
+#include "llfloaterreg.h"
 #include "lllandmarkactions.h"
 #include "lllocationinputctrl.h"
 #include "llnotificationsutil.h"
@@ -136,6 +137,7 @@ BOOL LLPanelTopInfoBar::postBuild()
 {
 	mInfoBtn = getChild<LLButton>("place_info_btn");
 	mInfoBtn->setClickedCallback(boost::bind(&LLPanelTopInfoBar::onInfoButtonClicked, this));
+	mInfoBtn->setRightMouseUpCallback(boost::bind(&LLPanelTopInfoBar::onInfoButtonRightClicked, this));
 
 	mParcelInfoText = getChild<LLTextBox>("parcel_info_text");
 	mDamageText = getChild<LLTextBox>("damage_text");
@@ -424,4 +426,9 @@ void LLPanelTopInfoBar::onContextMenuItemClicked(const LLSD::String& item)
 void LLPanelTopInfoBar::onInfoButtonClicked()
 {
 	LLSideTray::getInstance()->showPanel("panel_places", LLSD().with("type", "agent"));
+}
+
+void LLPanelTopInfoBar::onInfoButtonRightClicked()
+{
+	LLFloaterReg::showInstance("about_land");
 }
