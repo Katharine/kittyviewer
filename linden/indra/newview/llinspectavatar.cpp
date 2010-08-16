@@ -40,6 +40,7 @@
 #include "llavataractions.h"
 #include "llavatarpropertiesprocessor.h"
 #include "llcallingcard.h"
+#include "llclipboard.h"
 #include "lldateutil.h"
 #include "llfloaterreporter.h"
 #include "llfloaterworldmap.h"
@@ -140,6 +141,7 @@ private:
 	bool enableMute();
 	bool enableUnmute();
 	bool enableTeleportOffer();
+	void copyUUID();
 
 	// Is used to determine if "Add friend" option should be enabled in gear menu
 	bool isNotFriend();
@@ -217,6 +219,7 @@ LLInspectAvatar::LLInspectAvatar(const LLSD& sd)
 	mCommitCallbackRegistrar.add("InspectAvatar.IM",
 		boost::bind(&LLInspectAvatar::onClickIM, this));	
 	mCommitCallbackRegistrar.add("InspectAvatar.Call",		boost::bind(&LLInspectAvatar::onClickCall, this));	
+	mCommitCallbackRegistrar.add("InspectAvatar.CopyUUID",	boost::bind(&LLInspectAvatar::copyUUID, this));	
 	mCommitCallbackRegistrar.add("InspectAvatar.Teleport",	boost::bind(&LLInspectAvatar::onClickTeleport, this));	
 	mCommitCallbackRegistrar.add("InspectAvatar.InviteToGroup",	boost::bind(&LLInspectAvatar::onClickInviteToGroup, this));	
 	mCommitCallbackRegistrar.add("InspectAvatar.Pay",	boost::bind(&LLInspectAvatar::onClickPay, this));	
@@ -775,6 +778,11 @@ bool LLInspectAvatar::enableUnmute()
 bool LLInspectAvatar::enableTeleportOffer()
 {
 	return LLAvatarActions::canOfferTeleport(mAvatarID);
+}
+
+void LLInspectAvatar::copyUUID()
+{
+	gClipboard.copyFromString(utf8str_to_wstring(mAvatarID.asString()));
 }
 
 //////////////////////////////////////////////////////////////////////////////
