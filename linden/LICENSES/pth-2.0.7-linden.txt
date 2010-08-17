@@ -1,2 +1,0 @@
-The pristine version of Pth we used for this build is available at:
-http://s3.amazonaws.com/viewer-source-downloads/2009/third-party-libs/pth-2.0.7.tar.gz
