@@ -45,17 +45,6 @@
 ##   disable these by enabling this option:
 #export LL_DISABLE_GSTREAMER=x
 
-## - GStreamer is automatically disabled for 32-bit Viewers on 64-bit
-##   systems due to common fatal incompatibilities; remove/comment these
-##   lines if you want to try anyway.
-SCRIPTSRC=$(readlink -f "$0" || echo "$0")
-RUN_PATH=$(dirname "${SCRIPTSRC}" || echo .)
-BINARY_TYPE=$(expr match "$(file -b ${RUN_PATH}/bin/SLPlugin)" '\(.*executable\)')
-if [ "`uname -m`" == "x86_64" -a "${BINARY_TYPE}" == "ELF 32-bit LSB executable" ]; then
-    export LL_DISABLE_GSTREAMER=x
-    echo '64-bit Linux detected: Disabling GStreamer (streaming video and music) by default; edit ./snowglobe to re-enable.'
-fi
-
 ## Everything below this line is just for advanced troubleshooters.
 ##-------------------------------------------------------------------
 
@@ -135,7 +124,9 @@ if [ -n "$LL_RUN_ERR" ]; then
 	if [ "$LL_RUN_ERR" = "runerr" ]; then
 		# generic error running the binary
 		echo '*** Bad shutdown. ***'
-		if [ "`uname -m`" = "x86_64" ]; then
+		BINARY_TYPE=$(expr match "$(file -b ${RUN_PATH}/bin/SLPlugin)" '\(.*executable\)')
+		BINARY_SYSTEM=$(expr match "$(file -b /bin/uname)" '\(.*executable\)')
+		if [ "${BINARY_SYSTEM}" == "ELF 64-bit LSB executable" -a "${BINARY_TYPE}" == "ELF 32-bit LSB executable" ]; then
 			echo
 			cat << EOFMARKER
 You are running the Second Life Viewer on a x86_64 platform.  The
