@@ -842,7 +842,7 @@ class DarwinManifest(ViewerManifest):
 
             # Create the alias file (which is a resource file) from the .r
             self.run_command('rez %r -o %r' %
-                             (self.src_path_of("installers/darwin/release-dmg/Applications-alias.r"),
+                             (self.src_path_of(os.path.join(dmg_template, "Applications-alias.r")),
                               os.path.join(volpath, "Applications")))
 
             # Set the alias file's alias and custom icon bits
