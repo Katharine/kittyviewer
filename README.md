@@ -1,6 +1,6 @@
 Kitty Viewer
 ============
-Kitty Viewer is a branch of the Snowglobe trunk. This is likely to change
+Kitty Viewer is a fork of the Snowglobe trunk. This is likely to change
 in future to track Linden Lab's [viewer development][] repo, depending on what the current
 status of the Snowglobe project is (I'm unclear).
 
