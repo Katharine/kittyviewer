@@ -14,7 +14,7 @@ function install_desktop_entry()
 [Desktop Entry]\n\
 Name=Second Life\n\
 Comment=Client for the On-line Virtual World, Second Life\n\
-Exec=${installation_prefix}/secondlife\n\
+Exec=${installation_prefix}/kittyviewer\n\
 Icon=${installation_prefix}/secondlife_icon.png\n\
 Terminal=false\n\
 Type=Application\n\
