@@ -252,7 +252,7 @@ void KVFloaterFlickrUpload::imageUploaded(bool success, const LLSD& response)
 	}
 	else
 	{
-		LLNotificationsUtil::add("KittyFlickrUploadFailedNoError");
+		LLNotificationsUtil::add("KittyFlickrUploadFailedNoError", args);
 	}
 
 	// We're pretty much done now.
