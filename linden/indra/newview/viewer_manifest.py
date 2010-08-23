@@ -518,8 +518,8 @@ class WindowsManifest(ViewerManifest):
                 !define INSTNAME   "KittyViewer"
                 !define SHORTCUT   "Kitty Viewer"
                 !define URLNAME   "secondlife"
-                !define INSTALL_ICON "install_icon_snowglobe.ico"
-                !define UNINSTALL_ICON "uninstall_icon_snowglobe.ico"
+                !define INSTALL_ICON "install_icon.ico"
+                !define UNINSTALL_ICON "uninstall_icon.ico"
                 Caption "Kitty Viewer ${VERSION}"
                 """
         else:
