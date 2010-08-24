@@ -11,7 +11,7 @@ There are currently no plans to provide Linux binaries unless there is actual de
 Given there is currently no demand for *any* platform, this seems unlikely to be a problem
 in the near future.
 
-Nightly builds may be provided if I ever manage to assembly the necessary infrastructure.
+Nightly builds may be provided if I ever manage to assemble the necessary infrastructure.
 
 Features
 --------
@@ -19,7 +19,7 @@ Kitty Viewer is, ultimately, Viewer 2 based, with some added niceties from Snowg
 (such as Google translation, double click teleporting). Additionally, I have added the following:
 
 - Direct Flickr uploads when taking snapshots
-- WindLight in inventory, via specially named notecards (*.wl, *.ww)
+- WindLight in inventory, via specially named notecards (\*.wl, \*.ww)
 - [Growl][] notifications (OS X only, for now)
 - "Now playing" notifications for the current stream (inspired by, but not taken from, [Imprudence][])
 - (more is coming)
