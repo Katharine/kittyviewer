@@ -828,7 +828,7 @@ U32 LLControlGroup::saveToFile(const std::string& filename, BOOL nondefault_only
 	return num_saved;
 }
 
-U32 LLControlGroup::loadFromFile(const std::string& filename, bool set_default_values)
+U32 LLControlGroup::loadFromFile(const std::string& filename, bool set_default_values, bool revert_if_not_found)
 {
 	std::string name;
 	LLSD settings;
@@ -920,6 +920,26 @@ U32 LLControlGroup::loadFromFile(const std::string& filename, bool set_default_v
 		
 		++validitems;
 	}
+
+	// [KITTY VIEWER]
+	if(revert_if_not_found)
+	{
+		ctrl_name_table_t::iterator control_iter;
+		for (control_iter = mNameTable.begin();
+			 control_iter != mNameTable.end();
+			 ++control_iter)
+		{
+			if(!settings.has((*control_iter).first))
+			{
+				LLControlVariable* control = (*control_iter).second;
+				if(control->isPersisted() && !control->isDefault())
+				{
+					control->resetToDefault(true);
+				}
+			}
+		}
+	}
+	// [/KITTY VIEWER]
 
 	return validitems;
 }

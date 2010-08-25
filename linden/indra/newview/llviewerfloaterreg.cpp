@@ -40,6 +40,7 @@
 
 #include "kvfloaterflickrauth.h"
 #include "kvfloaterflickrupload.h"
+#include "kvfloaterquicksettings.h"
 #include "llcompilequeue.h"
 #include "llcallfloater.h"
 #include "llfloaterabout.h"
@@ -222,6 +223,8 @@ void LLViewerFloaterReg::registerFloaters()
 	LLFloaterReg::add("preview_texture", "floater_preview_texture.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLPreviewTexture>, "preview");
 	LLFloaterReg::add("properties", "floater_inventory_item_properties.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterProperties>);
 	LLFloaterReg::add("publish_classified", "floater_publish_classified.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLPublishClassifiedFloater>);
+
+	LLFloaterReg::add("quick_settings", "floater_quick_settings.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<KVFloaterQuickSettings>);
 
 	LLFloaterReg::add("telehubs", "floater_telehub.xml",&LLFloaterReg::build<LLFloaterTelehub>);
 	LLFloaterReg::add("test_inspectors", "floater_test_inspectors.xml",

@@ -581,6 +581,7 @@ set(viewer_SOURCE_FILES
     kvflickr.cpp
     kvfloaterflickrauth.cpp
     kvfloaterflickrupload.cpp
+    kvfloaterquicksettings.cpp
 # [/KITTY VIEWER]
     )
 
@@ -1117,6 +1118,7 @@ set(viewer_HEADER_FILES
     kvflickr.h
     kvfloaterflickrauth.h
     kvfloaterflickrupload.h
+    kvfloaterquicksettings.h
 # [/KITTY VIEWER]
     )
 
