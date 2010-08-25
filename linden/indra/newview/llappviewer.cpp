@@ -1954,8 +1954,25 @@ bool LLAppViewer::initConfiguration()
 	LLTransUtil::parseLanguageStrings("language_settings.xml");
 	// - set procedural settings
 	// Note: can't use LL_PATH_PER_SL_ACCOUNT for any of these since we haven't logged in yet
-	gSavedSettings.setString("ClientSettingsFile", 
-        gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, getSettingsFilename("User", "Global")));
+	gSavedSettings.setString("ClientSettingsFile", gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, getSettingsFilename("User", "Global")));
+
+	// Check if we want to override this default file with a profile.
+	std::string current_profile_file = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "profiles", "current_profile.txt");
+	if(gDirUtilp->fileExists(current_profile_file))
+	{
+		llifstream current_profile_stream(current_profile_file);
+		std::string settings_path;
+		getline(current_profile_stream, settings_path);
+		current_profile_stream.close();
+		if(gDirUtilp->fileExists(settings_path))
+		{
+			gSavedSettings.setString("ClientSettingsFile", settings_path);
+		}
+		else
+		{
+			LL_WARNS("QuickSettings") << "Profile file missing." << LL_ENDL;
+		}
+	}
 
 	gSavedSettings.setString("VersionChannelName", LLVersionInfo::getChannel());
 

@@ -200,6 +200,10 @@ bool KVFloaterQuickSettings::loadSettings(const std::string& file)
 		// Reset "procedural settings". ClientSettingsFile is particularly important.
 		gSavedSettings.setString("ClientSettingsFile", file);
 		gSavedSettings.setString("VersionChannelName", LLVersionInfo::getChannel());
+		// Write which file we're using to a known location.
+		llofstream marker(gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "profiles", "current_profile.txt"), std::ios::trunc);
+		marker << file;
+		marker.close();
 		success = true;
 	}
 	else 
