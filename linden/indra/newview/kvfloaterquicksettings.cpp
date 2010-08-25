@@ -41,6 +41,8 @@
 #include "llversioninfo.h"
 #include "llviewercontrol.h"
 
+#include "curl/curl.h"
+
 #include "kvfloaterquicksettings.h"
 
 KVFloaterQuickSettings::KVFloaterQuickSettings(const LLSD& key)
@@ -68,7 +70,12 @@ BOOL KVFloaterQuickSettings::postBuild()
 			if(!gDirUtilp->getNextFileInDir(path_name, "*.xml", name, false))
 				break;
 			name = name.erase(name.length()-4);
-			settings_list->add(name);
+			// Decode the file name for display purposes.
+			char * curl_str = curl_unescape(name.c_str(), name.size());
+			std::string unescaped_name(curl_str);
+			curl_free(curl_str);
+			curl_str = NULL;
+			settings_list->add(unescaped_name);
 		}
 
 		settings_list->setSelectedByValue(gSavedSettings.getLLSD("KittyCurrentSettingsProfile"), true);
@@ -167,7 +174,11 @@ std::string KVFloaterQuickSettings::getPathForProfile(const std::string& profile
 {
 	if(profile != "Default")
 	{
-		return gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "profiles", profile + ".xml");
+		char* curl_str = curl_escape(profile.c_str(), profile.size());
+		std::string encoded(curl_str);
+		curl_free(curl_str);
+		curl_str = NULL;
+		return gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "profiles", encoded + ".xml");
 	}
 	else
 	{
