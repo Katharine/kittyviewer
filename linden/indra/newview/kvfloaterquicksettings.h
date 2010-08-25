@@ -31,6 +31,8 @@
 // Library includes
 #include "lltransientdockablefloater.h"
 
+class LLUICtrl;
+
 class KVFloaterQuickSettings : public LLTransientDockableFloater
 {
 	friend class LLFloaterReg;
@@ -39,4 +41,11 @@ public:
 	/*virtual*/ void onOpen(const LLSD& key);
 private:
 	KVFloaterQuickSettings(const LLSD& key);
+
+	void onChangeProfile(LLUICtrl *ctrl);
+	void onNewProfile();
+	bool newPromptCallback(const LLSD& notification, const LLSD& response);
+
+	static std::string getPathForProfile(const std::string& profile);
+	bool loadSettings(const std::string& file);
 };
