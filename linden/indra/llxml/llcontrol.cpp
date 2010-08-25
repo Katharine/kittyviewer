@@ -932,7 +932,7 @@ U32 LLControlGroup::loadFromFile(const std::string& filename, bool set_default_v
 			if(!settings.has((*control_iter).first))
 			{
 				LLControlVariable* control = (*control_iter).second;
-				if(!control->isDefault())
+				if(control->isPersisted() && !control->isDefault())
 				{
 					control->resetToDefault(true);
 				}
