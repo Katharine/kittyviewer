@@ -121,6 +121,21 @@ bool LLTransientFloaterMgr::isControlClicked(std::set<LLView*>& set, S32 x, S32 
 			res = false;
 			break;
 		}
+		else
+		{
+			// Recursively check all children, too; otherwise a combo box poking over
+			// the edge (or similar) will incorrectly be marked as outside -- KB
+			controls_set_t children;
+			for(LLView::child_list_const_iter_t c_it = control_view->beginChild(); c_it != control_view->endChild(); ++c_it)
+			{
+				children.insert(*c_it);
+			}
+			if(!isControlClicked(children, x, y))
+			{
+				res = false;
+				break;
+			}
+		}
 	}
 	return res;
 }
