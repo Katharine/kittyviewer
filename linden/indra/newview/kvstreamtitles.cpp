@@ -84,6 +84,7 @@ BOOL KVStreamTitles::tick()
 
 void KVStreamTitles::onStreamMetadata(const std::string& artist, const std::string& title)
 {
+	// FMOD likes to spam us with blanks. Ignore them.
 	if(title.length() == 0)
 		return;
 
