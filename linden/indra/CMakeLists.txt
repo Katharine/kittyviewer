@@ -123,8 +123,6 @@ if (SERVER)
   endif (WINDOWS)
 endif (SERVER)
 
-if (LL_TESTS)
-  # Define after the custom viewer and server targets are created so individual
-  # apps can add themselves as dependencies
-  add_subdirectory(${INTEGRATION_TESTS_PREFIX}integration_tests)
-endif (LL_TESTS)
+# Define after the custom viewer and server targets are created so individual
+# apps can add themselves as dependencies
+add_subdirectory(${INTEGRATION_TESTS_PREFIX}integration_tests)

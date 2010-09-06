@@ -2,33 +2,26 @@
  * @file pipeline.h
  * @brief Rendering pipeline definitions
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_PIPELINE_H
@@ -101,55 +94,6 @@ extern LLFastTimer::DeclareTimer FTM_STATESORT;
 extern LLFastTimer::DeclareTimer FTM_PIPELINE;
 extern LLFastTimer::DeclareTimer FTM_CLIENT_COPY;
 
-class LLRenderTypeMask
-{
-private:
-	U64 mMask;
-
-public:
-	LLRenderTypeMask(void) : mMask(0) { }
-	LLRenderTypeMask(LLRenderTypeMask const& mask) : mMask(mask.mMask) { }
-	LLRenderTypeMask(LLRenderType const& type) : mMask(static_cast<U64>(1) << type.index()) { }
-
-	LLRenderTypeMask& operator|=(LLRenderTypeMask const& mask) { mMask |= mask.mMask; return *this; }
-	LLRenderTypeMask& operator&=(LLRenderTypeMask const& mask) { mMask &= mask.mMask; return *this; }
-	LLRenderTypeMask& operator^=(LLRenderTypeMask const& mask) { mMask ^= mask.mMask; return *this; }
-
-	void clear() { mMask = 0; }
-	void setAll() { mMask = (S64)-1; }
-	void invert() { mMask = ~mMask; }
-
-	bool has(LLRenderType const& type) const { return (mMask >> type.index()) & 1; }
-	bool hasAnyOf(LLRenderTypeMask const& mask) const { return mMask & mask.mMask; }
-
-	friend std::ostream& operator<<(std::ostream& os, LLRenderTypeMask const& mask) { return os << std::hex << mask.mMask << std::dec; }
-};
-
-inline LLRenderTypeMask operator|(LLRenderTypeMask const& mask1, LLRenderTypeMask const& mask2)
-{
-	LLRenderTypeMask result(mask1);
-	result |= mask2;
-	return result;
-}
-
-inline LLRenderTypeMask operator&(LLRenderTypeMask const& mask1, LLRenderTypeMask const& mask2)
-{
-	LLRenderTypeMask result(mask1);
-	result &= mask2;
-	return result;
-}
-
-inline LLRenderTypeMask operator~(LLRenderTypeMask const& mask)
-{
-	LLRenderTypeMask result(mask);
-	result.invert();
-	return result;
-}
-
-inline LLRenderTypeMask operator<<(int, LLRenderTypePOD const& rt)
-{
-	return LLRenderTypeMask(rt);
-}
 
 class LLPipeline
 {
@@ -177,15 +121,15 @@ public:
 
 	/// @brief Get a draw pool from pool type (POOL_SIMPLE, POOL_MEDIA) and texture.
 	/// @return Draw pool, or NULL if not found.
-	LLDrawPool *findPool(LLRenderType const& pool_type, LLViewerTexture *tex0 = NULL);
+	LLDrawPool *findPool(const U32 pool_type, LLViewerTexture *tex0 = NULL);
 
 	/// @brief Get a draw pool for faces of the appropriate type and texture.  Create if necessary.
 	/// @return Always returns a draw pool.
-	LLDrawPool *getPool(LLRenderType const& pool_type, LLViewerTexture *tex0 = NULL);
+	LLDrawPool *getPool(const U32 pool_type, LLViewerTexture *tex0 = NULL);
 
 	/// @brief Figures out draw pool type from texture entry. Creates pool if necessary.
 	static LLDrawPool* getPoolFromTE(const LLTextureEntry* te, LLViewerTexture* te_image);
-	static LLRenderType getPoolTypeFromTE(const LLTextureEntry* te, LLViewerTexture* imagep);
+	static U32 getPoolTypeFromTE(const LLTextureEntry* te, LLViewerTexture* imagep);
 
 	void		 addPool(LLDrawPool *poolp);	// Only to be used by LLDrawPool classes for splitting pools!
 	void		 removePool( LLDrawPool* poolp );
@@ -273,8 +217,8 @@ public:
 	void postSort(LLCamera& camera);
 	void forAllVisibleDrawables(void (*func)(LLDrawable*));
 
-	void renderObjects(LLRenderType const& type, U32 mask, BOOL texture = TRUE);
-	void renderGroups(LLRenderPass* pass, LLRenderType const& type, U32 mask, BOOL texture);
+	void renderObjects(U32 type, U32 mask, BOOL texture = TRUE);
+	void renderGroups(LLRenderPass* pass, U32 type, U32 mask, BOOL texture);
 
 	void grabReferences(LLCullResult& result);
 
@@ -324,35 +268,38 @@ public:
 	void setLight(LLDrawable *drawablep, BOOL is_light);
 	
 	BOOL hasRenderBatches(const U32 type) const;
-	LLCullResult::drawinfo_list_t::iterator beginRenderMap(LLRenderType const& type);
-	LLCullResult::drawinfo_list_t::iterator endRenderMap(LLRenderType const& type);
+	LLCullResult::drawinfo_list_t::iterator beginRenderMap(U32 type);
+	LLCullResult::drawinfo_list_t::iterator endRenderMap(U32 type);
 	LLCullResult::sg_list_t::iterator beginAlphaGroups();
 	LLCullResult::sg_list_t::iterator endAlphaGroups();
 	
 
 	void addTrianglesDrawn(S32 index_count, U32 render_type = LLRender::TRIANGLES);
+
 	BOOL hasRenderDebugFeatureMask(const U32 mask) const	{ return (mRenderDebugFeatureMask & mask) ? TRUE : FALSE; }
 	BOOL hasRenderDebugMask(const U32 mask) const			{ return (mRenderDebugMask & mask) ? TRUE : FALSE; }
 	
 
 
-	BOOL hasRenderType(LLRenderType const& type) const;
-	BOOL hasAnyRenderType(LLRenderType type, ...) const;
+	BOOL hasRenderType(const U32 type) const;
+	BOOL hasAnyRenderType(const U32 type, ...) const;
 
-	void orRenderTypeMask(LLRenderType type, ...);
-	void andRenderTypeMask(LLRenderType type, ...);
-	void clearRenderTypeMask(LLRenderType type, ...);
-	void setRenderTypeMask(LLRenderType type, ...);
+	void setRenderTypeMask(U32 type, ...);
+	void orRenderTypeMask(U32 type, ...);
+	void andRenderTypeMask(U32 type, ...);
+	void clearRenderTypeMask(U32 type, ...);
 	
 	void pushRenderTypeMask();
 	void popRenderTypeMask();
 
-	static void toggleRenderType(LLRenderType const& type);
+	static void toggleRenderType(U32 type);
 
 	// For UI control of render features
+	static BOOL hasRenderTypeControl(void* data);
 	static void toggleRenderDebug(void* data);
 	static void toggleRenderDebugFeature(void* data);
-	static void toggleRenderTypeControl(LLRenderType const& type);
+	static void toggleRenderTypeControl(void* data);
+	static BOOL toggleRenderTypeControlNegated(void* data);
 	static BOOL toggleRenderDebugControl(void* data);
 	static BOOL toggleRenderDebugFeatureControl(void* data);
 
@@ -396,6 +343,47 @@ private:
 	
 public:
 	enum {GPU_CLASS_MAX = 3 };
+
+	enum LLRenderTypeMask
+	{
+		// Following are pool types (some are also object types)
+		RENDER_TYPE_SKY							= LLDrawPool::POOL_SKY,
+		RENDER_TYPE_WL_SKY						= LLDrawPool::POOL_WL_SKY,
+		RENDER_TYPE_GROUND						= LLDrawPool::POOL_GROUND,	
+		RENDER_TYPE_TERRAIN						= LLDrawPool::POOL_TERRAIN,
+		RENDER_TYPE_SIMPLE						= LLDrawPool::POOL_SIMPLE,
+		RENDER_TYPE_GRASS						= LLDrawPool::POOL_GRASS,
+		RENDER_TYPE_FULLBRIGHT					= LLDrawPool::POOL_FULLBRIGHT,
+		RENDER_TYPE_BUMP						= LLDrawPool::POOL_BUMP,
+		RENDER_TYPE_AVATAR						= LLDrawPool::POOL_AVATAR,
+		RENDER_TYPE_TREE						= LLDrawPool::POOL_TREE,
+		RENDER_TYPE_INVISIBLE					= LLDrawPool::POOL_INVISIBLE,
+		RENDER_TYPE_WATER						= LLDrawPool::POOL_WATER,
+ 		RENDER_TYPE_ALPHA						= LLDrawPool::POOL_ALPHA,
+		RENDER_TYPE_GLOW						= LLDrawPool::POOL_GLOW,
+		RENDER_TYPE_PASS_SIMPLE 				= LLRenderPass::PASS_SIMPLE,
+		RENDER_TYPE_PASS_GRASS					= LLRenderPass::PASS_GRASS,
+		RENDER_TYPE_PASS_FULLBRIGHT				= LLRenderPass::PASS_FULLBRIGHT,
+		RENDER_TYPE_PASS_INVISIBLE				= LLRenderPass::PASS_INVISIBLE,
+		RENDER_TYPE_PASS_INVISI_SHINY			= LLRenderPass::PASS_INVISI_SHINY,
+		RENDER_TYPE_PASS_FULLBRIGHT_SHINY		= LLRenderPass::PASS_FULLBRIGHT_SHINY,
+		RENDER_TYPE_PASS_SHINY					= LLRenderPass::PASS_SHINY,
+		RENDER_TYPE_PASS_BUMP					= LLRenderPass::PASS_BUMP,
+		RENDER_TYPE_PASS_POST_BUMP				= LLRenderPass::PASS_POST_BUMP,
+		RENDER_TYPE_PASS_GLOW					= LLRenderPass::PASS_GLOW,
+		RENDER_TYPE_PASS_ALPHA					= LLRenderPass::PASS_ALPHA,
+		RENDER_TYPE_PASS_ALPHA_MASK				= LLRenderPass::PASS_ALPHA_MASK,
+		RENDER_TYPE_PASS_FULLBRIGHT_ALPHA_MASK	= LLRenderPass::PASS_FULLBRIGHT_ALPHA_MASK,
+		RENDER_TYPE_PASS_ALPHA_SHADOW = LLRenderPass::PASS_ALPHA_SHADOW,
+		// Following are object types (only used in drawable mRenderType)
+		RENDER_TYPE_HUD = LLRenderPass::NUM_RENDER_TYPES,
+		RENDER_TYPE_VOLUME,
+		RENDER_TYPE_PARTICLES,
+		RENDER_TYPE_CLOUDS,
+		RENDER_TYPE_HUD_PARTICLES,
+		NUM_RENDER_TYPES,
+		END_RENDER_TYPES = NUM_RENDER_TYPES
+	};
 
 	enum LLRenderDebugFeatureMask
 	{
@@ -558,7 +546,7 @@ public:
 	S32						mVertexShadersLoaded; // 0 = no, 1 = yes, -1 = failed
 
 protected:
-	BOOL					mRenderTypeEnabled[END_RENDER_TYPES];
+	BOOL					mRenderTypeEnabled[NUM_RENDER_TYPES];
 	std::stack<std::string> mRenderTypeEnableStack;
 
 	U32						mRenderDebugFeatureMask;
@@ -570,7 +558,7 @@ protected:
 	//
 	//
 	LLDrawable::drawable_vector_t	mMovedList;
-	LLDrawable::drawable_vector_t	mMovedBridge;
+	LLDrawable::drawable_vector_t mMovedBridge;
 	LLDrawable::drawable_vector_t	mShiftList;
 
 	/////////////////////////////////////////////
@@ -655,7 +643,24 @@ protected:
 	//
 	struct compare_pools
 	{
-		bool operator()(const LLDrawPool* a, const LLDrawPool* b) const;
+		bool operator()(const LLDrawPool* a, const LLDrawPool* b) const
+		{
+			if (!a)
+				return true;
+			else if (!b)
+				return false;
+			else
+			{
+				S32 atype = a->getType();
+				S32 btype = b->getType();
+				if (atype < btype)
+					return true;
+				else if (atype > btype)
+					return false;
+				else
+					return a->getId() < b->getId();
+			}
+		}
 	};
  	typedef std::set<LLDrawPool*, compare_pools > pool_set_t;
 	pool_set_t mPools;
@@ -699,7 +704,7 @@ public:
 	static BOOL				sRenderHighlight;
 
 	//debug use
-	static LLRenderType     sCurRenderPoolType ;
+	static U32              sCurRenderPoolType ;
 };
 
 void render_bbox(const LLVector3 &min, const LLVector3 &max);

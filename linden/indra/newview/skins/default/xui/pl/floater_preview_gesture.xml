@@ -42,7 +42,12 @@
 	<text name="library_label">
 		Zbiór:
 	</text>
-	<scroll_list name="library_list"/>
+	<scroll_list name="library_list">
+		<scroll_list.rows name="action_animation" value="Animacja"/>
+		<scroll_list.rows name="action_sound" value="Dźwięk"/>
+		<scroll_list.rows name="action_chat" value="Czat"/>
+		<scroll_list.rows name="action_wait" value="Wstrzymaj"/>
+	</scroll_list>
 	<button label="Dodaj &gt;&gt;" name="add_btn"/>
 	<text name="steps_label">
 		Etapy:
@@ -62,7 +67,7 @@
 	<text name="help_label">
 		Wszystkie etapy nastąpią razem, chyba, że dodasz pauzy.
 	</text>
-	<check_box label="Aktywny" name="active_check" tool_tip="Aktywne gesty można włączać używając przypisanej frazy w czacie albo używając przypisanego klawisza skrótowego. W przypaku konfliktu przypisań gesty zazwyczaj nie będą działać."/>
+	<check_box label="Aktywna" name="active_check" tool_tip="Aktywne gesturki można włączać używając przypisanej frazy w czacie albo używając przypisanego klawisza skrótowego. W przypaku konfliktu przypisań gesty zazwyczaj nie będą działać."/>
 	<button label="Pokaż" name="preview_btn"/>
 	<button label="Zapisz" name="save_btn"/>
 </floater>

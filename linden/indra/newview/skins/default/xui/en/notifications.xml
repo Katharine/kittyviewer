@@ -4023,6 +4023,19 @@ Are you sure you want to quit?
 
   <notification
    icon="alertmodal.tga"
+   name="DeleteItems"
+   type="alertmodal">
+    [QUESTION]
+    <usetemplate
+     ignoretext="Confirm before deleting items"
+     name="okcancelignore"
+     notext="Cancel"
+     yestext="OK"/>
+    <unique/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="HelpReportAbuseEmailLL"
    type="alert">
 Use this tool to report violations of the [http://secondlife.com/corporate/tos.php Terms of Service] and [http://secondlife.com/corporate/cs.php Community Standards].
@@ -6340,10 +6353,18 @@ Avatar '[NAME]' left as fully loaded.
 
   <notification
    icon="notifytip.tga"
-   name="AvatarRezSelfBakeNotification"
+   name="AvatarRezSelfBakedTextureUploadNotification"
    type="notifytip">
 ( [EXISTENCE] seconds alive )
-You [ACTION] a [RESOLUTION] baked texture for '[BODYREGION]' after [TIME] seconds.
+You uploaded a [RESOLUTION] baked texture for '[BODYREGION]' after [TIME] seconds.
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="AvatarRezSelfBakedTextureUpdateNotification"
+   type="notifytip">
+( [EXISTENCE] seconds alive )
+You locally updated a [RESOLUTION] baked texture for '[BODYREGION]' after [TIME] seconds.
   </notification>
 
   <notification

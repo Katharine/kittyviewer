@@ -2,33 +2,26 @@
  * @file lldrawpool.cpp
  * @brief LLDrawPool class implementation
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -61,10 +54,10 @@ S32 LLDrawPool::sNumDrawPools = 0;
 //=============================
 // Draw Pool Implementation
 //=============================
-LLDrawPool *LLDrawPool::createPool(LLRenderType const& type, LLViewerTexture *tex0)
+LLDrawPool *LLDrawPool::createPool(const U32 type, LLViewerTexture *tex0)
 {
 	LLDrawPool *poolp = NULL;
-	switch (type.index())
+	switch (type)
 	{
 	case POOL_SIMPLE:
 		poolp = new LLDrawPoolSimple();
@@ -96,7 +89,6 @@ LLDrawPool *LLDrawPool::createPool(LLRenderType const& type, LLViewerTexture *te
 	case POOL_SKY:
 		poolp = new LLDrawPoolSky();
 		break;
-	case POOL_VOIDWATER:
 	case POOL_WATER:
 		poolp = new LLDrawPoolWater();
 		break;
@@ -118,8 +110,9 @@ LLDrawPool *LLDrawPool::createPool(LLRenderType const& type, LLViewerTexture *te
 	return poolp;
 }
 
-LLDrawPool::LLDrawPool(LLRenderType const& type) : mType(type)
+LLDrawPool::LLDrawPool(const U32 type)
 {
+	mType = type;
 	sNumDrawPools++;
 	mId = sNumDrawPools;
 	mVertexShaderLevel = 0;
@@ -226,7 +219,7 @@ void LLDrawPool::renderShadow(S32 pass)
 //=============================
 // Face Pool Implementation
 //=============================
-LLFacePool::LLFacePool(LLRenderType const& type)
+LLFacePool::LLFacePool(const U32 type)
 : LLDrawPool(type)
 {
 	resetDrawOrders();
@@ -402,7 +395,7 @@ void LLFacePool::LLOverrideFaceColor::setColor(F32 r, F32 g, F32 b, F32 a)
 //=============================
 // Render Pass Implementation
 //=============================
-LLRenderPass::LLRenderPass(LLRenderType const& type)
+LLRenderPass::LLRenderPass(const U32 type)
 : LLDrawPool(type)
 {
 
@@ -423,7 +416,7 @@ LLDrawPool* LLRenderPass::instancePool()
 	return NULL;
 }
 
-void LLRenderPass::renderGroup(LLSpatialGroup* group, LLRenderType const& type, U32 mask, BOOL texture)
+void LLRenderPass::renderGroup(LLSpatialGroup* group, U32 type, U32 mask, BOOL texture)
 {					
 	LLSpatialGroup::drawmap_elem_t& draw_info = group->mDrawMap[type];
 	
@@ -436,12 +429,12 @@ void LLRenderPass::renderGroup(LLSpatialGroup* group, LLRenderType const& type, 
 	}
 }
 
-void LLRenderPass::renderTexture(LLRenderType const& type, U32 mask)
+void LLRenderPass::renderTexture(U32 type, U32 mask)
 {
 	pushBatches(type, mask, TRUE);
 }
 
-void LLRenderPass::pushBatches(LLRenderType const& type, U32 mask, BOOL texture)
+void LLRenderPass::pushBatches(U32 type, U32 mask, BOOL texture)
 {
 	for (LLCullResult::drawinfo_list_t::iterator i = gPipeline.beginRenderMap(type); i != gPipeline.endRenderMap(type); ++i)	
 	{
@@ -508,7 +501,7 @@ void LLRenderPass::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture)
 	}
 }
 
-void LLRenderPass::renderGroups(LLRenderType const& type, U32 mask, BOOL texture)
+void LLRenderPass::renderGroups(U32 type, U32 mask, BOOL texture)
 {
 	gPipeline.renderGroups(this, type, mask, texture);
 }

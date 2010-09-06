@@ -2,33 +2,26 @@
  * @file llpanelpeople.cpp
  * @brief Side tray "People" panel
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -259,6 +252,7 @@ public:
 	friend class LLInventoryFriendCardObserver;
 	LLFriendListUpdater(callback_t cb)
 	:	LLAvatarListUpdater(cb, FRIEND_LIST_UPDATE_TIMEOUT)
+	,	mIsActive(false)
 	{
 		LLAvatarTracker::instance().addObserver(this);
 
@@ -277,9 +271,12 @@ public:
 
 	/*virtual*/ void changed(U32 mask)
 	{
-		// events can arrive quickly in bulk - we need not process EVERY one of them -
-		// so we wait a short while to let others pile-in, and process them in aggregate.
-		mEventTimer.start();
+		if (mIsActive)
+		{
+			// events can arrive quickly in bulk - we need not process EVERY one of them -
+			// so we wait a short while to let others pile-in, and process them in aggregate.
+			mEventTimer.start();
+		}
 
 		// save-up all the mask-bits which have come-in
 		mMask |= mask;
@@ -288,8 +285,12 @@ public:
 
 	/*virtual*/ BOOL tick()
 	{
+		if (!mIsActive) return FALSE;
+
 		if (mMask & (LLFriendObserver::ADD | LLFriendObserver::REMOVE | LLFriendObserver::ONLINE))
+		{
 			updateList();
+		}
 
 		// Stop updates.
 		mEventTimer.stop();
@@ -298,9 +299,20 @@ public:
 		return FALSE;
 	}
 
+	// virtual
+	void setActive(bool active)
+	{
+		mIsActive = active;
+		if (active)
+		{
+			tick();
+		}
+	}
+
 private:
 	U32 mMask;
 	LLInventoryFriendCardObserver* mInvObserver;
+	bool mIsActive;
 
 	/**
 	 *	This class is intended for updating Friend List when Inventory Friend Card is added/removed.
@@ -483,22 +495,25 @@ void LLPanelPeople::onFriendsAccordionExpandedCollapsed(LLUICtrl* ctrl, const LL
 
 BOOL LLPanelPeople::postBuild()
 {
-	setVisibleCallback(boost::bind(&LLPanelPeople::onVisibilityChange, this, _2));
-	
 	mFilterEditor = getChild<LLFilterEditor>("filter_input");
 	mFilterEditor->setCommitCallback(boost::bind(&LLPanelPeople::onFilterEdit, this, _2));
 
 	mTabContainer = getChild<LLTabContainer>("tabs");
 	mTabContainer->setCommitCallback(boost::bind(&LLPanelPeople::onTabSelected, this, _2));
 
-	mOnlineFriendList = getChild<LLPanel>(FRIENDS_TAB_NAME)->getChild<LLAvatarList>("avatars_online");
-	mAllFriendList = getChild<LLPanel>(FRIENDS_TAB_NAME)->getChild<LLAvatarList>("avatars_all");
+	LLPanel* friends_tab = getChild<LLPanel>(FRIENDS_TAB_NAME);
+	// updater is active only if panel is visible to user.
+	friends_tab->setVisibleCallback(boost::bind(&Updater::setActive, mFriendListUpdater, _2));
+	mOnlineFriendList = friends_tab->getChild<LLAvatarList>("avatars_online");
+	mAllFriendList = friends_tab->getChild<LLAvatarList>("avatars_all");
 	mOnlineFriendList->setNoItemsCommentText(getString("no_friends_online"));
 	mOnlineFriendList->setShowIcons("FriendsListShowIcons");
 	mAllFriendList->setNoItemsCommentText(getString("no_friends"));
 	mAllFriendList->setShowIcons("FriendsListShowIcons");
 
-	mNearbyList = getChild<LLPanel>(NEARBY_TAB_NAME)->getChild<LLAvatarList>("avatar_list");
+	LLPanel* nearby_tab = getChild<LLPanel>(NEARBY_TAB_NAME);
+	nearby_tab->setVisibleCallback(boost::bind(&Updater::setActive, mNearbyListUpdater, _2));
+	mNearbyList = nearby_tab->getChild<LLAvatarList>("avatar_list");
 	mNearbyList->setNoItemsCommentText(getString("no_one_near"));
 	mNearbyList->setNoItemsMsg(getString("no_one_near"));
 	mNearbyList->setNoFilteredItemsMsg(getString("no_one_filtered_near"));
@@ -758,12 +773,6 @@ void LLPanelPeople::buttonSetAction(const std::string& btn_name, const commit_si
 	button->setClickedCallback(cb);
 }
 
-bool LLPanelPeople::isFriendOnline(const LLUUID& id)
-{
-	uuid_vec_t ids = mOnlineFriendList->getIDs();
-	return std::find(ids.begin(), ids.end(), id) != ids.end();
-}
-
 void LLPanelPeople::updateButtons()
 {
 	std::string cur_tab		= getActiveTabName();
@@ -798,8 +807,8 @@ void LLPanelPeople::updateButtons()
 		}
 
 		LLPanel* groups_panel = mTabContainer->getCurrentPanel();
-		groups_panel->childSetEnabled("activate_btn",	item_selected && !cur_group_active); // "none" or a non-active group selected
-		groups_panel->childSetEnabled("minus_btn",		item_selected && selected_id.notNull());
+		groups_panel->getChildView("activate_btn")->setEnabled(item_selected && !cur_group_active); // "none" or a non-active group selected
+		groups_panel->getChildView("minus_btn")->setEnabled(item_selected && selected_id.notNull());
 	}
 	else
 	{
@@ -815,21 +824,21 @@ void LLPanelPeople::updateButtons()
 		LLPanel* cur_panel = mTabContainer->getCurrentPanel();
 		if (cur_panel)
 		{
-			cur_panel->childSetEnabled("add_friend_btn", !is_friend);
+			cur_panel->getChildView("add_friend_btn")->setEnabled(!is_friend);
 			if (friends_tab_active)
 			{
-				cur_panel->childSetEnabled("del_btn", multiple_selected);
+				cur_panel->getChildView("del_btn")->setEnabled(multiple_selected);
 			}
 		}
 	}
 
 	bool enable_calls = LLVoiceClient::getInstance()->isVoiceWorking() && LLVoiceClient::getInstance()->voiceEnabled();
 
-	buttonSetEnabled("teleport_btn",		friends_tab_active && item_selected && isFriendOnline(selected_uuids.front()));
-	buttonSetEnabled("view_profile_btn",	item_selected);
-	buttonSetEnabled("im_btn",				multiple_selected); // allow starting the friends conference for multiple selection
-	buttonSetEnabled("call_btn",			multiple_selected && enable_calls);
-	buttonSetEnabled("share_btn",			item_selected); // not implemented yet
+	buttonSetEnabled("view_profile_btn",item_selected);
+	buttonSetEnabled("share_btn",		item_selected);
+	buttonSetEnabled("im_btn",			multiple_selected); // allow starting the friends conference for multiple selection
+	buttonSetEnabled("call_btn",		multiple_selected && enable_calls);
+	buttonSetEnabled("teleport_btn",	multiple_selected && LLAvatarActions::canOfferTeleport(selected_uuids));
 
 	bool none_group_selected = item_selected && selected_id.isNull();
 	buttonSetEnabled("group_info_btn", !none_group_selected);
@@ -953,29 +962,6 @@ void LLPanelPeople::setSortOrder(LLAvatarList* list, ESortOrder order, bool save
 	}
 }
 
-void LLPanelPeople::onVisibilityChange(const LLSD& new_visibility)
-{
-	if (new_visibility.asBoolean() == FALSE)
-	{
-		// Don't update anything while we're invisible.
-		mNearbyListUpdater->setActive(FALSE);
-		mNearbyList->setExtraDataUpdatePeriod(0); // Disables
-	}
-	else
-	{
-		reSelectedCurrentTab();
-	}
-}
-
-// Make the tab-container re-select current tab
-// for onTabSelected() callback to get called.
-// (currently this is needed to reactivate nearby list updates
-// when we get visible)
-void LLPanelPeople::reSelectedCurrentTab()
-{
-	mTabContainer->selectTab(mTabContainer->getCurrentPanelIndex());
-}
-
 bool LLPanelPeople::isRealGroup()
 {
 	return getCurrentItemID() != LLUUID::null;
@@ -1023,8 +1009,6 @@ void LLPanelPeople::onFilterEdit(const std::string& search_string)
 void LLPanelPeople::onTabSelected(const LLSD& param)
 {
 	std::string tab_name = getChild<LLPanel>(param.asString())->getName();
-	mNearbyListUpdater->setActive(tab_name == NEARBY_TAB_NAME);
-	mNearbyList->setExtraDataUpdatePeriod((tab_name == NEARBY_TAB_NAME) ? NEARBY_LIST_UPDATE_INTERVAL : 0);
 	updateButtons();
 
 	showFriendsAccordionsIfNeeded();
@@ -1335,7 +1319,9 @@ void LLPanelPeople::onGroupCallButtonClicked()
 
 void LLPanelPeople::onTeleportButtonClicked()
 {
-	LLAvatarActions::offerTeleport(getCurrentItemID());
+	uuid_vec_t selected_uuids;
+	getCurrentItemIDs(selected_uuids);
+	LLAvatarActions::offerTeleport(selected_uuids);
 }
 
 void LLPanelPeople::onShareButtonClicked()
@@ -1388,8 +1374,6 @@ void	LLPanelPeople::onOpen(const LLSD& key)
 	
 	if (!tab_name.empty())
 		mTabContainer->selectTabByName(tab_name);
-	else
-		reSelectedCurrentTab();
 }
 
 bool LLPanelPeople::notifyChildren(const LLSD& info)

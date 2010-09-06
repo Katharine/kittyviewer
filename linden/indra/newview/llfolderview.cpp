@@ -2,33 +2,26 @@
  * @file llfolderview.cpp
  * @brief Implementation of the folder view collection of classes.
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -63,6 +56,7 @@
 #include "llviewerwindow.h"
 #include "llvoavatar.h"
 #include "llfloaterproperties.h"
+#include "llnotificationsutil.h"
 
 // Linden library includes
 #include "lldbstrings.h"
@@ -105,7 +99,6 @@ void copy_selected_item(void* user_data);
 void open_selected_items(void* user_data);
 void properties_selected_items(void* user_data);
 void paste_items(void* user_data);
-void renamer_focus_lost( LLFocusableElement* handler, void* user_data );
 
 
 //---------------------------------------------------------------------------
@@ -185,7 +178,6 @@ LLFolderView::LLFolderView(const Params& p)
 	mSourceID(p.task_id),
 	mRenameItem( NULL ),
 	mNeedsScroll( FALSE ),
-	mEnableScroll( true ),
 	mUseLabelSuffix(p.use_label_suffix),
 	mPinningSelectedItem(FALSE),
 	mNeedsAutoSelect( FALSE ),
@@ -276,6 +268,8 @@ LLFolderView::LLFolderView(const Params& p)
 // Destroys the object
 LLFolderView::~LLFolderView( void )
 {
+	closeRenamer();
+
 	// The release focus call can potentially call the
 	// scrollcontainer, which can potentially be called with a partly
 	// destroyed scollcontainer. Just null it out here, and no worries
@@ -290,8 +284,6 @@ LLFolderView::~LLFolderView( void )
 	gIdleCallbacks.deleteFunction(idle, this);
 
 	LLView::deleteViewByHandle(mPopupMenuHandle);
-
-	gViewerWindow->removePopup(mRenamer);
 
 	mAutoOpenItems.removeAllNodes();
 	clearSelection();
@@ -357,10 +349,6 @@ BOOL LLFolderView::addFolder( LLFolderViewFolder* folder)
 	else
 	{
 		mFolders.insert(mFolders.begin(), folder);
-	}
-	if (folder->numSelected())
-	{
-		recursiveIncrementNumDescendantsSelected(folder->numSelected());
 	}
 	folder->setShowLoadStatus(true);
 	folder->setOrigin(0, 0);
@@ -704,24 +692,29 @@ BOOL LLFolderView::changeSelection(LLFolderViewItem* selection, BOOL selected)
 	return rv;
 }
 
-void LLFolderView::extendSelection(LLFolderViewItem* selection, LLFolderViewItem* last_selected, LLDynamicArray<LLFolderViewItem*>& items)
+S32 LLFolderView::extendSelection(LLFolderViewItem* selection, LLFolderViewItem* last_selected, LLDynamicArray<LLFolderViewItem*>& items)
 {
+	S32 rv = 0;
+
 	// now store resulting selection
 	if (mAllowMultiSelect)
 	{
 		LLFolderViewItem *cur_selection = getCurSelectedItem();
-		LLFolderViewFolder::extendSelection(selection, cur_selection, items);
+		rv = LLFolderViewFolder::extendSelection(selection, cur_selection, items);
 		for (S32 i = 0; i < items.count(); i++)
 		{
 			addToSelectionList(items[i]);
+			rv++;
 		}
 	}
 	else
 	{
 		setSelection(selection, FALSE, FALSE);
+		rv++;
 	}
 
 	mSignalSelectCallback = SIGNAL_KEYBOARD_FOCUS;
+	return rv;
 }
 
 void LLFolderView::sanitizeSelection()
@@ -998,12 +991,7 @@ void LLFolderView::finishRenamingItem( void )
 		mRenameItem->rename( mRenamer->getText() );
 	}
 
-	gViewerWindow->removePopup(mRenamer);
-
-	if( mRenameItem )
-	{
-		setSelectionFromRoot( mRenameItem, TRUE );
-	}
+	closeRenamer();
 
 	// List is re-sorted alphabeticly, so scroll to make sure the selected item is visible.
 	scrollToShowSelection();
@@ -1011,20 +999,26 @@ void LLFolderView::finishRenamingItem( void )
 
 void LLFolderView::closeRenamer( void )
 {
-	// will commit current name (which could be same as original name)
-	mRenamer->setFocus( FALSE );
-	mRenamer->setVisible( FALSE );
-	gViewerWindow->removePopup(mRenamer);
-
-	if( mRenameItem )
+	if (mRenamer && mRenamer->getVisible())
 	{
-		setSelectionFromRoot( mRenameItem, TRUE );
-		mRenameItem = NULL;
+		// Triggers onRenamerLost() that actually closes the renamer.
+		gViewerWindow->removePopup(mRenamer);
 	}
 }
 
 void LLFolderView::removeSelectedItems( void )
 {
+	if (mSelectedItems.empty()) return;
+	LLSD args;
+	args["QUESTION"] = LLTrans::getString(mSelectedItems.size() > 1 ? "DeleteItems" :  "DeleteItem");
+	LLNotificationsUtil::add("DeleteItems", args, LLSD(), boost::bind(&LLFolderView::onItemsRemovalConfirmation, this, _1, _2));
+}
+
+void LLFolderView::onItemsRemovalConfirmation(const LLSD& notification, const LLSD& response)
+{
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	if (option != 0) return; // canceled
+
 	if(getVisible() && getEnabled())
 	{
 		// just in case we're removing the renaming item.
@@ -1444,8 +1438,7 @@ void LLFolderView::startRenamingSelectedItem( void )
 		mRenamer->setVisible( TRUE );
 		// set focus will fail unless item is visible
 		mRenamer->setFocus( TRUE );
-		mRenamer->setTopLostCallback(boost::bind(&LLFolderView::onRenamerLost, this, _1));
-		mRenamer->setFocusLostCallback(boost::bind(&LLFolderView::onRenamerLost, this, _1));
+		mRenamer->setTopLostCallback(boost::bind(&LLFolderView::onRenamerLost, this));
 		gViewerWindow->addPopup(mRenamer);
 	}
 }
@@ -1874,13 +1867,18 @@ BOOL LLFolderView::handleRightMouseDown( S32 x, S32 y, MASK mask )
 		}
 		
 		// Successively filter out invalid options
-		selected_items_t::iterator item_itor;
+
 		U32 flags = FIRST_SELECTED_ITEM;
-		for (item_itor = mSelectedItems.begin(); item_itor != mSelectedItems.end(); ++item_itor)
+		for (selected_items_t::iterator item_itor = mSelectedItems.begin(); 
+			 item_itor != mSelectedItems.end(); 
+			 ++item_itor)
 		{
-			(*item_itor)->buildContextMenu(*menu, flags);
+			LLFolderViewItem* selected_item = (*item_itor);
+			selected_item->buildContextMenu(*menu, flags);
 			flags = 0x0;
 		}
+	   
+		addNoOptions(menu);
 
 		menu->updateParent(LLMenuGL::sMenuContainer);
 		LLMenuGL::showPopup(this, menu, x, y);
@@ -1889,13 +1887,44 @@ BOOL LLFolderView::handleRightMouseDown( S32 x, S32 y, MASK mask )
 	}
 	else
 	{
-		if(menu && menu->getVisible())
+		if (menu && menu->getVisible())
 		{
 			menu->setVisible(FALSE);
 		}
 		setSelection(NULL, FALSE, TRUE);
 	}
 	return handled;
+}
+
+// Add "--no options--" if the menu is completely blank.
+BOOL LLFolderView::addNoOptions(LLMenuGL* menu) const
+{
+	const std::string nooptions_str = "--no options--";
+	LLView *nooptions_item = NULL;
+	
+	const LLView::child_list_t *list = menu->getChildList();
+	for (LLView::child_list_t::const_iterator itor = list->begin(); 
+		 itor != list->end(); 
+		 ++itor)
+	{
+		LLView *menu_item = (*itor);
+		if (menu_item->getVisible())
+		{
+			return FALSE;
+		}
+		std::string name = menu_item->getName();
+		if (menu_item->getName() == nooptions_str)
+		{
+			nooptions_item = menu_item;
+		}
+	}
+	if (nooptions_item)
+	{
+		nooptions_item->setVisible(TRUE);
+		nooptions_item->setEnabled(FALSE);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 BOOL LLFolderView::handleHover( S32 x, S32 y, MASK mask )
@@ -1930,10 +1959,7 @@ BOOL LLFolderView::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 
 void LLFolderView::deleteAllChildren()
 {
-	if(mRenamer == gFocusMgr.getTopCtrl())
-	{
-		gViewerWindow->removePopup(mRenamer);
-	}
+	closeRenamer();
 	LLView::deleteViewByHandle(mPopupMenuHandle);
 	mPopupMenuHandle = LLHandle<LLView>();
 	mRenamer = NULL;
@@ -1944,7 +1970,9 @@ void LLFolderView::deleteAllChildren()
 
 void LLFolderView::scrollToShowSelection()
 {
-	if (mEnableScroll && mSelectedItems.size())
+	// If items are filtered while background fetch is in progress
+	// scrollbar resets to the first filtered item. See EXT-3981.
+	if (!LLInventoryModelBackgroundFetch::instance().backgroundFetchActive() && mSelectedItems.size())
 	{
 		mNeedsScroll = TRUE;
 	}
@@ -2416,13 +2444,20 @@ S32	LLFolderView::notify(const LLSD& info)
 /// Local function definitions
 ///----------------------------------------------------------------------------
 
-void LLFolderView::onRenamerLost( LLFocusableElement* renamer)
+void LLFolderView::onRenamerLost()
 {
-	mRenameItem = NULL;
-	LLUICtrl* uictrl = dynamic_cast<LLUICtrl*>(renamer);
-	if (uictrl)
+	if (mRenamer && mRenamer->getVisible())
 	{
-		uictrl->setVisible(FALSE);
+		mRenamer->setVisible(FALSE);
+
+		// will commit current name (which could be same as original name)
+		mRenamer->setFocus(FALSE);
+	}
+
+	if( mRenameItem )
+	{
+		setSelectionFromRoot( mRenameItem, TRUE );
+		mRenameItem = NULL;
 	}
 }
 

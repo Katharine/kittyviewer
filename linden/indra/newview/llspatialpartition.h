@@ -2,33 +2,26 @@
  * @file llspatialpartition.h
  * @brief LLSpatialGroup header file including definitions for supporting functions
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_LLSPATIALPARTITION_H
@@ -167,7 +160,7 @@ public:
 	typedef std::vector<LLPointer<LLSpatialGroup> > sg_vector_t;
 	typedef std::vector<LLPointer<LLSpatialBridge> > bridge_list_t;
 	typedef std::vector<LLPointer<LLDrawInfo> > drawmap_elem_t; 
-	typedef std::map<LLRenderType, drawmap_elem_t > draw_map_t;
+	typedef std::map<U32, drawmap_elem_t > draw_map_t;	
 	typedef std::vector<LLPointer<LLVertexBuffer> > buffer_list_t;
 	typedef std::map<LLPointer<LLViewerTexture>, buffer_list_t> buffer_texture_map_t;
 	typedef std::map<U32, buffer_texture_map_t> buffer_map_t;
@@ -439,7 +432,7 @@ public:
 	U32 mVertexDataMask;
 	F32 mSlopRatio; //percentage distance must change before drawables receive LOD update (default is 0.25);
 	BOOL mDepthMask; //if TRUE, objects in this partition will be written to depth during alpha rendering
-	LLRenderType mDrawableType;
+	U32 mDrawableType;
 	U32 mPartitionType;
 };
 
@@ -503,8 +496,8 @@ public:
 	bridge_list_t::iterator beginVisibleBridge();
 	bridge_list_t::iterator endVisibleBridge();
 
-	drawinfo_list_t::iterator beginRenderMap(LLRenderType const& type);
-	drawinfo_list_t::iterator endRenderMap(LLRenderType const& type);
+	drawinfo_list_t::iterator beginRenderMap(U32 type);
+	drawinfo_list_t::iterator endRenderMap(U32 type);
 
 	void pushVisibleGroup(LLSpatialGroup* group);
 	void pushAlphaGroup(LLSpatialGroup* group);
@@ -512,7 +505,7 @@ public:
 	void pushDrawableGroup(LLSpatialGroup* group);
 	void pushDrawable(LLDrawable* drawable);
 	void pushBridge(LLSpatialBridge* bridge);
-	void pushDrawInfo(LLRenderType const& type, LLDrawInfo* draw_info);
+	void pushDrawInfo(U32 type, LLDrawInfo* draw_info);
 	
 	U32 getVisibleGroupsSize()		{ return mVisibleGroupsSize; }
 	U32	getAlphaGroupsSize()		{ return mAlphaGroupsSize; }
@@ -530,7 +523,7 @@ private:
 	U32					mDrawableGroupsSize;
 	U32					mVisibleListSize;
 	U32					mVisibleBridgeSize;
-	U32					mRenderMapSize[END_RENDER_TYPES];
+	U32					mRenderMapSize[LLRenderPass::NUM_RENDER_TYPES];
 
 	sg_list_t			mVisibleGroups;
 	sg_list_t::iterator mVisibleGroupsEnd;
@@ -544,9 +537,10 @@ private:
 	drawable_list_t::iterator mVisibleListEnd;
 	bridge_list_t		mVisibleBridge;
 	bridge_list_t::iterator mVisibleBridgeEnd;
-	drawinfo_list_t		mRenderMap[END_RENDER_TYPES];
-	drawinfo_list_t::iterator mRenderMapEnd[END_RENDER_TYPES];
+	drawinfo_list_t		mRenderMap[LLRenderPass::NUM_RENDER_TYPES];
+	drawinfo_list_t::iterator mRenderMapEnd[LLRenderPass::NUM_RENDER_TYPES];
 };
+
 
 //spatial partition for water (implemented in LLVOWater.cpp)
 class LLWaterPartition : public LLSpatialPartition
@@ -555,13 +549,6 @@ public:
 	LLWaterPartition();
 	virtual void getGeometry(LLSpatialGroup* group) {  }
 	virtual void addGeometryCount(LLSpatialGroup* group, U32 &vertex_count, U32& index_count) { }
-};
-
-//spatial partition for hole and edge water (implemented in LLVOWater.cpp)
-class LLVoidWaterPartition : public LLWaterPartition
-{
-public:
-	LLVoidWaterPartition();
 };
 
 //spatial partition for terrain (impelmented in LLVOSurfacePatch.cpp)
@@ -592,7 +579,7 @@ public:
 	virtual void addGeometryCount(LLSpatialGroup* group, U32 &vertex_count, U32& index_count);
 	virtual F32 calcPixelArea(LLSpatialGroup* group, LLCamera& camera);
 protected:
-	LLRenderType mRenderPass;
+	U32 mRenderPass;
 };
 
 class LLHUDParticlePartition : public LLParticlePartition
@@ -624,7 +611,7 @@ class LLVolumeGeometryManager: public LLGeometryManager
 	virtual void rebuildMesh(LLSpatialGroup* group);
 	virtual void getGeometry(LLSpatialGroup* group);
 	void genDrawInfo(LLSpatialGroup* group, U32 mask, std::vector<LLFace*>& faces, BOOL distance_sort = FALSE);
-	void registerFace(LLSpatialGroup* group, LLFace* facep, LLRenderType const& type);
+	void registerFace(LLSpatialGroup* group, LLFace* facep, U32 type);
 };
 
 //spatial partition that uses volume geometry manager (implemented in LLVOVolume.cpp)

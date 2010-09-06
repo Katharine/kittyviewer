@@ -2,33 +2,26 @@
  * @file lldrawpool.h
  * @brief LLDrawPool class definition
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_LLDRAWPOOL_H
@@ -38,7 +31,6 @@
 #include "v2math.h"
 #include "v3math.h"
 #include "llvertexbuffer.h"
-#include "llrendertype.h"
 
 class LLFace;
 class LLViewerTexture;
@@ -51,13 +43,38 @@ class LLDrawPool
 public:
 	static S32 sNumDrawPools;
 
-	LLDrawPool(LLRenderType const& type);
+	enum
+	{
+		// Correspond to LLPipeline render type
+		POOL_SIMPLE = 1,
+		POOL_TERRAIN,	
+		POOL_TREE,
+		POOL_SKY,
+		POOL_WL_SKY,
+		POOL_GROUND,
+		POOL_GRASS,
+		POOL_FULLBRIGHT,
+		POOL_BUMP,
+		POOL_INVISIBLE, // see below *
+		POOL_AVATAR,
+		POOL_WATER,
+		POOL_GLOW,
+		POOL_ALPHA,
+		NUM_POOL_TYPES,
+		// * invisiprims work by rendering to the depth buffer but not the color buffer, occluding anything rendered after them
+		// - and the LLDrawPool types enum controls what order things are rendered in
+		// - so, it has absolute control over what invisprims block
+		// ...invisiprims being rendered in pool_invisible
+		// ...shiny/bump mapped objects in rendered in POOL_BUMP
+	};
+	
+	LLDrawPool(const U32 type);
 	virtual ~LLDrawPool();
 
 	virtual BOOL isDead() = 0;
 
 	S32 getId() const { return mId; }
-	LLRenderType getType() const { return mType; }
+	U32 getType() const { return mType; }
 
 	virtual LLViewerTexture *getDebugTexture();
 	virtual void beginRenderPass( S32 pass );
@@ -85,7 +102,7 @@ public:
 	virtual BOOL verify() const { return TRUE; }		// Verify that all data in the draw pool is correct!
 	virtual S32 getVertexShaderLevel() const { return mVertexShaderLevel; }
 	
-	static LLDrawPool* createPool(LLRenderType const& type, LLViewerTexture *tex0 = NULL);
+	static LLDrawPool* createPool(const U32 type, LLViewerTexture *tex0 = NULL);
 	virtual LLDrawPool *instancePool() = 0;	// Create an empty new instance of the pool.
 	virtual LLViewerTexture* getTexture() = 0;
 	virtual BOOL isFacePool() { return FALSE; }
@@ -94,13 +111,32 @@ public:
 protected:
 	S32 mVertexShaderLevel;
 	S32	mId;
-	LLRenderType mType;				// Type of draw pool
+	U32 mType;				// Type of draw pool
 };
 
 class LLRenderPass : public LLDrawPool
 {
 public:
-	LLRenderPass(LLRenderType const& type);
+	enum
+	{
+		PASS_SIMPLE = NUM_POOL_TYPES,
+		PASS_GRASS,
+		PASS_FULLBRIGHT,
+		PASS_INVISIBLE,
+		PASS_INVISI_SHINY,
+		PASS_FULLBRIGHT_SHINY,
+		PASS_SHINY,
+		PASS_BUMP,
+		PASS_POST_BUMP,
+		PASS_GLOW,
+		PASS_ALPHA,
+		PASS_ALPHA_MASK,
+		PASS_FULLBRIGHT_ALPHA_MASK,
+		PASS_ALPHA_SHADOW,
+		NUM_RENDER_TYPES,
+	};
+
+	LLRenderPass(const U32 type);
 	virtual ~LLRenderPass();
 	/*virtual*/ LLDrawPool* instancePool();
 	/*virtual*/ LLViewerTexture* getDebugTexture() { return NULL; }
@@ -109,11 +145,11 @@ public:
 	void resetDrawOrders() { }
 
 	static void applyModelMatrix(LLDrawInfo& params);
-	virtual void pushBatches(LLRenderType const& type, U32 mask, BOOL texture = TRUE);
+	virtual void pushBatches(U32 type, U32 mask, BOOL texture = TRUE);
 	virtual void pushBatch(LLDrawInfo& params, U32 mask, BOOL texture);
-	virtual void renderGroup(LLSpatialGroup* group, LLRenderType const& type, U32 mask, BOOL texture = TRUE);
-	virtual void renderGroups(LLRenderType const& type, U32 mask, BOOL texture = TRUE);
-	virtual void renderTexture(LLRenderType const& type, U32 mask);
+	virtual void renderGroup(LLSpatialGroup* group, U32 type, U32 mask, BOOL texture = TRUE);
+	virtual void renderGroups(U32 type, U32 mask, BOOL texture = TRUE);
+	virtual void renderTexture(U32 type, U32 mask);
 
 };
 
@@ -128,7 +164,7 @@ public:
 	};
 
 public:
-	LLFacePool(LLRenderType const& type);
+	LLFacePool(const U32 type);
 	virtual ~LLFacePool();
 	
 	virtual void renderForSelect() = 0;

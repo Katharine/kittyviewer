@@ -2,33 +2,26 @@
  * @file llpanelobject.cpp
  * @brief Object editing (position, scale, etc.) in the tools floater
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -465,17 +458,17 @@ void LLPanelObject::getState( )
 	BOOL editable = root_objectp->permModify();
 
 	// Select Single Message
-	childSetVisible("select_single", FALSE);
-	childSetVisible("edit_object", FALSE);
+	getChildView("select_single")->setVisible( FALSE);
+	getChildView("edit_object")->setVisible( FALSE);
 	if (!editable || single_volume || selected_count <= 1)
 	{
-		childSetVisible("edit_object", TRUE);
-		childSetEnabled("edit_object", TRUE);
+		getChildView("edit_object")->setVisible( TRUE);
+		getChildView("edit_object")->setEnabled(TRUE);
 	}
 	else
 	{
-		childSetVisible("select_single", TRUE);
-		childSetEnabled("select_single", TRUE);
+		getChildView("select_single")->setVisible( TRUE);
+		getChildView("select_single")->setEnabled(TRUE);
 	}
 	// Lock checkbox - only modifiable if you own the object.
 	BOOL self_owned = (gAgent.getID() == owner_id);
@@ -994,19 +987,19 @@ void LLPanelObject::getState( )
 	mLabelSkew		->setEnabled( enabled );
 	mSpinSkew		->setEnabled( enabled );
 
-	childSetVisible("scale_hole", FALSE);
-	childSetVisible("scale_taper", FALSE);
+	getChildView("scale_hole")->setVisible( FALSE);
+	getChildView("scale_taper")->setVisible( FALSE);
 	if (top_size_x_visible || top_size_y_visible)
 	{
 		if (size_is_hole)
 		{
-			childSetVisible("scale_hole", TRUE);
-			childSetEnabled("scale_hole", enabled);
+			getChildView("scale_hole")->setVisible( TRUE);
+			getChildView("scale_hole")->setEnabled(enabled);
 		}
 		else
 		{
-			childSetVisible("scale_taper", TRUE);
-			childSetEnabled("scale_taper", enabled);
+			getChildView("scale_taper")->setVisible( TRUE);
+			getChildView("scale_taper")->setEnabled(enabled);
 		}
 	}
 	
@@ -1017,27 +1010,27 @@ void LLPanelObject::getState( )
 	mSpinShearX		->setEnabled( enabled );
 	mSpinShearY		->setEnabled( enabled );
 
-	childSetVisible("advanced_cut", FALSE);
-	childSetVisible("advanced_dimple", FALSE);
-	childSetVisible("advanced_slice", FALSE);
+	getChildView("advanced_cut")->setVisible( FALSE);
+	getChildView("advanced_dimple")->setVisible( FALSE);
+	getChildView("advanced_slice")->setVisible( FALSE);
 
 	if (advanced_cut_visible)
 	{
 		if (advanced_is_dimple)
 		{
-			childSetVisible("advanced_dimple", TRUE);
-			childSetEnabled("advanced_dimple", enabled);
+			getChildView("advanced_dimple")->setVisible( TRUE);
+			getChildView("advanced_dimple")->setEnabled(enabled);
 		}
 
 		else if (advanced_is_slice)
 		{
-			childSetVisible("advanced_slice", TRUE);
-			childSetEnabled("advanced_slice", enabled);
+			getChildView("advanced_slice")->setVisible( TRUE);
+			getChildView("advanced_slice")->setEnabled(enabled);
 		}
 		else
 		{
-			childSetVisible("advanced_cut", TRUE);
-			childSetEnabled("advanced_cut", enabled);
+			getChildView("advanced_cut")->setVisible( TRUE);
+			getChildView("advanced_cut")->setEnabled(enabled);
 		}
 	}
 	
@@ -1920,15 +1913,15 @@ void LLPanelObject::clearCtrls()
 	mLabelRadiusOffset->setEnabled( FALSE );
 	mLabelRevolutions->setEnabled( FALSE );
 
-	childSetVisible("select_single", FALSE);
-	childSetVisible("edit_object", TRUE);	
-	childSetEnabled("edit_object", FALSE);
+	getChildView("select_single")->setVisible( FALSE);
+	getChildView("edit_object")->setVisible( TRUE);	
+	getChildView("edit_object")->setEnabled(FALSE);
 	
-	childSetEnabled("scale_hole", FALSE);
-	childSetEnabled("scale_taper", FALSE);
-	childSetEnabled("advanced_cut", FALSE);
-	childSetEnabled("advanced_dimple", FALSE);
-	childSetVisible("advanced_slice", FALSE);
+	getChildView("scale_hole")->setEnabled(FALSE);
+	getChildView("scale_taper")->setEnabled(FALSE);
+	getChildView("advanced_cut")->setEnabled(FALSE);
+	getChildView("advanced_dimple")->setEnabled(FALSE);
+	getChildView("advanced_slice")->setVisible( FALSE);
 }
 
 //

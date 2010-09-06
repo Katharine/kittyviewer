@@ -2,33 +2,26 @@
  * @file audioengine.h
  * @brief Definition of LLAudioEngine base class abstracting the audio support
  *
- * $LicenseInfo:firstyear=2000&license=viewergpl$
- * 
- * Copyright (c) 2000-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2000&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 
@@ -125,8 +118,8 @@ public:
 	// Use these for temporarily muting the audio system.
 	// Does not change buffers, initialization, etc. but
 	// stops playing new sounds.
-	void setMuted(bool muted);
-	bool getMuted() const { return mMuted; }
+	virtual void setMuted(bool muted);
+	virtual bool getMuted() const { return mMuted; }
 #ifdef USE_PLUGIN_MEDIA
 	LLPluginClassMedia* initializeMedia(const std::string& media_type);
 #endif
@@ -246,7 +239,6 @@ protected:
 	LLAudioBuffer *mBuffers[MAX_BUFFERS];
 	
 	F32 mMasterGain;
-	F32 mInternalGain;			// Actual gain set; either mMasterGain or 0 when mMuted is true.
 	F32 mSecondaryGain[AUDIO_TYPE_COUNT];
 
 	F32 mNextWindUpdate;
@@ -311,8 +303,7 @@ public:
 	virtual void setGain(const F32 gain)							{ mGain = llclamp(gain, 0.f, 1.f); }
 
 	const LLUUID &getID() const		{ return mID; }
-	bool isDone() const;
-	bool isMuted() const { return mSourceMuted; }
+	bool isDone();
 
 	LLAudioData *getCurrentData();
 	LLAudioData *getQueuedData();
@@ -334,7 +325,6 @@ protected:
 	LLUUID			mOwnerID;	// owner of the object playing the sound
 	F32				mPriority;
 	F32				mGain;
-	bool			mSourceMuted;
 	bool			mAmbient;
 	bool			mLoop;
 	bool			mSyncMaster;

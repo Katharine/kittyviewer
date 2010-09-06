@@ -3,33 +3,26 @@
  * @author James Cook, Richard Nelson
  * @brief Networking constants and globals for viewer.
  *
- * $LicenseInfo:firstyear=2006&license=viewergpl$
- * 
- * Copyright (c) 2006-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2006&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -51,6 +44,7 @@ const char* DEFAULT_SLURL_BASE = "https://%s/region/";
 const char* DEFAULT_APP_SLURL_BASE = "x-grid-location-info://%s/app";
 
 LLGridManager::LLGridManager()
+:	mIsInProductionGrid(false)
 {
 	// by default, we use the 'grids.xml' file in the user settings directory
 	// this file is an LLSD file containing multiple grid definitions.
@@ -310,6 +304,10 @@ void LLGridManager::initialize(const std::string& grid_file)
 		addGrid(grid);		
 	}
 
+	gSavedSettings.getControl("CurrentGrid")->getSignal()->connect(boost::bind(&LLGridManager::updateIsInProductionGrid, this));
+	// since above only triggers on changes, trigger the callback manually to initialize state
+	updateIsInProductionGrid();
+
 	LL_DEBUGS("GridManager") << "Selected grid is " << mGrid << LL_ENDL;		
 	setGridChoice(mGrid);
 	if(mGridList[mGrid][GRID_LOGIN_URI_VALUE].isArray())
@@ -561,23 +559,30 @@ std::string LLGridManager::getLoginPage()
 	return mGridList[mGrid][GRID_LOGIN_PAGE_VALUE];
 }
 
-bool LLGridManager::isInProductionGrid()
+void LLGridManager::updateIsInProductionGrid()
 {
+	mIsInProductionGrid = false;
+
 	// *NOTE:Mani This used to compare GRID_INFO_AGNI to gGridChoice,
 	// but it seems that loginURI trumps that.
 	std::vector<std::string> uris;
 	getLoginURIs(uris);
-	if (uris.size() < 1)
+	if (uris.empty())
 	{
-		return 1;
+		mIsInProductionGrid = true;
+		return;
 	}
 	LLStringUtil::toLower(uris[0]);
 	if((uris[0].find("agni") != std::string::npos))
 	{
-		return true;
+		mIsInProductionGrid = true;
+		return;
 	}
+}
 
-	return false;
+bool LLGridManager::isInProductionGrid()
+{
+	return mIsInProductionGrid;
 }
 
 void LLGridManager::saveFavorites()

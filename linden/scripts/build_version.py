@@ -40,7 +40,7 @@ if __name__ == '__main__':
             try:
                 print get_version(name)
                 break
-            except IOError, err:
+            except OSError, err:
                 if err.errno != errno.ENOENT:
                     raise
         else:

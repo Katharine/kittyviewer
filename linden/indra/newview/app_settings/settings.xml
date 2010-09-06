@@ -22,7 +22,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <real>0</real>
+      <real>300</real>
     </map>
     <key>AdvanceSnapshot</key>
     <map>
@@ -32,17 +32,6 @@
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>AddWearableSortOrder</key>
-    <map>
-      <key>Comment</key>
-      <string>Specifies sort order for add wearable panel (0 = name, 1 = date, 2 = by type)</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>U32</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
@@ -1440,7 +1429,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>CheesyBeacon</key>
     <map>
@@ -1752,6 +1741,17 @@
 		<key>Value</key>
 		<integer>0</integer>
 	</map>
+  <key>DebugAvatarLocalTexLoadedTime</key>
+  <map>
+    <key>Comment</key>
+    <string>Display time for loading avatar local textures.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
     <key>DebugBeaconLineWidth</key>
     <map>
       <key>Comment</key>
@@ -2670,17 +2670,6 @@
     <map>
       <key>Comment</key>
       <string>Enable double-click auto pilot</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>DoubleClickTeleport</key>
-    <map>
-      <key>Comment</key>
-      <string>Enable double-click to teleport where allowed</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -4691,6 +4680,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>MiniMapAutoCenter</key>
+    <map>
+      <key>Comment</key>
+      <string>Center the focal point of the minimap.</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>Marker</key>
     <map>
       <key>Comment</key>
@@ -5340,17 +5340,6 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>MiniMapAutoCenter</key>
-    <map>
-      <key>Comment</key>
-      <string>Center the focal point of the minimap.</string>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>MiniMapPrimMaxRadius</key>
     <map>
       <key>Comment</key>
@@ -5412,17 +5401,6 @@
       <string />
       <key>Persist</key>
       <integer>0</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>MultipleAttachments</key>
-    <map>
-      <key>Comment</key>
-      <string>Allow multiple objects to be attached to a single attachment point.</string>
-      <key>Persist</key>
-      <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
@@ -6178,7 +6156,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     
     <key>PluginInstancesLow</key>
@@ -7372,7 +7350,7 @@
     <key>Value</key>
     <integer>0</integer>
   </map>
-  
+
   <key>RenderDeferredGI</key>
   <map>
     <key>Comment</key>
@@ -7899,17 +7877,6 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>RenderHighlightSelections</key>
-    <map>
-      <key>Comment</key>
-      <string>Show selection outlines on objects</string>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>RenderHiddenSelections</key>
     <map>
       <key>Comment</key>
@@ -8076,7 +8043,7 @@
       <integer>2</integer>
     </map>
 
-  <key>RenderReflectionRes</key>
+    <key>RenderReflectionRes</key>
     <map>
       <key>Comment</key>
       <string>Reflection map resolution.</string>
@@ -8362,17 +8329,6 @@
       <key>Value</key>
       <integer>512</integer>
     </map>
-    <key>RenderWaterVoidCulling</key>
-    <map>
-      <key>Comment</key>
-      <string>Cull void water objects when off-screen.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>RotateRight</key>
     <map>
       <key>Comment</key>
@@ -8394,28 +8350,6 @@
       <string>F32</string>
       <key>Value</key>
       <real>1.0</real>
-    </map>
-    <key>RunMultipleThreads</key>
-    <map>
-      <key>Comment</key>
-      <string>If TRUE keep background threads active during render</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>SaveInventoryScriptsAsMono</key>
-    <map>
-      <key>Comment</key>
-      <string>When editing and saving a script in inventory, configure it to compile as mono when dragged into a task</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <real>0</real>
     </map>
     <key>SafeMode</key>
     <map>
@@ -8712,7 +8646,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>NavBarShowParcelProperties</key>
     <map>
@@ -8932,7 +8866,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>GroupListShowIcons</key>
     <map>
@@ -9912,28 +9846,6 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
-    </map>
-    <key>TranslateLanguage</key>
-    <map>
-      <key>Comment</key>
-      <string>Translate Language specifier</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>default</string>
-    </map>
-    <key>TranslateChat</key>
-    <map>
-      <key>Comment</key>
-      <string>Translate incoming chat messages</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
     </map>
     <key>TutorialURL</key>
     <map>

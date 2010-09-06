@@ -2,33 +2,26 @@
  * @file llscrollingpanelparam.cpp
  * @brief UI panel for a list of visual param panels
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -80,17 +73,17 @@ LLScrollingPanelParam::LLScrollingPanelParam( const LLPanel::Params& panel_param
 	
 	mHintMin->setAllowsUpdates( FALSE );
 	mHintMax->setAllowsUpdates( FALSE );
-	childSetValue("param slider", weightToPercent(param->getWeight()));
+	getChild<LLUICtrl>("param slider")->setValue(weightToPercent(param->getWeight()));
 
 	std::string display_name = LLTrans::getString(param->getDisplayName());
-	childSetLabelArg("param slider", "[DESC]", display_name);
-	childSetEnabled("param slider", mAllowModify);
+	getChild<LLUICtrl>("param slider")->setLabelArg("[DESC]", display_name);
+	getChildView("param slider")->setEnabled(mAllowModify);
 	childSetCommitCallback("param slider", LLScrollingPanelParam::onSliderMoved, this);
 
 	std::string min_name = LLTrans::getString(param->getMinDisplayName());
 	std::string max_name = LLTrans::getString(param->getMaxDisplayName());
-	childSetValue("min param text", min_name);
-	childSetValue("max param text", max_name);
+	getChild<LLUICtrl>("min param text")->setValue(min_name);
+	getChild<LLUICtrl>("max param text")->setValue(max_name);
 
 	LLButton* less = getChild<LLButton>("less");
 	if (less)
@@ -127,14 +120,14 @@ void LLScrollingPanelParam::updatePanel(BOOL allow_modify)
 		return;
 	}
 	F32 current_weight = mWearable->getVisualParamWeight( param->getID() );
-	childSetValue("param slider", weightToPercent( current_weight ) );
+	getChild<LLUICtrl>("param slider")->setValue(weightToPercent( current_weight ) );
 	mHintMin->requestUpdate( sUpdateDelayFrames++ );
 	mHintMax->requestUpdate( sUpdateDelayFrames++ );
 
 	mAllowModify = allow_modify;
-	childSetEnabled("param slider", mAllowModify);
-	childSetEnabled("less", mAllowModify);
-	childSetEnabled("more", mAllowModify);
+	getChildView("param slider")->setEnabled(mAllowModify);
+	getChildView("less")->setEnabled(mAllowModify);
+	getChildView("more")->setEnabled(mAllowModify);
 }
 
 void LLScrollingPanelParam::setVisible( BOOL visible )
@@ -160,16 +153,16 @@ void LLScrollingPanelParam::draw()
 		return;
 	}
 	
-	childSetVisible("less", mHintMin->getVisible());
-	childSetVisible("more", mHintMax->getVisible());
+	getChildView("less")->setVisible( mHintMin->getVisible());
+	getChildView("more")->setVisible( mHintMax->getVisible());
 
 	// hide borders if texture has been loaded
-	childSetVisible("left_border", !mHintMin->getVisible());
-	childSetVisible("right_border", !mHintMax->getVisible());
+	getChildView("left_border")->setVisible( !mHintMin->getVisible());
+	getChildView("right_border")->setVisible( !mHintMax->getVisible());
 
 	// Draw all the children except for the labels
-	childSetVisible( "min param text", FALSE );
-	childSetVisible( "max param text", FALSE );
+	getChildView("min param text")->setVisible( FALSE );
+	getChildView("max param text")->setVisible( FALSE );
 	LLPanel::draw();
 
 	// Draw the hints over the "less" and "more" buttons.
@@ -191,10 +184,10 @@ void LLScrollingPanelParam::draw()
 
 
 	// Draw labels on top of the buttons
-	childSetVisible( "min param text", TRUE );
+	getChildView("min param text")->setVisible( TRUE );
 	drawChild(getChild<LLView>("min param text"));
 
-	childSetVisible( "max param text", TRUE );
+	getChildView("max param text")->setVisible( TRUE );
 	drawChild(getChild<LLView>("max param text"));
 }
 

@@ -3,33 +3,26 @@
  * @author Mike Antipov
  * @brief Voice Control Panel in a Voice Chats (P2P, Group, Nearby...).
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -297,7 +290,7 @@ void LLCallFloater::updateSession()
 
 	// Hide "Leave Call" button for nearby chat
 	bool is_local_chat = mVoiceType == VC_LOCAL_CHAT;
-	childSetVisible("leave_call_btn_panel", !is_local_chat);
+	getChildView("leave_call_btn_panel")->setVisible( !is_local_chat);
 
 	refreshParticipantList();
 	updateAgentModeratorState();
@@ -420,11 +413,11 @@ void LLCallFloater::initAgentData()
 
 	if ( mAgentPanel )
 	{
-		mAgentPanel->childSetValue("user_icon", gAgentID);
+		mAgentPanel->getChild<LLUICtrl>("user_icon")->setValue(gAgentID);
 
 		std::string name;
 		gCacheName->getFullName(gAgentID, name);
-		mAgentPanel->childSetValue("user_text", name);
+		mAgentPanel->getChild<LLUICtrl>("user_text")->setValue(name);
 
 		mSpeakingIndicator = mAgentPanel->getChild<LLOutputMonitorCtrl>("speaking_indicator");
 		mSpeakingIndicator->setSpeakerId(gAgentID);
@@ -462,7 +455,7 @@ void LLCallFloater::updateAgentModeratorState()
 			}
 		}
 	}
-	mAgentPanel->childSetValue("user_text", name);
+	mAgentPanel->getChild<LLUICtrl>("user_text")->setValue(name);
 }
 
 static void get_voice_participants_uuids(uuid_vec_t& speakers_uuids)
@@ -767,7 +760,7 @@ void LLCallFloater::reset(const LLVoiceChannel::EState& new_state)
 	{
 		// hides "Leave Call" when call is ended in parcel with disabled voice- hiding usually happens in
 		// updateSession() which won't be called here because connect to nearby voice never happens 
-		childSetVisible("leave_call_btn_panel", false);
+		getChildView("leave_call_btn_panel")->setVisible( false);
 		// setting title to nearby chat an "no one near..." text- because in region with disabled
 		// voice we won't have chance to really connect to nearby, so VCP is changed here manually
 		setTitle(getString("title_nearby"));

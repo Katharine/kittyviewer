@@ -2,33 +2,26 @@
  * @file llviewerjointattachment.cpp
  * @brief Implementation of LLViewerJointAttachment class
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -36,12 +29,11 @@
 #include "llviewerjointattachment.h"
 
 #include "llagentconstants.h"
-
 #include "llviewercontrol.h"
 #include "lldrawable.h"
 #include "llgl.h"
 #include "llrender.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "llvolume.h"
 #include "pipeline.h"
 #include "llspatialpartition.h"
@@ -165,6 +157,9 @@ void LLViewerJointAttachment::setupDrawable(LLViewerObject *object)
 //-----------------------------------------------------------------------------
 BOOL LLViewerJointAttachment::addObject(LLViewerObject* object)
 {
+	object->extractAttachmentItemID();
+
+	// Same object reattached
 	if (isObjectAttached(object))
 	{
 		llinfos << "(same object re-attached)" << llendl;
@@ -172,20 +167,19 @@ BOOL LLViewerJointAttachment::addObject(LLViewerObject* object)
 		// Pass through anyway to let setupDrawable()
 		// re-connect object to the joint correctly
 	}
-
-	// Find the inventory item ID of the attached object
-	LLNameValue* item_id_nv = object->getNVPair("AttachItemID");
-	if( item_id_nv )
+	
+	// Two instances of the same inventory item attached --
+	// Request detach, and kill the object in the meantime.
+	if (getAttachedObject(object->getAttachmentItemID()))
 	{
-		const char* s = item_id_nv->getString();
-		if( s )
-		{
-			LLUUID item_id;
-			item_id.set(s);
-			object->setItemID(item_id);
-			lldebugs << "getNVPair( AttachItemID ) = " << item_id << llendl;
-		}
+		llinfos << "(same object re-attached)" << llendl;
+		object->markDead();
+
+		// If this happens to be attached to self, then detach.
+		LLVOAvatarSelf::detachAttachmentIntoInventory(object->getAttachmentItemID());
+		return FALSE;
 	}
+
 	mAttachedObjects.push_back(object);
 	setupDrawable(object);
 	
@@ -208,7 +202,7 @@ BOOL LLViewerJointAttachment::addObject(LLViewerObject* object)
 	}
 	calcLOD();
 	mUpdateXform = TRUE;
-
+	
 	return TRUE;
 }
 
@@ -304,7 +298,7 @@ void LLViewerJointAttachment::removeObject(LLViewerObject *object)
 	{
 		mUpdateXform = FALSE;
 	}
-	object->setItemID(LLUUID::null);
+	object->setAttachmentItemID(LLUUID::null);
 }
 
 //-----------------------------------------------------------------------------
@@ -326,11 +320,11 @@ void LLViewerJointAttachment::setAttachmentVisibility(BOOL visible)
 			// Hack to make attachments not visible by disabling their type mask!
 			// This will break if you can ever attach non-volumes! - djs 02/14/03
 			attached_obj->mDrawable->getSpatialBridge()->mDrawableType = 
-				attached_obj->isHUDAttachment() ? RENDER_TYPE_HUD : RENDER_TYPE_VOLUME;
+				attached_obj->isHUDAttachment() ? LLPipeline::RENDER_TYPE_HUD : LLPipeline::RENDER_TYPE_VOLUME;
 		}
 		else
 		{
-			attached_obj->mDrawable->getSpatialBridge()->mDrawableType = RENDER_TYPE_NONE;
+			attached_obj->mDrawable->getSpatialBridge()->mDrawableType = 0;
 		}
 	}
 }
@@ -430,7 +424,7 @@ const LLViewerObject *LLViewerJointAttachment::getAttachedObject(const LLUUID &o
 		 ++iter)
 	{
 		const LLViewerObject* attached_object = (*iter);
-		if (attached_object->getItemID() == object_id)
+		if (attached_object->getAttachmentItemID() == object_id)
 		{
 			return attached_object;
 		}
@@ -445,7 +439,7 @@ LLViewerObject *LLViewerJointAttachment::getAttachedObject(const LLUUID &object_
 		 ++iter)
 	{
 		LLViewerObject* attached_object = (*iter);
-		if (attached_object->getItemID() == object_id)
+		if (attached_object->getAttachmentItemID() == object_id)
 		{
 			return attached_object;
 		}

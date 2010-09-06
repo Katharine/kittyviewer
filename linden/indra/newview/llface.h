@@ -2,33 +2,26 @@
  * @file llface.h
  * @brief LLFace class definition
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_LLFACE_H
@@ -79,7 +72,7 @@ public:
 	static void initClass();
 
 public:
-	LLFace(LLDrawable* drawablep, LLViewerObject* objp) : mPoolType(RENDER_TYPE_NONE) { init(drawablep, objp); }
+	LLFace(LLDrawable* drawablep, LLViewerObject* objp)   { init(drawablep, objp); }
 	~LLFace()  { destroy(); }
 
 	const LLMatrix4& getWorldMatrix()	const	{ return mVObjp->getWorldMatrix(mXform); }
@@ -122,12 +115,12 @@ public:
 	const LLTextureEntry* getTextureEntry()	const { return mVObjp->getTE(mTEOffset); }
 
 	LLFacePool*		getPool()			const	{ return mDrawPoolp; }
-	LLRenderType	getPoolType()		const	{ return mPoolType; }
+	U32				getPoolType()		const	{ return mPoolType; }
 	LLDrawable*		getDrawable()		const	{ return mDrawablep; }
 	LLViewerObject*	getViewerObject()	const	{ return mVObjp; }
 	S32				getLOD()			const	{ return mVObjp.notNull() ? mVObjp->getLOD() : 0; }
 	LLVertexBuffer* getVertexBuffer()	const	{ return mVertexBuffer; }
-	void			setPoolType(LLRenderType const& type)	{ mPoolType = type; }
+	void			setPoolType(U32 type)		{ mPoolType = type; }
 	S32				getTEOffset()				{ return mTEOffset; }
 	LLViewerTexture*	getTexture() const;
 
@@ -217,7 +210,8 @@ private:
 	F32         adjustPartialOverlapPixelArea(F32 cos_angle_to_view_dir, F32 radius );
 	BOOL        calcPixelArea(F32& cos_angle_to_view_dir, F32& radius) ;
 public:
-	static F32  calcImportanceToCamera(F32 to_view_dir, F32 dist);
+	static F32 calcImportanceToCamera(F32 to_view_dir, F32 dist);
+	static F32 adjustPixelArea(F32 importance, F32 pixel_area) ;
 
 public:
 	
@@ -239,7 +233,7 @@ private:
 
 	U32			mState;
 	LLFacePool*	mDrawPoolp;
-	LLRenderType mPoolType;
+	U32			mPoolType;
 	LLColor4	mFaceColor;			// overrides material color if state |= USE_FACE_COLOR
 	
 	U16			mGeomCount;			// vertex count for this face

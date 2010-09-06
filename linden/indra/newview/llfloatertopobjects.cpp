@@ -2,33 +2,26 @@
  * @file llfloatertopobjects.cpp
  * @brief Shows top colliders, top scripts, etc.
  *
- * $LicenseInfo:firstyear=2005&license=viewergpl$
- * 
- * Copyright (c) 2005-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2005&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -99,7 +92,7 @@ LLFloaterTopObjects::~LLFloaterTopObjects()
 BOOL LLFloaterTopObjects::postBuild()
 {
 	LLScrollListCtrl *objects_list = getChild<LLScrollListCtrl>("objects_list");
-	childSetFocus("objects_list");
+	getChild<LLUICtrl>("objects_list")->setFocus(TRUE);
 	objects_list->setDoubleClickCallback(onDoubleClickObjectsList, this);
 	objects_list->setCommitOnSelectionChange(TRUE);
 
@@ -254,7 +247,7 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 		LLUIString format = getString("top_scripts_text");
 		format.setArg("[COUNT]", llformat("%d", total_count));
 		format.setArg("[TIME]", llformat("%0.1f", mtotalScore));
-		childSetValue("title_text", LLSD(format));
+		getChild<LLUICtrl>("title_text")->setValue(LLSD(format));
 	}
 	else
 	{
@@ -263,7 +256,7 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 		list->setColumnLabel("mono_time", "");
 		LLUIString format = getString("top_colliders_text");
 		format.setArg("[COUNT]", llformat("%d", total_count));
-		childSetValue("title_text", LLSD(format));
+		getChild<LLUICtrl>("title_text")->setValue(LLSD(format));
 	}
 }
 
@@ -283,13 +276,13 @@ void LLFloaterTopObjects::updateSelectionInfo()
 
 	std::string object_id_string = object_id.asString();
 
-	childSetValue("id_editor", LLSD(object_id_string));
+	getChild<LLUICtrl>("id_editor")->setValue(LLSD(object_id_string));
 	LLScrollListItem* sli = list->getFirstSelected();
 	llassert(sli);
 	if (sli)
 	{
-		childSetValue("object_name_editor", sli->getColumn(1)->getValue().asString());
-		childSetValue("owner_name_editor", sli->getColumn(2)->getValue().asString());
+		getChild<LLUICtrl>("object_name_editor")->setValue(sli->getColumn(1)->getValue().asString());
+		getChild<LLUICtrl>("owner_name_editor")->setValue(sli->getColumn(2)->getValue().asString());
 	}
 }
 
@@ -313,7 +306,7 @@ void LLFloaterTopObjects::doToObjects(int action, bool all)
 	LLViewerRegion* region = gAgent.getRegion();
 	if (!region) return;
 
-	LLCtrlListInterface *list = childGetListInterface("objects_list");
+	LLCtrlListInterface *list = getChild<LLUICtrl>("objects_list")->getListInterface();
 	if (!list || list->getItemCount() == 0) return;
 
 	uuid_vec_t::iterator id_itor;
@@ -458,14 +451,14 @@ void LLFloaterTopObjects::onRefresh()
 void LLFloaterTopObjects::onGetByObjectName()
 {
 	mFlags  = STAT_FILTER_BY_OBJECT;
-	mFilter = childGetText("object_name_editor");
+	mFilter = getChild<LLUICtrl>("object_name_editor")->getValue().asString();
 	onRefresh();
 }
 
 void LLFloaterTopObjects::onGetByOwnerName()
 {
 	mFlags  = STAT_FILTER_BY_OWNER;
-	mFilter = childGetText("owner_name_editor");
+	mFilter = getChild<LLUICtrl>("owner_name_editor")->getValue().asString();
 	onRefresh();
 }
 

@@ -18,8 +18,8 @@
 	<icon name="icon_bodypart" tool_tip="Części Ciała"/>
 	<check_box label="Ubranie" name="check_clothing"/>
 	<icon name="icon_clothing" tool_tip="Ubranie"/>
-	<check_box label="Gestury" name="check_gesture"/>
-	<icon name="icon_gesture" tool_tip="Gestury"/>
+	<check_box label="Gesturki" name="check_gesture"/>
+	<icon name="icon_gesture" tool_tip="Gesturki"/>
 	<check_box label="Noty" name="check_notecard"/>
 	<icon name="icon_notecard" tool_tip="Noty"/>
 	<check_box label="Obiekty" name="check_object"/>
@@ -48,7 +48,7 @@
 	</text>
 	<check_box label="Modyfikuje" name="next_owner_modify"/>
 	<check_box label="Kopiuje" name="next_owner_copy"/>
-	<check_box initial_value="true" label="Oddaj/Sprzedaj" name="next_owner_transfer" tool_tip="Następny właściciel może oddać lub sprzedać ten obiekt."/>
+	<check_box initial_value="true" label="Oddaj/Sprzedaj" name="next_owner_transfer" tool_tip="Następny Właściciel może oddać lub sprzedać ten obiekt."/>
 	<button label="OK" name="apply"/>
 	<button label="Anuluj" name="close"/>
 </floater>

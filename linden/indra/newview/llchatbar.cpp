@@ -2,33 +2,26 @@
  * @file llchatbar.cpp
  * @brief LLChatBar class implementation
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -133,7 +126,7 @@ BOOL LLChatBar::postBuild()
 	mInputEditor->setPassDelete(TRUE);
 	mInputEditor->setReplaceNewlinesWithSpaces(FALSE);
 
-	mInputEditor->setMaxTextLength(DB_CHAT_MSG_STR_LEN);
+	mInputEditor->setMaxTextLength(1023);
 	mInputEditor->setEnableLineHistory(TRUE);
 
 	mIsBuilt = TRUE;
@@ -192,7 +185,7 @@ void LLChatBar::refresh()
 		gAgent.stopTyping();
 	}
 
-	childSetEnabled("Say", mInputEditor->getText().size() > 0);
+	getChildView("Say")->setEnabled(mInputEditor->getText().size() > 0);
 
 }
 
@@ -394,7 +387,7 @@ void LLChatBar::sendChat( EChatType type )
 		}
 	}
 
-	childSetValue("Chat Editor", LLStringUtil::null);
+	getChild<LLUICtrl>("Chat Editor")->setValue(LLStringUtil::null);
 
 	gAgent.stopTyping();
 
@@ -576,12 +569,8 @@ void LLChatBar::sendChatFromViewer(const LLWString &wtext, EChatType type, BOOL 
 	S32 channel = 0;
 	LLWString out_text = stripChannelNumber(wtext, &channel);
 	std::string utf8_out_text = wstring_to_utf8str(out_text);
-	if (!utf8_out_text.empty())
-	{
-		utf8_out_text = utf8str_truncate(utf8_out_text, MAX_MSG_STR_LEN);
-	}
-
 	std::string utf8_text = wstring_to_utf8str(wtext);
+
 	utf8_text = utf8str_trim(utf8_text);
 	if (!utf8_text.empty())
 	{
@@ -684,12 +673,30 @@ public:
 	bool handle(const LLSD& tokens, const LLSD& query_map,
 				LLMediaCtrl* web)
 	{
-		if (tokens.size() < 2) return false;
-		S32 channel = tokens[0].asInteger();
-		if (channel < 1) return true; // SNOW-652 Restrict function to chat channels greater than 0.
-		std::string mesg = tokens[1].asString();
-		send_chat_from_viewer(mesg, CHAT_TYPE_NORMAL, channel);
-		return true;
+		bool retval = false;
+		// Need at least 2 tokens to have a valid message.
+		if (tokens.size() < 2) 
+		{
+			retval = false;
+		}
+		else
+		{
+			S32 channel = tokens[0].asInteger();
+			// VWR-19499 Restrict function to chat channels greater than 0.
+			if ((channel > 0) && (channel < 2147483647))
+			{
+				retval = true;
+				// Say mesg on channel
+				std::string mesg = tokens[1].asString();
+				send_chat_from_viewer(mesg, CHAT_TYPE_NORMAL, channel);
+			}
+			else
+			{
+				retval = false;
+				// Tell us this is an unsupported SLurl.
+			}
+		}
+		return retval;
 	}
 };
 

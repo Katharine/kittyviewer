@@ -2,33 +2,26 @@
  * @file llspatialpartition.cpp
  * @brief LLSpatialGroup class implementation and supporting functions
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -1230,7 +1223,7 @@ F32 LLSpatialPartition::calcDistance(LLSpatialGroup* group, LLCamera& camera)
 
 	F32 dist = 0.f;
 
-	if (group->mDrawMap.find(RENDER_TYPE_PASS_ALPHA) != group->mDrawMap.end())
+	if (group->mDrawMap.find(LLRenderPass::PASS_ALPHA) != group->mDrawMap.end())
 	{
 		LLVector3 v = eye;
 		dist = eye.normVec();
@@ -1562,11 +1555,7 @@ void LLSpatialGroup::doOcclusion(LLCamera* camera)
 {
 	if (mSpatialPartition->isOcclusionEnabled() && LLPipeline::sUseOcclusion > 1)
 	{
-		static LLCachedControl<bool> render_water_void_culling(gSavedSettings, "RenderWaterVoidCulling");
-		// Don't cull hole/edge water, unless RenderWaterVoidCulling is set and we have the GL_ARB_depth_clamp extension.
-		if ((mSpatialPartition->mDrawableType == RENDER_TYPE_POOL_VOIDWATER &&
-			 !(render_water_void_culling && gGLManager.mHasDepthClamp)) ||
-		    earlyFail(camera, this))
+		if (earlyFail(camera, this))
 		{
 			setOcclusionState(LLSpatialGroup::DISCARD_QUERY);
 			assert_states_valid(this);
@@ -1588,18 +1577,6 @@ void LLSpatialGroup::doOcclusion(LLCamera* camera)
 					buildOcclusion();
 				}
 
-				// Depth clamp all water to avoid it being culled as a result of being
-				// behind the far clip plane, and in the case of edge water to avoid
-				// it being culled while still visible.
-				bool const use_depth_clamp =
-					gGLManager.mHasDepthClamp &&
-					(mSpatialPartition->mDrawableType == RENDER_TYPE_POOL_WATER ||
-					 mSpatialPartition->mDrawableType == RENDER_TYPE_POOL_VOIDWATER);
-				if (use_depth_clamp)
-				{
-					glEnable(GL_DEPTH_CLAMP);
-				}
-
 				glBeginQueryARB(GL_SAMPLES_PASSED_ARB, mOcclusionQuery[LLViewerCamera::sCurCameraID]);					
 				glVertexPointer(3, GL_FLOAT, 0, mOcclusionVerts);
 				if (camera->getOrigin().isExactlyZero())
@@ -1615,11 +1592,6 @@ void LLSpatialGroup::doOcclusion(LLCamera* camera)
 								GL_UNSIGNED_BYTE, get_box_fan_indices(camera, mBounds[0]));
 				}
 				glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-
-				if (use_depth_clamp)
-				{
-					glDisable(GL_DEPTH_CLAMP);
-				}
 			}
 
 			setOcclusionState(LLSpatialGroup::QUERY_PENDING);
@@ -1631,10 +1603,11 @@ void LLSpatialGroup::doOcclusion(LLCamera* camera)
 //==============================================
 
 LLSpatialPartition::LLSpatialPartition(U32 data_mask, BOOL render_by_group, U32 buffer_usage)
-: mRenderByGroup(render_by_group), mDrawableType(RENDER_TYPE_NONE)
+: mRenderByGroup(render_by_group)
 {
 	LLMemType mt(LLMemType::MTYPE_SPACE_PARTITION);
 	mOcclusionEnabled = TRUE;
+	mDrawableType = 0;
 	mPartitionType = LLViewerRegion::PARTITION_NONE;
 	mLODSeed = 0;
 	mLODPeriod = 1;
@@ -2618,10 +2591,9 @@ void renderBoundingBox(LLDrawable* drawable, BOOL set_color = TRUE)
 						gGL.color4f(0.5f,0.5f,0.5f,1.0f);
 						break;
 				case LLViewerObject::LL_VO_PART_GROUP:
-				case LLViewerObject::LL_VO_HUD_PART_GROUP:
+			case LLViewerObject::LL_VO_HUD_PART_GROUP:
 						gGL.color4f(0,0,1,1);
 						break;
-				case LLViewerObject::LL_VO_VOID_WATER:
 				case LLViewerObject::LL_VO_WATER:
 						gGL.color4f(0,0.5f,1,1);
 						break;
@@ -3460,7 +3432,8 @@ void LLCullResult::clear()
 	mVisibleBridgeSize = 0;
 	mVisibleBridgeEnd = mVisibleBridge.begin();
 
-	for (U32 i = 0; i < END_RENDER_TYPES; i++)
+
+	for (U32 i = 0; i < LLRenderPass::NUM_RENDER_TYPES; i++)
 	{
 		for (U32 j = 0; j < mRenderMapSize[i]; j++)
 		{
@@ -3531,14 +3504,14 @@ LLCullResult::bridge_list_t::iterator LLCullResult::endVisibleBridge()
 	return mVisibleBridgeEnd;
 }
 
-LLCullResult::drawinfo_list_t::iterator LLCullResult::beginRenderMap(LLRenderType const& type)
+LLCullResult::drawinfo_list_t::iterator LLCullResult::beginRenderMap(U32 type)
 {
-	return mRenderMap[type.index()].begin();
+	return mRenderMap[type].begin();
 }
 
-LLCullResult::drawinfo_list_t::iterator LLCullResult::endRenderMap(LLRenderType const& type)
+LLCullResult::drawinfo_list_t::iterator LLCullResult::endRenderMap(U32 type)
 {
-	return mRenderMapEnd[type.index()];
+	return mRenderMapEnd[type];
 }
 
 void LLCullResult::pushVisibleGroup(LLSpatialGroup* group)
@@ -3625,24 +3598,24 @@ void LLCullResult::pushBridge(LLSpatialBridge* bridge)
 	mVisibleBridgeEnd = mVisibleBridge.begin()+mVisibleBridgeSize;
 }
 
-void LLCullResult::pushDrawInfo(LLRenderType const& type, LLDrawInfo* draw_info)
+void LLCullResult::pushDrawInfo(U32 type, LLDrawInfo* draw_info)
 {
-	if (mRenderMapSize[type.index()] < mRenderMap[type.index()].size())
+	if (mRenderMapSize[type] < mRenderMap[type].size())
 	{
-		mRenderMap[type.index()][mRenderMapSize[type.index()]] = draw_info;
+		mRenderMap[type][mRenderMapSize[type]] = draw_info;
 	}
 	else
 	{
-		mRenderMap[type.index()].push_back(draw_info);
+		mRenderMap[type].push_back(draw_info);
 	}
-	++mRenderMapSize[type.index()];
-	mRenderMapEnd[type.index()] = mRenderMap[type.index()].begin() + mRenderMapSize[type.index()];
+	++mRenderMapSize[type];
+	mRenderMapEnd[type] = mRenderMap[type].begin() + mRenderMapSize[type];
 }
 
 
 void LLCullResult::assertDrawMapsEmpty()
 {
-	for (U32 i = 0; i < END_RENDER_TYPES; i++)
+	for (U32 i = 0; i < LLRenderPass::NUM_RENDER_TYPES; i++)
 	{
 		if (mRenderMapSize[i] != 0)
 		{

@@ -91,9 +91,10 @@
      left="30"
      name="log_nearby_chat"
      top_pad="10"
-     width="350" />
+     width="350">
+    </check_box>
     <check_box
-     enabled="false"
+	 enabled="false"
      control_name="LogInstantMessages"
      height="16"
      label="Save IM logs on my computer"
@@ -101,27 +102,18 @@
      left="30"
      name="log_instant_messages"
      top_pad="10"
-     width="350" />
+     width="350">
+    </check_box>
     <check_box
      control_name="LogTimestamp"
-     enabled="false"
+	 enabled="false"
      height="16"
-     label="Include timestamps in the logs"
+     label="Add timestamp"
      layout="topleft"
      left_delta="0"
      name="show_timestamps_check_im"
      top_pad="10"
      width="237" />
-    <check_box
-     control_name="LogFileNamewithDate"
-     enabled="false"
-     height="16"
-     label="Append date to log filename"
-     layout="topleft"
-     left_delta="0"
-     name="logfile_name_datestamp"
-     top_pad="10"
-     width="350" />
     <text
      type="string"
      length="1"
@@ -131,7 +123,7 @@
      left_delta="0"
      mouse_opaque="false"
      name="log_path_desc"
-     top_pad="10"
+     top_pad="5"
      width="128">
         Location of logs:
     </text>    

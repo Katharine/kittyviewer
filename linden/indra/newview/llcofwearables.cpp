@@ -2,33 +2,26 @@
  * @file llcofwearables.cpp
  * @brief LLCOFWearables displayes wearables from the current outfit split into three lists (attachments, clothing and body parts)
  *
- * $LicenseInfo:firstyear=2010&license=viewergpl$
- * 
- * Copyright (c) 2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2010&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -164,7 +157,7 @@ public:
 	}
 
 protected:
-	static void replaceWearable()
+	static void replaceWearable(const LLUUID& item_id)
 	{
 		// *TODO: Most probable that accessing to LLPanelOutfitEdit instance should be:
 		// LLSideTray::getInstance()->getSidepanelAppearance()->getPanelOutfitEdit()
@@ -176,7 +169,7 @@ protected:
 								"panel_outfit_edit"));
 		if (panel_outfit_edit != NULL)
 		{
-			panel_outfit_edit->showAddWearablesPanel(true);
+			panel_outfit_edit->onReplaceMenuItemClicked(item_id);
 		}
 	}
 
@@ -188,7 +181,7 @@ protected:
 		functor_t take_off = boost::bind(&LLAppearanceMgr::removeItemFromAvatar, LLAppearanceMgr::getInstance(), _1);
 
 		registrar.add("Clothing.TakeOff", boost::bind(handleMultiple, take_off, mUUIDs));
-		registrar.add("Clothing.Replace", boost::bind(replaceWearable));
+		registrar.add("Clothing.Replace", boost::bind(replaceWearable, selected_id));
 		registrar.add("Clothing.Edit", boost::bind(LLAgentWearables::editWearable, selected_id));
 		registrar.add("Clothing.Create", boost::bind(&CofClothingContextMenu::createNew, this, selected_id));
 
@@ -245,7 +238,7 @@ protected:
 		// *HACK* need to pass pointer to LLPanelOutfitEdit instead of LLSideTray::getInstance()->getPanel().
 		// LLSideTray::getInstance()->getPanel() is rather slow variant
 		LLPanelOutfitEdit* panel_oe = dynamic_cast<LLPanelOutfitEdit*>(LLSideTray::getInstance()->getPanel("panel_outfit_edit"));
-		registrar.add("BodyPart.Replace", boost::bind(&LLPanelOutfitEdit::onReplaceBodyPartMenuItemClicked, panel_oe, selected_id));
+		registrar.add("BodyPart.Replace", boost::bind(&LLPanelOutfitEdit::onReplaceMenuItemClicked, panel_oe, selected_id));
 		registrar.add("BodyPart.Edit", boost::bind(LLAgentWearables::editWearable, selected_id));
 		registrar.add("BodyPart.Create", boost::bind(&CofBodyPartContextMenu::createNew, this, selected_id));
 
@@ -285,8 +278,8 @@ LLCOFWearables::LLCOFWearables() : LLPanel(),
 	mAttachmentsTab(NULL),
 	mBodyPartsTab(NULL),
 	mLastSelectedTab(NULL),
-	mCOFVersion(-1),
-	mAccordionCtrl(NULL)
+	mAccordionCtrl(NULL),
+	mCOFVersion(-1)
 {
 	mClothingMenu = new CofClothingContextMenu(this);
 	mAttachmentMenu = new CofAttachmentContextMenu(this);
@@ -397,8 +390,11 @@ void LLCOFWearables::refresh()
 		return;
 	}
 
-	// BAP - removed check; does not detect item name changes.
+	// BAP - this check has to be removed because an item name change does not
+	// change cat version - ie, checking version is not a complete way
+	// of finding out whether anything has changed in this category.
 	//if (mCOFVersion == catp->getVersion()) return;
+
 	mCOFVersion = catp->getVersion();
 
 	typedef std::vector<LLSD> values_vector_t;
@@ -518,10 +514,10 @@ LLPanelClothingListItem* LLCOFWearables::buildClothingListItem(LLViewerInventory
 
 	//setting callbacks
 	//*TODO move that item panel's inner structure disclosing stuff into the panels
-	item_panel->childSetAction("btn_delete", mCOFCallbacks.mDeleteWearable);
-	item_panel->childSetAction("btn_move_up", mCOFCallbacks.mMoveWearableFurther);
-	item_panel->childSetAction("btn_move_down", mCOFCallbacks.mMoveWearableCloser);
-	item_panel->childSetAction("btn_edit", mCOFCallbacks.mEditWearable);
+	item_panel->childSetAction("btn_delete", boost::bind(mCOFCallbacks.mDeleteWearable));
+	item_panel->childSetAction("btn_move_up", boost::bind(mCOFCallbacks.mMoveWearableFurther));
+	item_panel->childSetAction("btn_move_down", boost::bind(mCOFCallbacks.mMoveWearableCloser));
+	item_panel->childSetAction("btn_edit", boost::bind(mCOFCallbacks.mEditWearable));
 	
 	//turning on gray separator line for the last item in the items group of the same wearable type
 	item_panel->setSeparatorVisible(last);
@@ -547,8 +543,8 @@ LLPanelBodyPartsListItem* LLCOFWearables::buildBodypartListItem(LLViewerInventor
 
 	//setting callbacks
 	//*TODO move that item panel's inner structure disclosing stuff into the panels
-	item_panel->childSetAction("btn_delete", mCOFCallbacks.mDeleteWearable);
-	item_panel->childSetAction("btn_edit", mCOFCallbacks.mEditWearable);
+	item_panel->childSetAction("btn_delete", boost::bind(mCOFCallbacks.mDeleteWearable));
+	item_panel->childSetAction("btn_edit", boost::bind(mCOFCallbacks.mEditWearable));
 
 	return item_panel;
 }
@@ -563,7 +559,7 @@ LLPanelDeletableWearableListItem* LLCOFWearables::buildAttachemntListItem(LLView
 
 	//setting callbacks
 	//*TODO move that item panel's inner structure disclosing stuff into the panels
-	item_panel->childSetAction("btn_delete", mCOFCallbacks.mDeleteWearable);
+	item_panel->childSetAction("btn_delete", boost::bind(mCOFCallbacks.mDeleteWearable));
 
 	return item_panel;
 }
@@ -609,7 +605,7 @@ void LLCOFWearables::addClothingTypesDummies(const LLAppearanceMgr::wearables_by
 		LLWearableType::EType w_type = static_cast<LLWearableType::EType>(type);
 		LLPanelInventoryListItemBase* item_panel = LLPanelDummyClothingListItem::create(w_type);
 		if(!item_panel) continue;
-		item_panel->childSetAction("btn_add", mCOFCallbacks.mAddWearable);
+		item_panel->childSetAction("btn_add", boost::bind(mCOFCallbacks.mAddWearable));
 		mClothing->addItem(item_panel, LLUUID::null, ADD_BOTTOM, false);
 	}
 }
@@ -661,20 +657,20 @@ LLAssetType::EType LLCOFWearables::getExpandedAccordionAssetType()
 	{
 		const LLAccordionCtrlTab* expanded_tab = mAccordionCtrl->getExpandedTab();
 
-		return get_if_there(mTab2AssetType, expanded_tab, LLAssetType::AT_NONE);
+	return get_if_there(mTab2AssetType, expanded_tab, LLAssetType::AT_NONE);
 	}
 
 	return LLAssetType::AT_NONE;
 }
 
 LLAssetType::EType LLCOFWearables::getSelectedAccordionAssetType()
-{
+	{
 	if (mAccordionCtrl != NULL)
 	{
 		const LLAccordionCtrlTab* selected_tab = mAccordionCtrl->getSelectedTab();
 
-		return get_if_there(mTab2AssetType, selected_tab, LLAssetType::AT_NONE);
-	}
+	return get_if_there(mTab2AssetType, selected_tab, LLAssetType::AT_NONE);
+}
 
 	return LLAssetType::AT_NONE;
 }
@@ -708,6 +704,27 @@ void LLCOFWearables::onListRightClick(LLUICtrl* ctrl, S32 x, S32 y, LLListContex
 			{
 				menu->show(ctrl, selected_uuids, x, y);
 			}
+		}
+	}
+}
+
+void LLCOFWearables::selectClothing(LLWearableType::EType clothing_type)
+{
+	std::vector<LLPanel*> clothing_items;
+
+	mClothing->getItems(clothing_items);
+
+	std::vector<LLPanel*>::iterator it;
+
+	for (it = clothing_items.begin(); it != clothing_items.end(); ++it )
+	{
+		LLPanelClothingListItem* clothing_item = dynamic_cast<LLPanelClothingListItem*>(*it);
+
+		if (clothing_item && clothing_item->getWearableType() == clothing_type)
+		{ // clothing item has specified LLWearableType::EType. Select it and exit.
+
+			mClothing->selectItem(clothing_item);
+			break;
 		}
 	}
 }

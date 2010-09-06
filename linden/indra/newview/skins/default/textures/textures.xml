@@ -75,7 +75,7 @@ with the same filename but different name
   <texture name="Blank" file_name="Blank.png" preload="false" />
 
 
-  <texture name="BuyArrow_Over" file_name="navbar/BuyArrow_Over.png" preload="true" scale.left="1" scale.top="1" scale.right="0" scale.bottom="0"  />
+  <texture name="BuyArrow_Over" file_name="navbar/BuyArrow_Over.png" preload="true" scale.left="0" scale.top="1" scale.right="0" scale.bottom="0"  />
   <texture name="BuyArrow_Press" file_name="navbar/BuyArrow_Press.png" preload="true" scale.left="1" scale.top="1" scale.right="0" scale.bottom="0"  />
 
   <texture name="Cam_Avatar_Off" file_name="bottomtray/Cam_Avatar_Off.png" preload="false" />
@@ -428,6 +428,12 @@ with the same filename but different name
   <texture name="SegmentedBtn_Right_Selected_Disabled" file_name="widgets/SegmentedBtn_Right_Selected_Disabled.png" preload="true" scale.left="4" scale.top="19" scale.right="22" scale.bottom="4" />
 
   <texture name="Shirt_Large" file_name="icons/Shirt_Large.png" preload="false" />
+
+  <texture name="Sidebar_Icon_Dock_Foreground" file_name="taskpanel/Sidebar_Icon_Dock_Foreground.png" preload="false" />
+  <texture name="Sidebar_Icon_Dock_Press" file_name="taskpanel/Sidebar_Icon_Dock_Press.png" preload="false" />
+  <texture name="Sidebar_Icon_Undock_Foreground" file_name="taskpanel/Sidebar_Icon_Undock_Foreground.png" preload="false" />
+  <texture name="Sidebar_Icon_Undock_Press" file_name="taskpanel/Sidebar_Icon_Undock_Press.png" preload="false" />
+
   <texture name="Shop" file_name="icons/Shop.png" preload="false" />
 
   <texture name="SkipBackward_Off" file_name="icons/SkipBackward_Off.png" preload="false" />
@@ -441,6 +447,7 @@ with the same filename but different name
 
   <texture name="SL_Logo" file_name="icons/SL_Logo.png" preload="true" />
   <texture name="OBJECT_Icon" file_name="icons/object_icon.png" preload="true" />
+  <texture name="Unknown_Icon" file_name="icons/unknown_icon.png" preload="true" />
 
   <texture name="Snapshot_Off" file_name="bottomtray/Snapshot_Off.png" preload="true" scale.left="4" scale.top="19" scale.right="22" scale.bottom="4" />
 
@@ -560,6 +567,7 @@ with the same filename but different name
   <texture name="silhouette.j2c" use_mips="true" />
   <texture name="foot_shadow.j2c" use_mips="true" />
   <texture name="cloud-particle.j2c" use_mips="true" />
+  <texture name="transparent.j2c" use_mips="true" />
 
   <!--WARNING OLD ART BELOW *do not use*-->
   <texture name="icn_media_web.tga" preload="true" />

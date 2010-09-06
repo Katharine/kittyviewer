@@ -63,8 +63,8 @@ if(LL_TESTS)
   #add unit tests
   INCLUDE(LLAddBuildTest)
   SET(llinventory_TEST_SOURCE_FILES
-  # no real unit tests yet!
-  )
+      # no real unit tests yet!
+      )
   LL_ADD_PROJECT_UNIT_TESTS(llinventory "${llinventory_TEST_SOURCE_FILES}")
 
   #set(TEST_DEBUG on)

@@ -2,33 +2,26 @@
  * @file llfloaterurlentry.cpp
  * @brief LLFloaterURLEntry class implementation
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -112,7 +105,7 @@ BOOL LLFloaterURLEntry::postBuild()
 	// clear media list button
 	LLSD parcel_history = LLURLHistory::getURLHistory("parcel");
 	bool enable_clear_button = parcel_history.size() > 0 ? true : false;
-	childSetEnabled( "clear_btn", enable_clear_button );
+	getChildView("clear_btn")->setEnabled(enable_clear_button );
 
 	// OK button
 	childSetAction("ok_btn", onBtnOK, this);
@@ -164,7 +157,7 @@ void LLFloaterURLEntry::headerFetchComplete(U32 status, const std::string& mime_
 	}
 	// Decrement the cursor
 	getWindow()->decBusyCount();
-	childSetVisible("loading_label", false);
+	getChildView("loading_label")->setVisible( false);
 	closeFloater();
 }
 
@@ -237,13 +230,13 @@ void LLFloaterURLEntry::onBtnOK( void* userdata )
 	}
 
 	// Grey the buttons until we get the header response
-	self->childSetEnabled("ok_btn", false);
-	self->childSetEnabled("cancel_btn", false);
-	self->childSetEnabled("media_entry", false);
+	self->getChildView("ok_btn")->setEnabled(false);
+	self->getChildView("cancel_btn")->setEnabled(false);
+	self->getChildView("media_entry")->setEnabled(false);
 
 	// show progress bar here?
 	getWindow()->incBusyCount();
-	self->childSetVisible("loading_label", true);
+	self->getChildView("loading_label")->setVisible( true);
 }
 
 // static
@@ -285,7 +278,7 @@ bool LLFloaterURLEntry::callback_clear_url_list(const LLSD& notification, const 
 		LLURLHistory::clear("parcel");
 
 		// cleared the list so disable Clear button
-		childSetEnabled( "clear_btn", false );
+		getChildView("clear_btn")->setEnabled(false );
 	}
 	return false;
 }

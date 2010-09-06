@@ -3,33 +3,26 @@
  * @author Aaron Brashears, Kelly Washington, James Cook
  * @brief Implementation of the LLFloaterPay class.
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -159,7 +152,7 @@ BOOL LLFloaterPay::postBuild()
 	mCallbackData.push_back(info);
 
 	childSetAction("fastpay 1",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 1", FALSE);
+	getChildView("fastpay 1")->setVisible( FALSE);
 
 	mQuickPayButton[i] = getChild<LLButton>("fastpay 1");
 	mQuickPayInfo[i] = info;
@@ -169,7 +162,7 @@ BOOL LLFloaterPay::postBuild()
 	mCallbackData.push_back(info);
 
 	childSetAction("fastpay 5",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 5", FALSE);
+	getChildView("fastpay 5")->setVisible( FALSE);
 
 	mQuickPayButton[i] = getChild<LLButton>("fastpay 5");
 	mQuickPayInfo[i] = info;
@@ -179,7 +172,7 @@ BOOL LLFloaterPay::postBuild()
 	mCallbackData.push_back(info);
 
 	childSetAction("fastpay 10",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 10", FALSE);
+	getChildView("fastpay 10")->setVisible( FALSE);
 
 	mQuickPayButton[i] = getChild<LLButton>("fastpay 10");
 	mQuickPayInfo[i] = info;
@@ -189,14 +182,14 @@ BOOL LLFloaterPay::postBuild()
 	mCallbackData.push_back(info);
 
 	childSetAction("fastpay 20",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 20", FALSE);
+	getChildView("fastpay 20")->setVisible( FALSE);
 
 	mQuickPayButton[i] = getChild<LLButton>("fastpay 20");
 	mQuickPayInfo[i] = info;
 	++i;
 
 
-	childSetVisible("amount text", FALSE);	
+	getChildView("amount text")->setVisible( FALSE);	
 
 	std::string last_amount;
 	if(sLastAmount > 0)
@@ -204,19 +197,19 @@ BOOL LLFloaterPay::postBuild()
 		last_amount = llformat("%d", sLastAmount);
 	}
 
-	childSetVisible("amount", FALSE);
+	getChildView("amount")->setVisible( FALSE);
 
 	getChild<LLLineEditor>("amount")->setKeystrokeCallback(&LLFloaterPay::onKeystroke, this);
-	childSetText("amount", last_amount);
-	childSetPrevalidate("amount", LLTextValidate::validateNonNegativeS32);
+	getChild<LLUICtrl>("amount")->setValue(last_amount);
+	getChild<LLLineEditor>("amount")->setPrevalidate(LLTextValidate::validateNonNegativeS32);
 
 	info = new LLGiveMoneyInfo(this, 0);
 	mCallbackData.push_back(info);
 
 	childSetAction("pay btn",&LLFloaterPay::onGive,info);
 	setDefaultBtn("pay btn");
-	childSetVisible("pay btn", FALSE);
-	childSetEnabled("pay btn", (sLastAmount > 0));
+	getChildView("pay btn")->setVisible( FALSE);
+	getChildView("pay btn")->setEnabled((sLastAmount > 0));
 
 	childSetAction("cancel btn",&LLFloaterPay::onCancel,this);
 
@@ -250,27 +243,27 @@ void LLFloaterPay::processPayPriceReply(LLMessageSystem* msg, void **userdata)
 		
 		if (PAY_PRICE_HIDE == price)
 		{
-			self->childSetVisible("amount", FALSE);
-			self->childSetVisible("pay btn", FALSE);
-			self->childSetVisible("amount text", FALSE);
+			self->getChildView("amount")->setVisible( FALSE);
+			self->getChildView("pay btn")->setVisible( FALSE);
+			self->getChildView("amount text")->setVisible( FALSE);
 		}
 		else if (PAY_PRICE_DEFAULT == price)
 		{			
-			self->childSetVisible("amount", TRUE);
-			self->childSetVisible("pay btn", TRUE);
-			self->childSetVisible("amount text", TRUE);
+			self->getChildView("amount")->setVisible( TRUE);
+			self->getChildView("pay btn")->setVisible( TRUE);
+			self->getChildView("amount text")->setVisible( TRUE);
 		}
 		else
 		{
 			// PAY_PRICE_HIDE and PAY_PRICE_DEFAULT are negative values
 			// So we take the absolute value here after we have checked for those cases
 			
-			self->childSetVisible("amount", TRUE);
-			self->childSetVisible("pay btn", TRUE);
-			self->childSetEnabled("pay btn", TRUE);
-			self->childSetVisible("amount text", TRUE);
+			self->getChildView("amount")->setVisible( TRUE);
+			self->getChildView("pay btn")->setVisible( TRUE);
+			self->getChildView("pay btn")->setEnabled(TRUE);
+			self->getChildView("amount text")->setVisible( TRUE);
 
-			self->childSetText("amount", llformat("%d", llabs(price)));
+			self->getChild<LLUICtrl>("amount")->setValue(llformat("%d", llabs(price)));
 		}
 
 		S32 num_blocks = msg->getNumberOfBlocksFast(_PREHASH_ButtonData);
@@ -293,7 +286,7 @@ void LLFloaterPay::processPayPriceReply(LLMessageSystem* msg, void **userdata)
 				self->mQuickPayButton[i]->setLabelUnselected(button_str);
 				self->mQuickPayButton[i]->setVisible(TRUE);
 				self->mQuickPayInfo[i]->mAmount = pay_button;
-				self->childSetVisible("fastpay text",TRUE);
+				self->getChildView("fastpay text")->setVisible(TRUE);
 
 				if ( pay_button > max_pay_amount )
 				{
@@ -400,7 +393,7 @@ void LLFloaterPay::payViaObject(money_callback callback, LLSafeHandle<LLObjectSe
 	BOOL is_group = FALSE;
 	node->mPermissions->getOwnership(owner_id, is_group);
 	
-	floater->childSetText("object_name_text",node->mName);
+	floater->getChild<LLUICtrl>("object_name_text")->setValue(node->mName);
 
 	floater->finishPayUI(owner_id, is_group);
 }
@@ -416,11 +409,11 @@ void LLFloaterPay::payDirectly(money_callback callback,
 	floater->setCallback(callback);
 	floater->mObjectSelection = NULL;
 	
-	floater->childSetVisible("amount", TRUE);
-	floater->childSetVisible("pay btn", TRUE);
-	floater->childSetVisible("amount text", TRUE);
+	floater->getChildView("amount")->setVisible( TRUE);
+	floater->getChildView("pay btn")->setVisible( TRUE);
+	floater->getChildView("amount text")->setVisible( TRUE);
 
-	floater->childSetVisible("fastpay text",TRUE);
+	floater->getChildView("fastpay text")->setVisible(TRUE);
 	for(S32 i=0;i<MAX_PAY_BUTTONS;++i)
 	{
 		floater->mQuickPayButton[i]->setVisible(TRUE);
@@ -435,7 +428,7 @@ void LLFloaterPay::finishPayUI(const LLUUID& target_id, BOOL is_group)
 
 	// Make sure the amount field has focus
 
-	childSetFocus("amount", TRUE);
+	getChild<LLUICtrl>("amount")->setFocus( TRUE);
 	
 	LLLineEditor* amount = getChild<LLLineEditor>("amount");
 	amount->selectAll();
@@ -456,8 +449,8 @@ void LLFloaterPay::onCacheOwnerName(const LLUUID& owner_id,
 		setTitle(getString("payee_resident"));
 	}
 	
-	childSetTextArg("payee_name", "[FIRST]", firstname);
-	childSetTextArg("payee_name", "[LAST]", lastname);
+	getChild<LLUICtrl>("payee_name")->setTextArg("[FIRST]", firstname);
+	getChild<LLUICtrl>("payee_name")->setTextArg("[LAST]", lastname);
 }
 
 // static
@@ -477,8 +470,8 @@ void LLFloaterPay::onKeystroke(LLLineEditor*, void* data)
 	if(self)
 	{
 		// enable the Pay button when amount is non-empty and positive, disable otherwise
-		std::string amtstr = self->childGetText("amount");
-		self->childSetEnabled("pay btn", !amtstr.empty() && atoi(amtstr.c_str()) > 0);
+		std::string amtstr = self->getChild<LLUICtrl>("amount")->getValue().asString();
+		self->getChildView("pay btn")->setEnabled(!amtstr.empty() && atoi(amtstr.c_str()) > 0);
 	}
 }
 
@@ -501,7 +494,7 @@ void LLFloaterPay::give(S32 amount)
 		// text field.
 		if(amount == 0)
 		{
-			amount = atoi(childGetText("amount").c_str());
+			amount = atoi(getChild<LLUICtrl>("amount")->getValue().asString().c_str());
 		}
 		sLastAmount = amount;
 

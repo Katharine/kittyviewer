@@ -2,33 +2,26 @@
  * @file llfloaterenvsettings.cpp
  * @brief LLFloaterEnvSettings class definition
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -114,7 +107,7 @@ void LLFloaterEnvSettings::syncMenu()
 
 	// sync cloud coverage
 	bool err;
-	childSetValue("EnvCloudSlider", LLWLParamManager::instance()->mCurParams.getFloat("cloud_shadow", err));
+	getChild<LLUICtrl>("EnvCloudSlider")->setValue(LLWLParamManager::instance()->mCurParams.getFloat("cloud_shadow", err));
 
 	LLWaterParamManager * param_mgr = LLWaterParamManager::instance();
 	// sync water params
@@ -123,43 +116,43 @@ void LLFloaterEnvSettings::syncMenu()
 	col.mV[3] = 1.0f;
 	colCtrl->set(col);
 
-	childSetValue("EnvWaterFogSlider", param_mgr->mFogDensity.mExp);
+	getChild<LLUICtrl>("EnvWaterFogSlider")->setValue(param_mgr->mFogDensity.mExp);
 	param_mgr->setDensitySliderValue(param_mgr->mFogDensity.mExp);
 
 	// turn off Use Estate Time button if it's already being used
 	if(LLWLParamManager::instance()->mAnimator.mUseLindenTime)
 	{
-		childDisable("EnvUseEstateTimeButton");
+		getChildView("EnvUseEstateTimeButton")->setEnabled(FALSE);
 	} else {
-		childEnable("EnvUseEstateTimeButton");
+		getChildView("EnvUseEstateTimeButton")->setEnabled(TRUE);
 	}
 
 	if(!gPipeline.canUseVertexShaders())
 	{
-		childDisable("EnvWaterColor");
-		childDisable("EnvWaterColorText");
-		//childDisable("EnvAdvancedWaterButton");		
+		getChildView("EnvWaterColor")->setEnabled(FALSE);
+		getChildView("EnvWaterColorText")->setEnabled(FALSE);
+		//getChildView("EnvAdvancedWaterButton")->setEnabled(FALSE);		
 	}
 	else
 	{
-		childEnable("EnvWaterColor");
-		childEnable("EnvWaterColorText");
-		//childEnable("EnvAdvancedWaterButton");		
+		getChildView("EnvWaterColor")->setEnabled(TRUE);
+		getChildView("EnvWaterColorText")->setEnabled(TRUE);
+		//getChildView("EnvAdvancedWaterButton")->setEnabled(TRUE);		
 	}
 
 	// only allow access to these if they are using windlight
 	if(!gPipeline.canUseWindLightShaders())
 	{
 
-		childDisable("EnvCloudSlider");
-		childDisable("EnvCloudText");
-		//childDisable("EnvAdvancedSkyButton");
+		getChildView("EnvCloudSlider")->setEnabled(FALSE);
+		getChildView("EnvCloudText")->setEnabled(FALSE);
+		//getChildView("EnvAdvancedSkyButton")->setEnabled(FALSE);
 	}
 	else
 	{
-		childEnable("EnvCloudSlider");
-		childEnable("EnvCloudText");
-		//childEnable("EnvAdvancedSkyButton");
+		getChildView("EnvCloudSlider")->setEnabled(TRUE);
+		getChildView("EnvCloudText")->setEnabled(TRUE);
+		//getChildView("EnvAdvancedSkyButton")->setEnabled(TRUE);
 	}
 }
 

@@ -3,33 +3,26 @@
  * @author Douglas Soo, James Cook
  * @brief Audio sources attached to viewer objects
  *
- * $LicenseInfo:firstyear=2006&license=viewergpl$
- * 
- * Copyright (c) 2006-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2006&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -42,8 +35,11 @@
 
 LLAudioSourceVO::LLAudioSourceVO(const LLUUID &sound_id, const LLUUID& owner_id, const F32 gain, LLViewerObject *objectp)
 	:	LLAudioSource(sound_id, owner_id, gain, LLAudioEngine::AUDIO_TYPE_SFX), 
-	mObjectp(objectp)
+	mObjectp(objectp), 
+	mActualGain(gain)
 {
+	setAmbient(FALSE);
+	updateGain();
 	update();
 }
 
@@ -58,18 +54,18 @@ LLAudioSourceVO::~LLAudioSourceVO()
 
 void LLAudioSourceVO::setGain(const F32 gain)
 {
-	mGain = llclamp(gain, 0.f, 1.f);
+	mActualGain = llclamp(gain, 0.f, 1.f);
+	updateGain();
 }
 
-void LLAudioSourceVO::updateMute()
+void LLAudioSourceVO::updateGain()
 {
-	if (!mObjectp || mObjectp->isDead())
+	if (!mObjectp)
 	{
-	  	mSourceMuted = true;
 		return;
 	}
 
-	bool mute = false;
+	BOOL mute = FALSE;
 	LLVector3d pos_global;
 
 	if (mObjectp->isAttachment())
@@ -88,21 +84,21 @@ void LLAudioSourceVO::updateMute()
 	{
 		pos_global = mObjectp->getPositionGlobal();
 	}
-
+	
 	if (!LLViewerParcelMgr::getInstance()->canHearSound(pos_global))
 	{
-		mute = true;
+		mute = TRUE;
 	}
 
 	if (!mute)
 	{
 		if (LLMuteList::getInstance()->isMuted(mObjectp->getID()))
 		{
-			mute = true;
+			mute = TRUE;
 		}
 		else if (LLMuteList::getInstance()->isMuted(mOwnerID, LLMute::flagObjectSounds))
 		{
-			mute = true;
+			mute = TRUE;
 		}
 		else if (mObjectp->isAttachment())
 		{
@@ -114,38 +110,24 @@ void LLAudioSourceVO::updateMute()
 			if (parent 
 				&& LLMuteList::getInstance()->isMuted(parent->getID()))
 			{
-				mute = true;
+				mute = TRUE;
 			}
 		}
 	}
 
-	if (mute != mSourceMuted)
+	if (!mute)
 	{
-		mSourceMuted = mute;
-		if (mSourceMuted)
-		{
-		  	// Stop the sound.
-			this->play(LLUUID::null);
-		}
-		else
-		{
-		  	// Muted sounds keep there data at all times, because
-			// it's the place where the audio UUID is stored.
-			// However, it's possible that mCurrentDatap is
-			// NULL when this source did only preload sounds.
-			if (mCurrentDatap)
-			{
-		  		// Restart the sound.
-				this->play(mCurrentDatap->getID());
-			}
-		}
+		mGain = mActualGain;
+	}
+	else
+	{
+		mGain = 0.f;
 	}
 }
 
+
 void LLAudioSourceVO::update()
 {
-	updateMute();
-
 	if (!mObjectp)
 	{
 		return;
@@ -157,11 +139,7 @@ void LLAudioSourceVO::update()
 		return;
 	}
 
-	if (mSourceMuted)
-	{
-	  	return;
-	}
-
+	updateGain();
 	if (mObjectp->isHUDAttachment())
 	{
 		mPositionGlobal = gAgentCamera.getCameraPositionGlobal();

@@ -2,33 +2,26 @@
  * @file llagentcamera.cpp
  * @brief LLAgent class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -1150,10 +1143,9 @@ void LLAgentCamera::updateCamera()
 	static LLFastTimer::DeclareTimer ftm("Camera");
 	LLFastTimer t(ftm);
 
-	//Ventrella - changed camera_skyward to the new global "mCameraUpVector"
+	// - changed camera_skyward to the new global "mCameraUpVector"
 	mCameraUpVector = LLVector3::z_axis;
 	//LLVector3	camera_skyward(0.f, 0.f, 1.f);
-	//end Ventrella
 
 	U32 camera_mode = mCameraAnimating ? mLastCameraMode : mCameraMode;
 
@@ -1163,10 +1155,8 @@ void LLAgentCamera::updateCamera()
 		gAgentAvatarp->isSitting() &&
 		camera_mode == CAMERA_MODE_MOUSELOOK)
 	{
-		//Ventrella
 		//changed camera_skyward to the new global "mCameraUpVector"
 		mCameraUpVector = mCameraUpVector * gAgentAvatarp->getRenderRotation();
-		//end Ventrella
 	}
 
 	if (cameraThirdPerson() && mFocusOnAvatar && LLFollowCamMgr::getActiveFollowCamParams())
@@ -1174,13 +1164,11 @@ void LLAgentCamera::updateCamera()
 		changeCameraToFollow();
 	}
 
-	//Ventrella
 	//NOTE - this needs to be integrated into a general upVector system here within llAgent. 
 	if ( camera_mode == CAMERA_MODE_FOLLOW && mFocusOnAvatar )
 	{
 		mCameraUpVector = mFollowCam.getUpVector();
 	}
-	//end Ventrella
 
 	if (mSitCameraEnabled)
 	{
@@ -1257,7 +1245,6 @@ void LLAgentCamera::updateCamera()
 	// lerp camera focus offset
 	mCameraFocusOffset = lerp(mCameraFocusOffset, mCameraFocusOffsetTarget, LLCriticalDamp::getInterpolant(CAMERA_FOCUS_HALF_LIFE));
 
-	//Ventrella
 	if ( mCameraMode == CAMERA_MODE_FOLLOW )
 	{
 		if (isAgentAvatarValid())
@@ -1284,7 +1271,6 @@ void LLAgentCamera::updateCamera()
 			}
 		}
 	}
-	// end Ventrella
 
 	BOOL hit_limit;
 	LLVector3d camera_pos_global;
@@ -1415,10 +1401,8 @@ void LLAgentCamera::updateCamera()
 
 	// Move the camera
 
-	//Ventrella
 	LLViewerCamera::getInstance()->updateCameraLocation(mCameraPositionAgent, mCameraUpVector, focus_agent);
 	//LLViewerCamera::getInstance()->updateCameraLocation(mCameraPositionAgent, camera_skyward, focus_agent);
-	//end Ventrella
 	
 	// Change FOV
 	LLViewerCamera::getInstance()->setView(LLViewerCamera::getInstance()->getDefaultFOV() / (1.f + mCameraCurrentFOVZoomFactor));
@@ -1533,12 +1517,11 @@ LLVector3d LLAgentCamera::calcFocusPositionTargetGlobal()
 		clearFocusObject();
 	}
 
-	// Ventrella
 	if (mCameraMode == CAMERA_MODE_FOLLOW && mFocusOnAvatar)
 	{
 		mFocusTargetGlobal = gAgent.getPosGlobalFromAgent(mFollowCam.getSimulatedFocus());
 		return mFocusTargetGlobal;
-	}// End Ventrella 
+	}
 	else if (mCameraMode == CAMERA_MODE_MOUSELOOK)
 	{
 		LLVector3d at_axis(1.0, 0.0, 0.0);
@@ -1707,11 +1690,10 @@ LLVector3d LLAgentCamera::calcCameraPositionTargetGlobal(BOOL *hit_limit)
 
 	LLVector3d camera_position_global;
 
-	// Ventrella 
 	if (mCameraMode == CAMERA_MODE_FOLLOW && mFocusOnAvatar)
 	{
 		camera_position_global = gAgent.getPosGlobalFromAgent(mFollowCam.getSimulatedPosition());
-	}// End Ventrella
+	}
 	else if (mCameraMode == CAMERA_MODE_MOUSELOOK)
 	{
 		if (!isAgentAvatarValid() || gAgentAvatarp->mDrawable.isNull())
@@ -2131,7 +2113,6 @@ void LLAgentCamera::changeCameraToDefault()
 }
 
 
-// Ventrella
 //-----------------------------------------------------------------------------
 // changeCameraToFollow()
 //-----------------------------------------------------------------------------

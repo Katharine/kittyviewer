@@ -2,33 +2,26 @@
  * @file LLIMMgr.cpp
  * @brief Container for Instant Messaging
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -236,6 +229,25 @@ LLIMModel::LLIMSession::LLIMSession(const LLUUID& session_id, const std::string&
 	{
 		//tick returns TRUE - timer will be deleted after the tick
 		new LLSessionTimeoutTimer(mSessionID, SESSION_INITIALIZATION_TIMEOUT);
+	}
+
+	// *WORKAROUND: for server hard-coded string in indra\newsim\llsimchatterbox.cpp
+	if (isAdHocSessionType() && IM_SESSION_INVITE == type)
+	{
+		// For an ad-hoc incoming chat name is received from the server and is in a form of "<Avatar's name> Conference"
+		// Lets update it to localize the "Conference" word. See EXT-8429.
+		S32 separator_index = mName.rfind(" ");
+		std::string name = mName.substr(0, separator_index);
+		++separator_index;
+		std::string conference_word = mName.substr(separator_index, mName.length());
+
+		// additional check that session name is what we expected
+		if ("Conference" == conference_word)
+		{
+			LLStringUtil::format_map_t args;
+			args["[AGENT_NAME]"] = name;
+			LLTrans::findString(mName, "conference-title-incoming", args);
+		}
 	}
 
 	if (IM_NOTHING_SPECIAL == type)
@@ -1003,19 +1015,6 @@ void LLIMModel::sendMessage(const std::string& utf8_text,
 
 	if (is_not_group_id)
 	{
-			
-#if 0
-		//use this code to add only online members	
-		LLIMSpeakerMgr* speaker_mgr = LLIMModel::getInstance()->getSpeakerManager(im_session_id);
-		LLSpeakerMgr::speaker_list_t speaker_list;
-		speaker_mgr->getSpeakerList(&speaker_list, true);
-		for(LLSpeakerMgr::speaker_list_t::iterator it = speaker_list.begin(); it != speaker_list.end(); it++)
-		{
-			const LLPointer<LLSpeaker>& speakerp = *it;
-
-			LLRecentPeople::instance().add(speakerp->mID);
-		}
-#else
 		LLIMModel::LLIMSession* session = LLIMModel::getInstance()->findIMSession(im_session_id);
 		if( session == 0)//??? shouldn't really happen
 		{
@@ -1030,16 +1029,20 @@ void LLIMModel::sendMessage(const std::string& utf8_text,
 			// Concrete participants will be added into this list once they sent message in chat.
 			if (IM_SESSION_INVITE == dialog) return;
 
-			// implemented adding of all participants of an outgoing to Recent People List. See EXT-5694.
-			for(uuid_vec_t::iterator it = session->mInitialTargetIDs.begin();
-				it!=session->mInitialTargetIDs.end();++it)
+			// Add only online members to recent (EXT-8658)
+			LLIMSpeakerMgr* speaker_mgr = LLIMModel::getInstance()->getSpeakerManager(im_session_id);
+			LLSpeakerMgr::speaker_list_t speaker_list;
+			if(speaker_mgr != NULL)
 			{
-				const LLUUID id = *it;
+				speaker_mgr->getSpeakerList(&speaker_list, true);
+			}
+			for(LLSpeakerMgr::speaker_list_t::iterator it = speaker_list.begin(); it != speaker_list.end(); it++)
+			{
+				const LLPointer<LLSpeaker>& speakerp = *it;
 
-				LLRecentPeople::instance().add(id);
+				LLRecentPeople::instance().add(speakerp->mID);
 			}
 		}
-#endif
 	}
 
 	
@@ -1710,12 +1713,12 @@ void LLOutgoingCallDialog::show(const LLSD& key)
 			old_caller_name = LLTextUtil::formatPhoneNumber(old_caller_name);
 		}
 
-		childSetTextArg("leaving", "[CURRENT_CHAT]", old_caller_name);
+		getChild<LLUICtrl>("leaving")->setTextArg("[CURRENT_CHAT]", old_caller_name);
 		show_oldchannel = true;
 	}
 	else
 	{
-		childSetTextArg("leaving", "[CURRENT_CHAT]", getString("localchat"));		
+		getChild<LLUICtrl>("leaving")->setTextArg("[CURRENT_CHAT]", getString("localchat"));		
 	}
 
 	if (!mPayload["disconnected_channel_name"].asString().empty())
@@ -1725,16 +1728,16 @@ void LLOutgoingCallDialog::show(const LLSD& key)
 		{
 			channel_name = LLTextUtil::formatPhoneNumber(channel_name);
 		}
-		childSetTextArg("nearby", "[VOICE_CHANNEL_NAME]", channel_name);
+		getChild<LLUICtrl>("nearby")->setTextArg("[VOICE_CHANNEL_NAME]", channel_name);
 
 		// skipping "You will now be reconnected to nearby" in notification when call is ended by disabling voice,
 		// so no reconnection to nearby chat happens (EXT-4397)
 		bool voice_works = LLVoiceClient::getInstance()->voiceEnabled() && LLVoiceClient::getInstance()->isVoiceWorking();
 		std::string reconnect_nearby = voice_works ? LLTrans::getString("reconnect_nearby") : std::string();
-		childSetTextArg("nearby", "[RECONNECT_NEARBY]", reconnect_nearby);
+		getChild<LLUICtrl>("nearby")->setTextArg("[RECONNECT_NEARBY]", reconnect_nearby);
 
 		const std::string& nearby_str = mPayload["ended_by_agent"] ? NEARBY_P2P_BY_AGENT : NEARBY_P2P_BY_OTHER;
-		childSetTextArg(nearby_str, "[RECONNECT_NEARBY]", reconnect_nearby);
+		getChild<LLUICtrl>(nearby_str)->setTextArg("[RECONNECT_NEARBY]", reconnect_nearby);
 	}
 
 	std::string callee_name = mPayload["session_name"].asString();
@@ -1754,8 +1757,8 @@ void LLOutgoingCallDialog::show(const LLSD& key)
 	setTitle(callee_name);
 
 	LLSD callee_id = mPayload["other_user_id"];
-	childSetTextArg("calling", "[CALLEE_NAME]", callee_name);
-	childSetTextArg("connecting", "[CALLEE_NAME]", callee_name);
+	getChild<LLUICtrl>("calling")->setTextArg("[CALLEE_NAME]", callee_name);
+	getChild<LLUICtrl>("connecting")->setTextArg("[CALLEE_NAME]", callee_name);
 
 	// for outgoing group calls callee_id == group id == session id
 	setIcon(callee_id, callee_id);
@@ -1940,7 +1943,7 @@ BOOL LLIncomingCallDialog::postBuild()
 
 	//it's not possible to connect to existing Ad-Hoc/Group chat through incoming ad-hoc call
 	//and no IM for avaline
-	childSetVisible("Start IM", is_avatar && notify_box_type != "VoiceInviteAdHoc" && notify_box_type != "VoiceInviteGroup");
+	getChildView("Start IM")->setVisible( is_avatar && notify_box_type != "VoiceInviteAdHoc" && notify_box_type != "VoiceInviteGroup");
 
 	setCanDrag(FALSE);
 
@@ -1964,12 +1967,12 @@ void LLIncomingCallDialog::onOpen(const LLSD& key)
 	if (voice && !voice->getSessionName().empty())
 	{
 		args["[CURRENT_CHAT]"] = voice->getSessionName();
-		childSetText("question", getString(key["question_type"].asString(), args));
+		getChild<LLUICtrl>("question")->setValue(getString(key["question_type"].asString(), args));
 	}
 	else
 	{
 		args["[CURRENT_CHAT]"] = getString("localchat");
-		childSetText("question", getString(key["question_type"].asString(), args));
+		getChild<LLUICtrl>("question")->setValue(getString(key["question_type"].asString(), args));
 	}
 }
 
@@ -3074,7 +3077,9 @@ public:
 			std::string saved;
 			if(offline == IM_OFFLINE)
 			{
-				saved = llformat("(Saved %s) ", formatted_time(timestamp).c_str());
+				LLStringUtil::format_map_t args;
+				args["[LONG_TIMESTAMP]"] = formatted_time(timestamp);
+				saved = LLTrans::getString("Saved_message", args);
 			}
 			std::string buffer = saved + message;
 

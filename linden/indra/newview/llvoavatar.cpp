@@ -2,33 +2,26 @@
  * @File llvoavatar.cpp
  * @brief Implementation of LLVOAvatar class which is a derivation of LLViewerObject
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #if LL_MSVC
@@ -183,7 +176,7 @@ const F32 TIME_BEFORE_MESH_CLEANUP = 5.f; // seconds
 const S32 AVATAR_RELEASE_THRESHOLD = 10; // number of avatar instances before releasing memory
 const F32 FOOT_GROUND_COLLISION_TOLERANCE = 0.25f;
 const F32 AVATAR_LOD_TWEAK_RANGE = 0.7f;
-const S32 MAX_BUBBLE_CHAT_LENGTH = DB_CHAT_MSG_STR_LEN;
+const S32 MAX_BUBBLE_CHAT_LENGTH = 1023;
 const S32 MAX_BUBBLE_CHAT_UTTERANCES = 12;
 const F32 CHAT_FADE_TIME = 8.0;
 const F32 BUBBLE_CHAT_TIME = CHAT_FADE_TIME * 3.f;
@@ -2006,8 +1999,8 @@ void LLVOAvatar::updateMeshData()
 				}
 				else
 				{
-					facep->mVertexBuffer->resizeBuffer(num_vertices, num_indices) ;
-				}
+				facep->mVertexBuffer->resizeBuffer(num_vertices, num_indices) ;
+			}
 			}
 		
 			facep->setGeomIndex(0);
@@ -2237,7 +2230,7 @@ BOOL LLVOAvatar::idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time)
 		return TRUE;
 	}	
 
- 	if (!(gPipeline.hasRenderType(RENDER_TYPE_POOL_AVATAR)))
+ 	if (!(gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_AVATAR)))
 	{
 		return TRUE;
 	}
@@ -2327,7 +2320,6 @@ BOOL LLVOAvatar::idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time)
 	
 	idleUpdateNameTag( root_pos_last );
 	idleUpdateRenderCost();
-	idleUpdateTractorBeam();
 
 	return TRUE;
 }
@@ -2754,7 +2746,7 @@ void LLVOAvatar::idleUpdateNameTag(const LLVector3& root_pos_last)
 {
 	// update chat bubble
 	//--------------------------------------------------------------------
-	// draw text label over characters head
+	// draw text label over character's head
 	//--------------------------------------------------------------------
 	if (mChatTimer.getElapsedTimeF32() > BUBBLE_CHAT_TIME)
 	{
@@ -3082,14 +3074,6 @@ void LLVOAvatar::idleUpdateNameTag(const LLVector3& root_pos_last)
 	}
 }
 
-//--------------------------------------------------------------------
-// draw tractor beam when editing objects
-//--------------------------------------------------------------------
-// virtual
-void LLVOAvatar::idleUpdateTractorBeam()
-{
-}
-
 void LLVOAvatar::idleUpdateBelowWater()
 {
 	F32 avatar_height = (F32)(getPositionGlobal().mdV[VZ]);
@@ -3134,14 +3118,16 @@ BOOL LLVOAvatar::updateCharacter(LLAgent &agent)
 				if (motionp->getName().empty())
 				{
 					output = llformat("%s - %d",
-									  motionp->getID().asString().c_str(),
-									  (U32)motionp->getPriority());
+							  gAgent.isGodlikeWithoutAdminMenuFakery() ?
+							  motionp->getID().asString().c_str() :
+							  LLUUID::null.asString().c_str(),
+							  (U32)motionp->getPriority());
 				}
 				else
 				{
 					output = llformat("%s - %d",
-									  motionp->getName().c_str(),
-									  (U32)motionp->getPriority());
+							  motionp->getName().c_str(),
+							  (U32)motionp->getPriority());
 				}
 				addDebugText(output);
 			}
@@ -3790,11 +3776,11 @@ U32 LLVOAvatar::renderSkinned(EAvatarRenderPass pass)
 	{	//LOD changed or new mesh created, allocate new vertex buffer if needed
 		if (needs_rebuild || mDirtyMesh >= 2 || mVisibilityRank <= 4)
 		{
-			updateMeshData();
+		updateMeshData();
 			mDirtyMesh = 0;
-			mNeedsSkin = TRUE;
-			mDrawable->clearState(LLDrawable::REBUILD_GEOMETRY);
-		}
+		mNeedsSkin = TRUE;
+		mDrawable->clearState(LLDrawable::REBUILD_GEOMETRY);
+	}
 	}
 
 	if (LLViewerShaderMgr::instance()->getVertexShaderLevel(LLViewerShaderMgr::SHADER_AVATAR) <= 0)
@@ -4143,7 +4129,7 @@ void LLVOAvatar::updateTextures()
 				}
 			}
 		}
-		if (isIndexBakedTexture((ETextureIndex) texture_index))
+		if (isIndexBakedTexture((ETextureIndex) texture_index) && render_avatar)
 		{
 			const S32 boost_level = getAvatarBakedBoostLevel();
 			imagep = LLViewerTextureManager::staticCastToFetchedTexture(getImage(texture_index,0), TRUE);
@@ -4203,7 +4189,7 @@ void LLVOAvatar::checkTextureLoading()
 	{
 		return ; //have not been invisible for enough time.
 	}
-
+	
 	for(LLLoadedCallbackEntry::source_callback_list_t::iterator iter = mCallbackTextureList.begin();
 		iter != mCallbackTextureList.end(); ++iter)
 	{
@@ -4220,7 +4206,10 @@ void LLVOAvatar::checkTextureLoading()
 			}
 			else//unpause
 			{
-				tex->unpauseLoadedCallbacks(&mCallbackTextureList) ;				
+				static const F32 START_AREA = 100.f ;
+
+				tex->unpauseLoadedCallbacks(&mCallbackTextureList) ;
+				tex->addTextureStats(START_AREA); //jump start the fetching again
 			}
 		}		
 	}			
@@ -4240,7 +4229,7 @@ void LLVOAvatar::addBakedTextureStats( LLViewerFetchedTexture* imagep, F32 pixel
 	//Note:
 	//if this function is not called for the last MAX_TEXTURE_VIRTURE_SIZE_RESET_INTERVAL frames, 
 	//the texture pipeline will stop fetching this texture.
-	
+
 	imagep->resetTextureStats();
 	imagep->setCanUseHTTP(false) ; //turn off http fetching for baked textures.
 	imagep->setMaxVirtualSizeResetInterval(MAX_TEXTURE_VIRTURE_SIZE_RESET_INTERVAL);
@@ -5446,13 +5435,13 @@ LLDrawable *LLVOAvatar::createDrawable(LLPipeline *pipeline)
 	pipeline->allocDrawable(this);
 	mDrawable->setLit(FALSE);
 
-	LLDrawPoolAvatar *poolp = (LLDrawPoolAvatar*) gPipeline.getPool(RENDER_TYPE_POOL_AVATAR);
+	LLDrawPoolAvatar *poolp = (LLDrawPoolAvatar*) gPipeline.getPool(LLDrawPool::POOL_AVATAR);
 
 	// Only a single face (one per avatar)
 	//this face will be splitted into several if its vertex buffer is too long.
 	mDrawable->setState(LLDrawable::ACTIVE);
 	mDrawable->addFace(poolp, NULL);
-	mDrawable->setRenderType(RENDER_TYPE_POOL_AVATAR);
+	mDrawable->setRenderType(LLPipeline::RENDER_TYPE_AVATAR);
 	
 	mNumInitFaces = mDrawable->getNumFaces() ;
 
@@ -5477,7 +5466,7 @@ static LLFastTimer::DeclareTimer FTM_UPDATE_AVATAR("Update Avatar");
 BOOL LLVOAvatar::updateGeometry(LLDrawable *drawable)
 {
 	LLFastTimer ftm(FTM_UPDATE_AVATAR);
- 	if (!(gPipeline.hasRenderType(RENDER_TYPE_POOL_AVATAR)))
+ 	if (!(gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_AVATAR)))
 	{
 		return TRUE;
 	}
@@ -5549,6 +5538,7 @@ BOOL LLVOAvatar::setParent(LLViewerObject* parent)
 
 void LLVOAvatar::addChild(LLViewerObject *childp)
 {
+	childp->extractAttachmentItemID(); // find the inventory item this object is associated with.
 	LLViewerObject::addChild(childp);
 	if (childp->mDrawable)
 	{
@@ -5635,6 +5625,15 @@ U32 LLVOAvatar::getNumAttachments() const
 BOOL LLVOAvatar::canAttachMoreObjects() const
 {
 	return (getNumAttachments() < MAX_AGENT_ATTACHMENTS);
+}
+
+//-----------------------------------------------------------------------------
+// canAttachMoreObjects()
+// Returns true if we can attach <n> more objects.
+//-----------------------------------------------------------------------------
+BOOL LLVOAvatar::canAttachMoreObjects(U32 n) const
+{
+	return (getNumAttachments() + n) <= MAX_AGENT_ATTACHMENTS;
 }
 
 //-----------------------------------------------------------------------------
@@ -6064,7 +6063,7 @@ void LLVOAvatar::updateMeshTextures()
 		}
 	}
 
-	const BOOL self_customizing = isSelf() && !gAgentAvatarp->isUsingBakedTextures(); // During face edit mode, we don't use baked textures
+	const BOOL self_customizing = isSelf() && gAgentCamera.cameraCustomizeAvatar(); // During face edit mode, we don't use baked textures
 	const BOOL other_culled = !isSelf() && mCulled;
 	LLLoadedCallbackEntry::source_callback_list_t* src_callback_list = NULL ;
 	BOOL paused = FALSE;
@@ -6089,10 +6088,14 @@ void LLVOAvatar::updateMeshTextures()
 			// When an avatar is changing clothes and not in Appearance mode,
 			// use the last-known good baked texture until it finish the first
 			// render of the new layerset.
+
+			const BOOL layerset_invalid = !mBakedTextureDatas[i].mTexLayerSet 
+										  || !mBakedTextureDatas[i].mTexLayerSet->getComposite()->isInitialized()
+										  || !mBakedTextureDatas[i].mTexLayerSet->isLocalTextureDataAvailable();
+
 			use_lkg_baked_layer[i] = (!is_layer_baked[i] 
 									  && (mBakedTextureDatas[i].mLastTextureIndex != IMG_DEFAULT_AVATAR) 
-									  && mBakedTextureDatas[i].mTexLayerSet 
-									  && !mBakedTextureDatas[i].mTexLayerSet->getComposite()->isInitialized());
+									  && layerset_invalid);
 			if (use_lkg_baked_layer[i])
 			{
 				mBakedTextureDatas[i].mTexLayerSet->setUpdatesEnabled(TRUE);

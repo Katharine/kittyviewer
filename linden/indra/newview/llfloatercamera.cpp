@@ -2,33 +2,26 @@
  * @file llfloatercamera.cpp
  * @brief Container for camera control buttons (zoom, pan, orbit)
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -63,6 +56,7 @@ const F32 CAMERA_BUTTON_DELAY = 0.0f;
 #define CONTROLS "controls"
 
 bool LLFloaterCamera::sFreeCamera = false;
+bool LLFloaterCamera::sAppearanceEditing = false;
 
 // Zoom the camera in and out
 class LLPanelCameraZoom
@@ -126,10 +120,15 @@ LLPanelCameraItem::LLPanelCameraItem(const LLPanelCameraItem::Params& p)
 	}
 }
 
+void set_view_visible(LLView* parent, const std::string& name, bool visible)
+{
+	parent->getChildView(name)->setVisible(visible);
+}
+
 BOOL LLPanelCameraItem::postBuild()
 {
-	setMouseEnterCallback(boost::bind(&LLPanelCameraItem::childSetVisible, this, "hovered_icon", true));
-	setMouseLeaveCallback(boost::bind(&LLPanelCameraItem::childSetVisible, this, "hovered_icon", false));
+	setMouseEnterCallback(boost::bind(set_view_visible, this, "hovered_icon", true));
+	setMouseLeaveCallback(boost::bind(set_view_visible, this, "hovered_icon", false));
 	setMouseDownCallback(boost::bind(&LLPanelCameraItem::onAnyMouseClick, this));
 	setRightMouseDownCallback(boost::bind(&LLPanelCameraItem::onAnyMouseClick, this));
 	return TRUE;
@@ -144,9 +143,9 @@ void LLPanelCameraItem::setValue(const LLSD& value)
 {
 	if (!value.isMap()) return;;
 	if (!value.has("selected")) return;
-	childSetVisible("selected_icon", value["selected"]);
-	childSetVisible("picture", !value["selected"]);
-	childSetVisible("selected_picture", value["selected"]);
+	getChildView("selected_icon")->setVisible( value["selected"]);
+	getChildView("picture")->setVisible( !value["selected"]);
+	getChildView("selected_picture")->setVisible( value["selected"]);
 }
 
 static LLRegisterPanelClassWrapper<LLPanelCameraZoom> t_camera_zoom_panel("camera_zoom_panel");
@@ -246,16 +245,21 @@ void LLFloaterCamera::resetCameraMode()
 
 void LLFloaterCamera::onAvatarEditingAppearance(bool editing)
 {
+	sAppearanceEditing = editing;
 	LLFloaterCamera* floater_camera = LLFloaterCamera::findInstance();
 	if (!floater_camera) return;
+	floater_camera->handleAvatarEditingAppearance(editing);
+}
 
+void LLFloaterCamera::handleAvatarEditingAppearance(bool editing)
+{
 	//camera presets (rear, front, etc.)
-	floater_camera->childSetEnabled("preset_views_list", !editing);
-	floater_camera->childSetEnabled("presets_btn", !editing);
+	getChildView("preset_views_list")->setEnabled(!editing);
+	getChildView("presets_btn")->setEnabled(!editing);
 
 	//camera modes (object view, mouselook view)
-	floater_camera->childSetEnabled("camera_modes_list", !editing);
-	floater_camera->childSetEnabled("avatarview_btn", !editing);
+	getChildView("camera_modes_list")->setEnabled(!editing);
+	getChildView("avatarview_btn")->setEnabled(!editing);
 }
 
 void LLFloaterCamera::update()
@@ -350,6 +354,9 @@ BOOL LLFloaterCamera::postBuild()
 
 	update();
 
+	// ensure that appearance mode is handled while building. See EXT-7796.
+	handleAvatarEditingAppearance(sAppearanceEditing);
+
 	return LLDockableFloater::postBuild();
 }
 
@@ -372,6 +379,12 @@ void LLFloaterCamera::fillFlatlistFromPanel (LLFlatListView* list, LLPanel* pane
 
 ECameraControlMode LLFloaterCamera::determineMode()
 {
+	if (sAppearanceEditing)
+	{
+		// this is the only enabled camera mode while editing agent appearance.
+		return CAMERA_CTRL_MODE_PAN;
+	}
+
 	LLTool* curr_tool = LLToolMgr::getInstance()->getCurrentTool();
 	if (curr_tool == LLToolCamera::getInstance())
 	{
@@ -485,15 +498,15 @@ void LLFloaterCamera::assignButton2Mode(ECameraControlMode mode, const std::stri
 
 void LLFloaterCamera::updateState()
 {
-	childSetVisible(ZOOM, CAMERA_CTRL_MODE_PAN == mCurrMode);
+	getChildView(ZOOM)->setVisible(CAMERA_CTRL_MODE_PAN == mCurrMode);
 	
 	bool show_presets = (CAMERA_CTRL_MODE_PRESETS == mCurrMode) || (CAMERA_CTRL_MODE_FREE_CAMERA == mCurrMode
 																	&& CAMERA_CTRL_MODE_PRESETS == mPrevMode);
-	childSetVisible(PRESETS, show_presets);
+	getChildView(PRESETS)->setVisible(show_presets);
 	
 	bool show_camera_modes = CAMERA_CTRL_MODE_MODES == mCurrMode || (CAMERA_CTRL_MODE_FREE_CAMERA == mCurrMode
 																	&& CAMERA_CTRL_MODE_MODES == mPrevMode);
-	childSetVisible("camera_modes_list", show_camera_modes);
+	getChildView("camera_modes_list")->setVisible( show_camera_modes);
 
 	updateItemsSelection();
 

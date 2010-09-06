@@ -2,33 +2,26 @@
  * @file llfasttimer_class.cpp
  * @brief Implementation of the fast timer.
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 #include "linden_common.h"
 
@@ -66,6 +59,12 @@ BOOL LLFastTimer::sLog = FALSE;
 BOOL LLFastTimer::sMetricLog = FALSE;
 LLMutex* LLFastTimer::sLogLock = NULL;
 std::queue<LLSD> LLFastTimer::sLogQueue;
+
+#if LL_LINUX || LL_SOLARIS
+U64 LLFastTimer::sClockResolution = 1000000000; // Nanosecond resolution
+#else
+U64 LLFastTimer::sClockResolution = 1000000; // Microsecond resolution
+#endif
 
 std::vector<LLFastTimer::FrameState>* LLFastTimer::sTimerInfos = NULL;
 U64				LLFastTimer::sTimerCycles = 0;
@@ -211,15 +210,6 @@ LLFastTimer::DeclareTimer::DeclareTimer(const std::string& name)
 	update_cached_pointers_if_changed();
 }
 
-#if LL_WINDOWS
-//static
-U64 LLFastTimer::CPUClockFrequencyHz()
-{
-  // getCPUFrequency returns MHz and we need Hz.
-  return U64(LLProcessorInfo().getCPUFrequency() * 1000000.0);
-}
-#endif
-
 // static
 void LLFastTimer::DeclareTimer::updateCachedPointers()
 {
@@ -233,6 +223,23 @@ void LLFastTimer::DeclareTimer::updateCachedPointers()
 		it->mFrameState = &it->mTimer.getFrameState();
 	}
 }
+
+//static
+#if (LL_DARWIN || LL_LINUX || LL_SOLARIS) && !(defined(__i386__) || defined(__amd64__))
+U64 LLFastTimer::countsPerSecond() // counts per second for the *32-bit* timer
+{
+	return sClockResolution >> 8;
+}
+#else // windows or x86-mac or x86-linux or x86-solaris
+U64 LLFastTimer::countsPerSecond() // counts per second for the *32-bit* timer
+{
+	//getCPUFrequency returns MHz and sCPUClockFrequency wants to be in Hz
+	static U64 sCPUClockFrequency = U64(LLProcessorInfo().getCPUFrequency()*1000000.0);
+
+	// we drop the low-order byte in our timers, so report a lower frequency
+	return sCPUClockFrequency >> 8;
+}
+#endif
 
 LLFastTimer::FrameState::FrameState(LLFastTimer::NamedTimer* timerp)
 :	mActiveCount(0),

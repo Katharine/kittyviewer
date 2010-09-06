@@ -3,33 +3,26 @@
  * @brief Allows configuration of "media" for a land parcel,
  *   for example movies, web pages, and audio.
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -146,19 +139,19 @@ void LLPanelLandMedia::refresh()
 		mMediaURLEdit->setText(parcel->getMediaURL());
 		mMediaURLEdit->setEnabled( FALSE );
 
-		childSetText("current_url", parcel->getMediaCurrentURL());
+		getChild<LLUICtrl>("current_url")->setValue(parcel->getMediaCurrentURL());
 
 		mMediaDescEdit->setText(parcel->getMediaDesc());
 		mMediaDescEdit->setEnabled( can_change_media );
 
 		std::string mime_type = parcel->getMediaType();
-		if (mime_type.empty())
+		if (mime_type.empty() || mime_type == LLMIMETypes::getDefaultMimeType())
 		{
 			mime_type = LLMIMETypes::getDefaultMimeTypeTranslation();
 		}
 		setMediaType(mime_type);
 		mMediaTypeCombo->setEnabled( can_change_media );
-		childSetText("mime_type", mime_type);
+		getChild<LLUICtrl>("mime_type")->setValue(mime_type);
 
 		mMediaUrlCheck->set( parcel->getObscureMedia() );
 		mMediaUrlCheck->setEnabled( can_change_media );
@@ -256,7 +249,7 @@ void LLPanelLandMedia::setMediaType(const std::string& mime_type)
 		// localizable - "none" for example (see EXT-6542)
 		mime_str = LLMIMETypes::getDefaultMimeTypeTranslation();
 	}
-	childSetText("mime_type", mime_str);
+	getChild<LLUICtrl>("mime_type")->setValue(mime_str);
 }
 
 void LLPanelLandMedia::setMediaURL(const std::string& media_url)
@@ -270,7 +263,7 @@ void LLPanelLandMedia::setMediaURL(const std::string& media_url)
 
 	mMediaURLEdit->onCommit();
 	// LLViewerParcelMedia::sendMediaNavigateMessage(media_url);
-	childSetText("current_url", media_url);
+	getChild<LLUICtrl>("current_url")->setValue(media_url);
 }
 std::string LLPanelLandMedia::getMediaURL()
 {
@@ -281,11 +274,11 @@ std::string LLPanelLandMedia::getMediaURL()
 void LLPanelLandMedia::onCommitType(LLUICtrl *ctrl, void *userdata)
 {
 	LLPanelLandMedia *self = (LLPanelLandMedia *)userdata;
-	std::string current_type = LLMIMETypes::widgetType(self->childGetText("mime_type"));
+	std::string current_type = LLMIMETypes::widgetType(self->getChild<LLUICtrl>("mime_type")->getValue().asString());
 	std::string new_type = self->mMediaTypeCombo->getValue();
 	if(current_type != new_type)
 	{
-		self->childSetText("mime_type", LLMIMETypes::findDefaultMimeType(new_type));
+		self->getChild<LLUICtrl>("mime_type")->setValue(LLMIMETypes::findDefaultMimeType(new_type));
 	}
 	onCommitAny(ctrl, userdata);
 
@@ -305,7 +298,7 @@ void LLPanelLandMedia::onCommitAny(LLUICtrl*, void *userdata)
 	// Extract data from UI
 	std::string media_url	= self->mMediaURLEdit->getText();
 	std::string media_desc	= self->mMediaDescEdit->getText();
-	std::string mime_type	= self->childGetText("mime_type");
+	std::string mime_type	= self->getChild<LLUICtrl>("mime_type")->getValue().asString();
 	U8 media_auto_scale		= self->mMediaAutoScaleCheck->get();
 	U8 media_loop           = self->mMediaLoopCheck->get();
 	U8 obscure_media		= self->mMediaUrlCheck->get();
@@ -314,7 +307,7 @@ void LLPanelLandMedia::onCommitAny(LLUICtrl*, void *userdata)
 	LLUUID media_id			= self->mMediaTextureCtrl->getImageAssetID();
 
 
-	self->childSetText("mime_type", mime_type);
+	self->getChild<LLUICtrl>("mime_type")->setValue(mime_type);
 
 	// Remove leading/trailing whitespace (common when copying/pasting)
 	LLStringUtil::trim(media_url);
@@ -355,7 +348,7 @@ void LLPanelLandMedia::onResetBtn(void *userdata)
 	LLParcel* parcel = self->mParcel->getParcel();
 	// LLViewerMedia::navigateHome();
 	self->refresh();
-	self->childSetText("current_url", parcel->getMediaURL());
+	self->getChild<LLUICtrl>("current_url")->setValue(parcel->getMediaURL());
 	// LLViewerParcelMedia::sendMediaNavigateMessage(parcel->getMediaURL());
 
 }
