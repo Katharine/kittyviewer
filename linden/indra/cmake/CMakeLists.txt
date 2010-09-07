@@ -27,6 +27,7 @@ set(cmake_SOURCE_FILES
     FindCARes.cmake
     FindELFIO.cmake
     FindGooglePerfTools.cmake
+    FindJsonCpp.cmake
     FindMono.cmake
     FindMT.cmake
     FindMySQL.cmake
@@ -36,6 +37,7 @@ set(cmake_SOURCE_FILES
     FreeType.cmake
     GStreamer010Plugin.cmake
     GooglePerfTools.cmake
+    JsonCpp.cmake
     JPEG.cmake
     LLAddBuildTest.cmake
     LLAudio.cmake
@@ -77,6 +79,9 @@ set(cmake_SOURCE_FILES
     Variables.cmake
     XmlRpcEpi.cmake
     ZLIB.cmake
+# [KITTY VIEWER]
+    Growl.cmake
+# [/KITTY VIEWER]
     )
 
 source_group("Shared Rules" FILES ${cmake_SOURCE_FILES})

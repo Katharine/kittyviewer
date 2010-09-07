@@ -37,24 +37,28 @@
 //static
 S32 LLVersionInfo::getMajor()
 {
+	llinfos << "Major: " << LL_VERSION_MAJOR << llendl;
 	return LL_VERSION_MAJOR;
 }
 
 //static
 S32 LLVersionInfo::getMinor()
 {
+	llinfos << "Minor: " << LL_VERSION_MINOR << llendl;
 	return LL_VERSION_MINOR;
 }
 
 //static
 S32 LLVersionInfo::getPatch()
 {
+	llinfos << "Patch: " << LL_VERSION_PATCH << llendl;
 	return LL_VERSION_PATCH;
 }
 
 //static
 S32 LLVersionInfo::getBuild()
 {
+	llinfos << "Build: " << LL_VERSION_BUILD << llendl;
 	return LL_VERSION_BUILD;
 }
 
@@ -73,7 +77,7 @@ const std::string &LLVersionInfo::getVersion()
 		       << LL_VERSION_BUILD;
 		version = stream.str();
 	}
-
+	llinfos << "Version: " << version << llendl;
 	return version;
 }
 
@@ -91,7 +95,7 @@ const std::string &LLVersionInfo::getShortVersion()
 		       << LL_VERSION_PATCH;
 		version = stream.str();
 	}
-
+	llinfos << "Version: " << version << llendl;
 	return version;
 }
 
@@ -99,5 +103,6 @@ const std::string &LLVersionInfo::getShortVersion()
 const std::string &LLVersionInfo::getChannel()
 {
 	static std::string name(LL_CHANNEL);
+	llinfos << "Channel: " << name << llendl;
 	return name;
 }

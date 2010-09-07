@@ -118,7 +118,7 @@ class ViewerManifest(LLManifest):
         # NOTE: Do not return the normal channel if login_channel
         # is not specified, as some code may branch depending on
         # whether or not this is present
-        return self.args.get('login_channel')
+        return self.args.get('channel')
 
     def grid(self):
         return self.args['grid']
@@ -132,35 +132,7 @@ class ViewerManifest(LLManifest):
         return self.channel_oneword().lower()
 
     def flags_list(self):
-        """ Convenience function that returns the command-line flags
-        for the grid"""
-
-        # Set command line flags relating to the target grid
-        grid_flags = ''
-        if not self.default_grid():
-            grid_flags = "--grid %(grid)s "\
-                         "--helperuri http://preview-%(grid)s.secondlife.com/helpers/" %\
-                           {'grid':self.grid()}
-
-        # set command line flags for channel
-        channel_flags = ''
-        if self.login_channel() and self.login_channel() != self.channel():
-            # Report a special channel during login, but use default
-            channel_flags = '--channel "%s"' % (self.login_channel())
-        elif not self.default_channel():
-            channel_flags = '--channel "%s"' % self.channel()
-
-        # Deal with settings 
-        setting_flags = ''
-        if not self.default_channel() or not self.default_grid():
-            if self.default_grid():
-                setting_flags = '--settings settings_%s.xml'\
-                                % self.channel_lowerword()
-            else:
-                setting_flags = '--settings settings_%s_%s.xml'\
-                                % (self.grid(), self.channel_lowerword())
-                                                
-        return " ".join((channel_flags, grid_flags, setting_flags)).strip()
+        return "--multiple"
 
 
 class WindowsManifest(ViewerManifest):
@@ -563,10 +535,10 @@ class DarwinManifest(ViewerManifest):
 
     def construct(self):
         # copy over the build result (this is a no-op if run within the xcode script)
-        self.path(self.args['configuration'] + "/Second Life.app", dst="")
+        self.path(self.args['configuration'] + "/Kitty Viewer.app", dst="")
 
         if self.prefix(src="", dst="Contents"):  # everything goes in Contents
-            self.path("Info-SecondLife.plist", dst="Info.plist")
+            self.path("Info-KittyViewer.plist", dst="Info.plist")
 
             # copy additional libs in <bundle>/Contents/MacOS/
             self.path("../../libraries/universal-darwin/lib_release/libndofdev.dylib", dst="MacOS/libndofdev.dylib")
@@ -589,10 +561,7 @@ class DarwinManifest(ViewerManifest):
 
                 # If we are not using the default channel, use the 'Firstlook
                 # icon' to show that it isn't a stable release.
-                if self.default_channel() and self.default_grid():
-                    self.path("secondlife.icns")
-                else:
-                    self.path("secondlife_firstlook.icns", "secondlife.icns")
+                self.path("kittyviewer.icns")
                 self.path("SecondLife.nib")
                 
                 # Translations
@@ -708,7 +677,7 @@ class DarwinManifest(ViewerManifest):
         if ("package" in self.args['actions'] or 
             "unpacked" in self.args['actions']):
             self.run_command('strip -S %(viewer_binary)r' %
-                             { 'viewer_binary' : self.dst_path_of('Contents/MacOS/Second Life')})
+                             { 'viewer_binary' : self.dst_path_of('Contents/MacOS/Kitty Viewer')})
 
 
     def package_finish(self):
@@ -716,20 +685,12 @@ class DarwinManifest(ViewerManifest):
         if not self.default_channel():
             channel_standin = self.channel()
 
-        imagename="SecondLife_" + '_'.join(self.args['version'])
+        imagename="KittyViewer" + '_'.join(self.args['version'])
 
         # MBW -- If the mounted volume name changes, it breaks the .DS_Store's background image and icon positioning.
         #  If we really need differently named volumes, we'll need to create multiple DS_Store file images, or use some other trick.
 
-        volname="Second Life Installer"  # DO NOT CHANGE without understanding comment above
-
-        if self.default_channel():
-            if not self.default_grid():
-                # beta case
-                imagename = imagename + '_' + self.args['grid'].upper()
-        else:
-            # first look, etc
-            imagename = imagename + '_' + self.channel_oneword().upper()
+        volname="Kitty Viewer Installer"  # DO NOT CHANGE without understanding comment above
 
         sparsename = imagename + ".sparseimage"
         finalname = imagename + ".dmg"

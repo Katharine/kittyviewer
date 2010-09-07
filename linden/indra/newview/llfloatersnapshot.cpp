@@ -1364,37 +1364,39 @@ void LLFloaterSnapshot::Impl::updateControls(LLFloaterSnapshot* floater)
 	floater->getChild<LLComboBox>("postcard_size_combo")->selectNthItem(gSavedSettings.getS32("SnapshotPostcardLastResolution"));
 	floater->getChild<LLComboBox>("texture_size_combo")->selectNthItem(gSavedSettings.getS32("SnapshotTextureLastResolution"));
 	floater->getChild<LLComboBox>("local_size_combo")->selectNthItem(gSavedSettings.getS32("SnapshotLocalLastResolution"));
-	floater->getChild<LLComboBox>("local_format_combo")->selectNthItem(gSavedSettings.getS32("SnapshotFormat"));
+	floater->getChild<LLComboBox>("format_combo")->selectNthItem(gSavedSettings.getS32("SnapshotFormat"));
 
 	// *TODO: Separate settings for Web images from postcards
 	floater->getChildView("send_btn")->setVisible(	shot_type == LLSnapshotLivePreview::SNAPSHOT_POSTCARD ||
 													shot_type == LLSnapshotLivePreview::SNAPSHOT_WEB);
-	floater->getChildView("upload_btn")->setVisible(shot_type == LLSnapshotLivePreview::SNAPSHOT_TEXTURE);
+	floater->getChildView("upload_btn")->setVisible(shot_type == LLSnapshotLivePreview::SNAPSHOT_TEXTURE || 
+													shot_type == LLSnapshotLivePreview::SNAPSHOT_FLICKR);
 	floater->getChildView("save_btn")->setVisible(	shot_type == LLSnapshotLivePreview::SNAPSHOT_LOCAL);
 	floater->getChildView("keep_aspect_check")->setEnabled(shot_type != LLSnapshotLivePreview::SNAPSHOT_TEXTURE && !floater->impl.mAspectRatioCheckOff);
 	floater->getChildView("layer_types")->setEnabled(shot_type == LLSnapshotLivePreview::SNAPSHOT_LOCAL);
 
 	BOOL is_advance = gSavedSettings.getBOOL("AdvanceSnapshot");
-	BOOL is_local = shot_type == LLSnapshotLivePreview::SNAPSHOT_LOCAL;
+	BOOL can_choose_format = (shot_type == LLSnapshotLivePreview::SNAPSHOT_LOCAL ||
+							  shot_type == LLSnapshotLivePreview::SNAPSHOT_FLICKR);
 	BOOL show_slider = (shot_type == LLSnapshotLivePreview::SNAPSHOT_POSTCARD ||
 						shot_type == LLSnapshotLivePreview::SNAPSHOT_WEB ||
-					   (is_local && shot_format == LLFloaterSnapshot::SNAPSHOT_FORMAT_JPEG));
+					   (can_choose_format && shot_format == LLFloaterSnapshot::SNAPSHOT_FORMAT_JPEG));
 
-	floater->getChildView("more_btn")->setVisible( !is_advance); // the only item hidden in advanced mode
+	floater->getChildView("more_btn")->setVisible(  			!is_advance); // the only item hidden in advanced mode
 	floater->getChildView("less_btn")->setVisible(				is_advance);
-	floater->getChildView("type_label2")->setVisible(				is_advance);
-	floater->getChildView("format_label")->setVisible(			is_advance && is_local);
-	floater->getChildView("local_format_combo")->setVisible(		is_advance && is_local);
-	floater->getChildView("layer_types")->setVisible(				is_advance);
+	floater->getChildView("type_label2")->setVisible(			is_advance);
+	floater->getChildView("format_label")->setVisible(			is_advance && can_choose_format);
+	floater->getChildView("format_combo")->setVisible(			is_advance && can_choose_format);
+	floater->getChildView("layer_types")->setVisible(			is_advance);
 	floater->getChildView("layer_type_label")->setVisible(		is_advance);
-	floater->getChildView("snapshot_width")->setVisible(			is_advance);
-	floater->getChildView("snapshot_height")->setVisible(			is_advance);
+	floater->getChildView("snapshot_width")->setVisible(		is_advance);
+	floater->getChildView("snapshot_height")->setVisible(		is_advance);
 	floater->getChildView("keep_aspect_check")->setVisible(		is_advance);
 	floater->getChildView("ui_check")->setVisible(				is_advance);
 	floater->getChildView("hud_check")->setVisible(				is_advance);
-	floater->getChildView("keep_open_check")->setVisible(			is_advance);
-	floater->getChildView("freeze_frame_check")->setVisible(		is_advance);
-	floater->getChildView("auto_snapshot_check")->setVisible(		is_advance);
+	floater->getChildView("keep_open_check")->setVisible(		is_advance);
+	floater->getChildView("freeze_frame_check")->setVisible(	is_advance);
+	floater->getChildView("auto_snapshot_check")->setVisible(	is_advance);
 	floater->getChildView("image_quality_slider")->setVisible(	is_advance && show_slider);
 
 	LLSnapshotLivePreview* previewp = getPreviewView(floater);
@@ -1405,7 +1407,8 @@ void LLFloaterSnapshot::Impl::updateControls(LLFloaterSnapshot* floater)
 	floater->getChildView("send_btn")->setEnabled((shot_type == LLSnapshotLivePreview::SNAPSHOT_POSTCARD ||
 											shot_type == LLSnapshotLivePreview::SNAPSHOT_WEB) &&
 											got_snap && previewp->getDataSize() <= MAX_POSTCARD_DATASIZE);
-	floater->getChildView("upload_btn")->setEnabled(shot_type == LLSnapshotLivePreview::SNAPSHOT_TEXTURE  && got_snap);
+	floater->getChildView("upload_btn")->setEnabled((shot_type == LLSnapshotLivePreview::SNAPSHOT_TEXTURE ||
++											shot_type == LLSnapshotLivePreview::SNAPSHOT_FLICKR) && got_snap);
 	floater->getChildView("save_btn")->setEnabled(shot_type == LLSnapshotLivePreview::SNAPSHOT_LOCAL    && got_snap);
 
 	LLLocale locale(LLLocale::USER_LOCALE);
@@ -1416,7 +1419,6 @@ void LLFloaterSnapshot::Impl::updateControls(LLFloaterSnapshot* floater)
 	}
 	S32 upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
 	floater->getChild<LLUICtrl>("texture")->setLabelArg("[AMOUNT]", llformat("%d",upload_cost));
-	floater->getChild<LLUICtrl>("upload_btn")->setLabelArg("[AMOUNT]", llformat("%d",upload_cost));
 	floater->getChild<LLUICtrl>("file_size_label")->setTextArg("[SIZE]", got_snap ? bytes_string : floater->getString("unknown"));
 	floater->getChild<LLUICtrl>("file_size_label")->setColor(
 		shot_type == LLSnapshotLivePreview::SNAPSHOT_POSTCARD 

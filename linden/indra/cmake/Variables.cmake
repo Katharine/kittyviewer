@@ -121,8 +121,13 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(GRID agni CACHE STRING "Target Grid")
 
 set(VIEWER ON CACHE BOOL "Build Second Life viewer.")
-set(VIEWER_CHANNEL "LindenDeveloper" CACHE STRING "Viewer Channel Name")
-set(VIEWER_LOGIN_CHANNEL ${VIEWER_CHANNEL} CACHE STRING "Fake login channel for A/B Testing")
+set(VIEWER_CHANNEL "Kitty Viewer Development" CACHE STRING "Viewer Channel Name")
+
+# [KITTY VIEWER]
+# Flickr API keys.
+set(FLICKR_API_KEY "ebc94a4d2651c33404b0fb8ee1b78958" CACHE STRING "Flickr API key")
+set(FLICKR_API_SECRET "73efdfa10ebe7625" CACHE STRING "Flickr API secret")
+# [/KITTY VIEWER]
 
 set(STANDALONE OFF CACHE BOOL "Do not use Linden-supplied prebuilt libraries.")
 
