@@ -229,7 +229,7 @@
          name="quick_settings_btn_panel"
          user_resize="false"
          width="83">
-            <button
+            <bottomtray_button
              follows="left|right"
              height="23"
              image_pressed="PushButton_Press"
@@ -247,7 +247,7 @@
                 <init_callback
                  function="Button.SetDockableFloaterToggle"
                  parameter="quick_settings" />
-            </button>
+            </bottomtray_button>
         </layout_panel>
         <layout_panel
          auto_resize="false"
