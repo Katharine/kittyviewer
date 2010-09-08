@@ -1242,8 +1242,6 @@ if (WINDOWS)
         res/lltooltranslate.cur
         res/lltoolzoomin.cur
         res/lltoolzoomout.cur
-        res/ll_icon.BMP
-        res/ll_icon.ico
         res/resource.h
         res/toolpickobject.cur
         res/toolpickobject2.cur
@@ -1651,6 +1649,7 @@ if (WINDOWS)
           --dest=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}
           --grid=${GRID}
           --login_channel=${VIEWER_LOGIN_CHANNEL}
+          --version=${viewer_VERSION}
           --source=${CMAKE_CURRENT_SOURCE_DIR}
           --touch=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/touched.bat
         DEPENDS 
