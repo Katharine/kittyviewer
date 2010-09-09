@@ -668,7 +668,7 @@ class DarwinManifest(ViewerManifest):
 
 
     def package_finish(self):
-        channel_standin = 'Second Life Viewer 2'  # hah, our default channel is not usable on its own
+        channel_standin = 'Kitty Viewer'  # hah, our default channel is not usable on its own
         if not self.default_channel():
             channel_standin = self.channel()
 
