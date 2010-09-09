@@ -451,36 +451,23 @@ class WindowsManifest(ViewerManifest):
         !define VERSION_DASHES "%(version_dashes)s"
         """ % substitution_strings
         if self.default_channel():
-            if self.default_grid():
-                # release viewer
-                installer_file = "Second_Life_%(version_dashes)s_Setup.exe"
-                grid_vars_template = """
-                OutFile "%(installer_file)s"
-                !define INSTFLAGS "%(flags)s"
-                !define INSTNAME   "SecondLifeViewer2"
-                !define SHORTCUT   "Second Life Viewer 2"
-                !define URLNAME   "secondlife"
-                Caption "Second Life ${VERSION}"
-                """
-            else:
-                # beta grid viewer
-                installer_file = "Second_Life_%(version_dashes)s_(%(grid_caps)s)_Setup.exe"
-                grid_vars_template = """
-                OutFile "%(installer_file)s"
-                !define INSTFLAGS "%(flags)s"
-                !define INSTNAME   "SecondLife%(grid_caps)s"
-                !define SHORTCUT   "Second Life (%(grid_caps)s)"
-                !define URLNAME   "secondlife%(grid)s"
-                !define UNINSTALL_SETTINGS 1
-                Caption "Second Life %(grid)s ${VERSION}"
-                """
-        else:
-            # some other channel on some grid
-            installer_file = "Second_Life_%(version_dashes)s_%(channel_oneword)s_Setup.exe"
+            # release viewer
+            installer_file = "Kitty_Viewer_%(version_dashes)s_Setup.exe"
             grid_vars_template = """
             OutFile "%(installer_file)s"
             !define INSTFLAGS "%(flags)s"
-            !define INSTNAME   "SecondLife%(channel_oneword)s"
+            !define INSTNAME   "KittyViewer"
+            !define SHORTCUT   "Kitty Viewer"
+            !define URLNAME   "secondlife"
+            Caption "Kitty Viewer ${VERSION}"
+            """
+        else:
+            # some other channel on some grid
+            installer_file = "%(channel_oneword)s_%(version_dashes)s_Setup.exe"
+            grid_vars_template = """
+            OutFile "%(installer_file)s"
+            !define INSTFLAGS "%(flags)s"
+            !define INSTNAME   "%(channel_oneword)s"
             !define SHORTCUT   "%(channel)s"
             !define URLNAME   "secondlife"
             !define UNINSTALL_SETTINGS 1
