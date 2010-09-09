@@ -4,6 +4,7 @@
  follows="left|top|right"
  name="Main Menu">
     <menu
+     create_jump_keys="true"
      label="Me"
      name="Me"
      tear_off="true">
@@ -94,6 +95,7 @@
              parameter="voice_effect" />
         </menu_item_check>
         <menu
+         create_jump_keys="true"
          label="My Status"
          name="Status"
          tear_off="true">
@@ -138,6 +140,7 @@
         </menu_item_call>
     </menu>
     <menu
+     create_jump_keys="true"
      label="Communicate"
      name="Communicate"
      tear_off="true">
@@ -188,6 +191,7 @@
             </menu_item_call>
     </menu>
     <menu
+     create_jump_keys="true"
      label="World"
      name="World"
      tear_off="true">
@@ -666,15 +670,6 @@
 			<menu_item_call.on_enable
                function="Tools.EnableSaveToObjectInventory" />
           </menu_item_call>
-          <menu_item_call
-			 label="Return Object"
-			 layout="topleft"
-			 name="Return Object back to Owner">
-			<menu_item_call.on_click
-               function="Object.Return" />
-			<menu_item_call.on_enable
-               function="Object.EnableReturn" />
-          </menu_item_call>
 		</menu>
         <menu
            create_jump_keys="true"
@@ -773,21 +768,10 @@
                      control="RectangleSelectInclusive" />
                     <menu_item_check.on_click
                      function="Tools.SelectBySurrounding" />
-                </menu_item_check>
+            </menu_item_check>
 
           <menu_item_separator/>
 
-                <menu_item_check
-                 label="Show Selection Outlines"
-                 layout="topleft"
-                 name="Show Selection Outlines">
-                    <menu_item_check.on_check
-                     function="CheckControl"
-                     parameter="RenderHighlightSelections" />
-                    <menu_item_check.on_click
-                     function="ToggleControl"
-                     parameter="RenderHighlightSelections" />
-                </menu_item_check>
                 <menu_item_check
                  label="Show Hidden Selection"
                  name="Show Hidden Selection">
@@ -921,6 +905,7 @@
         </menu>
     </menu>
     <menu
+     create_jump_keys="true"
      label="Help"
      name="Help"
      tear_off="true">
@@ -967,21 +952,11 @@
         </menu_item_call>
     </menu>
     <menu
+     create_jump_keys="true"
      label="Advanced"
      name="Advanced"
      tear_off="true"
      visible="false">
-        <menu_item_check
-         label="Show Advanced Menu"
-         name="Show Advanced Menu"
-         shortcut="control|alt|D">
-          <on_check
-           function="CheckControl"
-           parameter="UseDebugMenus" />
-          <on_click
-           function="ToggleControl"
-           parameter="UseDebugMenus" />
-        </menu_item_check>
         <menu_item_call
          label="Stop Animating Me"
          name="Stop Animating My Avatar">
@@ -1450,17 +1425,7 @@
                  function="Advanced.ToggleFeature"
                  parameter="flexible" />
             </menu_item_check>
-        </menu>
-        <menu_item_check
-         label="Run Multiple Threads"
-         name="Run Multiple Threads">
-            <menu_item_check.on_check
-             function="CheckControl"
-             parameter="RunMultipleThreads" />
-            <menu_item_check.on_click
-             function="ToggleControl"
-             parameter="RunMultipleThreads" />
-        </menu_item_check>
+        </menu>        
         <menu_item_check
          label="Use Plugin Read Thread"
          name="Use Plugin Read Thread">
@@ -1492,6 +1457,7 @@
         <menu_item_separator/>
 
         <menu
+         create_jump_keys="true"
          label="Shortcuts"
          name="Shortcuts"
          tear_off="true"
@@ -1712,7 +1678,24 @@
                 <menu_item_call.on_click
                  function="View.ZoomOut" />
             </menu_item_call>
-        </menu>
+            <menu_item_separator
+             visible="false"/>
+            <!-- Made invisible to avoid a dissonance: menu item toggle menu where it is located. EXT-8069.
+              Can't be removed to keep sortcut workable.
+            -->
+            <menu_item_check
+             label="Show Advanced Menu"
+             name="Show Advanced Menu"
+             shortcut="control|alt|D"
+             visible="false">
+                <on_check
+                 function="CheckControl"
+                 parameter="UseDebugMenus" />
+                <on_click
+                 function="ToggleControl"
+                 parameter="UseDebugMenus" />
+        </menu_item_check>
+        </menu> <!--Shortcuts-->
 
         <menu_item_separator/>
 
@@ -2673,19 +2656,8 @@
                  parameter="DoubleClickAutoPilot" />
             </menu_item_check>
 
-            <menu_item_check
-             label="Double-ClickTeleport"
-             layout="topleft"
-             name="DoubleClickTeleport">
-                <menu_item_check.on_check
-                 function="CheckControl"
-                 parameter="DoubleClickTeleport" />
-                <menu_item_check.on_click
-                 function="ToggleControl"
-                 parameter="DoubleClickTeleport" />
-            </menu_item_check>
-          
-          <menu_item_separator />
+            <menu_item_separator />
+
             <menu_item_check
              label="Debug SelectMgr"
              name="Debug SelectMgr">

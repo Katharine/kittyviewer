@@ -2,33 +2,26 @@
  * @file llpanel.cpp
  * @brief LLPanel base class
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 // Opaque view with a background and a border.  Can contain LLUICtrls.
@@ -662,7 +655,7 @@ void LLPanel::childSetEnabled(const std::string& id, bool enabled)
 
 void LLPanel::childSetTentative(const std::string& id, bool tentative)
 {
-	LLView* child = findChild<LLView>(id);
+	LLUICtrl* child = findChild<LLUICtrl>(id);
 	if (child)
 	{
 		child->setTentative(tentative);
@@ -861,13 +854,16 @@ LLPanel *LLPanel::childGetVisibleTab(const std::string& id) const
 	return NULL;
 }
 
-static LLPanel *childGetVisibleTabWithHelp(LLView *parent)
+LLPanel* LLPanel::childGetVisibleTabWithHelp()
 {
 	LLView *child;
 
-	// look through immediate children first for an active tab with help
-	for (child = parent->getFirstChild(); child; child = parent->findNextSibling(child))
+	bfs_tree_iterator_t it = beginTreeBFS();
+	// skip ourselves
+	++it;
+	for (; it != endTreeBFS(); ++it)
 	{
+		child = *it;
 		LLPanel *curTabPanel = NULL;
 
 		// do we have a tab container?
@@ -891,36 +887,21 @@ static LLPanel *childGetVisibleTabWithHelp(LLView *parent)
 		}
 	}
 
-	// then try a bit harder and recurse through all children
-	for (child = parent->getFirstChild(); child; child = parent->findNextSibling(child))
-	{
-		if (child->getVisible())
-		{
-			LLPanel* tab = ::childGetVisibleTabWithHelp(child);
-			if (tab)
-			{
-				return tab;
-			}
-		}
-	}
-
 	// couldn't find any active tabs with a help topic string
 	return NULL;
 }
 
-LLPanel *LLPanel::childGetVisibleTabWithHelp()
-{
-	// find a visible tab with a help topic (to determine help context)
-	return ::childGetVisibleTabWithHelp(this);
-}
 
-static LLPanel *childGetVisiblePanelWithHelp(LLView *parent)
+LLPanel *LLPanel::childGetVisiblePanelWithHelp()
 {
 	LLView *child;
 
-	// look through immediate children first for an active panel with help
-	for (child = parent->getFirstChild(); child; child = parent->findNextSibling(child))
+	bfs_tree_iterator_t it = beginTreeBFS();
+	// skip ourselves
+	++it;
+	for (; it != endTreeBFS(); ++it)
 	{
+		child = *it;
 		// do we have a panel with a help topic?
 		LLPanel *panel = dynamic_cast<LLPanel *>(child);
 		if (panel && panel->getVisible() && !panel->getHelpTopic().empty())
@@ -929,38 +910,18 @@ static LLPanel *childGetVisiblePanelWithHelp(LLView *parent)
 		}
 	}
 
-	// then try a bit harder and recurse through all children
-	for (child = parent->getFirstChild(); child; child = parent->findNextSibling(child))
-	{
-		if (child->getVisible())
-		{
-			LLPanel* panel = ::childGetVisiblePanelWithHelp(child);
-			if (panel)
-			{
-				return panel;
-			}
-		}
-	}
-
 	// couldn't find any active panels with a help topic string
 	return NULL;
 }
 
-LLPanel *LLPanel::childGetVisiblePanelWithHelp()
+void LLPanel::childSetAction(const std::string& id, const commit_signal_t::slot_type& function)
 {
-	// find a visible tab with a help topic (to determine help context)
-	return ::childGetVisiblePanelWithHelp(this);
-}
-
-void LLPanel::childSetPrevalidate(const std::string& id, bool (*func)(const LLWString &) )
-{
-	LLLineEditor* child = findChild<LLLineEditor>(id);
-	if (child)
+	LLButton* button = findChild<LLButton>(id);
+	if (button)
 	{
-		child->setPrevalidate(func);
+		button->setClickedCallback(function);
 	}
 }
-
 
 void LLPanel::childSetAction(const std::string& id, boost::function<void(void*)> function, void* value)
 {

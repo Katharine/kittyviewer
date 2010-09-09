@@ -2,33 +2,26 @@
  * @file llviewerregion.cpp
  * @brief Implementation of the LLViewerRegion class.
  *
- * $LicenseInfo:firstyear=2000&license=viewergpl$
- * 
- * Copyright (c) 2000-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2000&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -80,6 +73,8 @@
 // format changes. JC
 const U32 INDRA_OBJECT_CACHE_VERSION = 14;
 
+// Format string used to construct filename for the object cache
+static const char OBJECT_CACHE_FILENAME[] = "objects_%d_%d.slc";
 
 extern BOOL gNoRender;
 
@@ -275,7 +270,6 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 	//MUST MATCH declaration of eObjectPartitions
 	mObjectPartition.push_back(new LLHUDPartition());		//PARTITION_HUD
 	mObjectPartition.push_back(new LLTerrainPartition());	//PARTITION_TERRAIN
-	mObjectPartition.push_back(new LLVoidWaterPartition());		//PARTITION_VOIDWATER
 	mObjectPartition.push_back(new LLWaterPartition());		//PARTITION_WATER
 	mObjectPartition.push_back(new LLTreePartition());		//PARTITION_TREE
 	mObjectPartition.push_back(new LLParticlePartition());	//PARTITION_PARTICLE
@@ -325,13 +319,25 @@ LLViewerRegion::~LLViewerRegion()
 	delete mEventPoll;
 	LLHTTPSender::clearSender(mHost);
 	
-	saveCache();
+	saveObjectCache();
 
 	std::for_each(mObjectPartition.begin(), mObjectPartition.end(), DeletePointer());
 }
 
 
-void LLViewerRegion::loadCache()
+const std::string LLViewerRegion::getObjectCacheFilename(U64 mHandle) const
+{
+	std::string filename;
+	U32 region_x, region_y;
+
+	grid_from_region_handle(mHandle, &region_x, &region_y);
+	filename = gDirUtilp->getExpandedFilename(LL_PATH_CACHE,
+			   llformat(OBJECT_CACHE_FILENAME, region_x, region_y));
+
+	return filename;
+}
+
+void LLViewerRegion::loadObjectCache()
 {
 	if (mCacheLoaded)
 	{
@@ -343,9 +349,8 @@ void LLViewerRegion::loadCache()
 
 	LLVOCacheEntry *entry;
 
-	std::string filename;
-	filename = gDirUtilp->getExpandedFilename(LL_PATH_CACHE,"") + gDirUtilp->getDirDelimiter() +
-		llformat("objects_%d_%d.slc",U32(mHandle>>32)/REGION_WIDTH_UNITS, U32(mHandle)/REGION_WIDTH_UNITS );
+	std::string filename = getObjectCacheFilename(mHandle);
+	LL_DEBUGS("ObjectCache") << filename << LL_ENDL;
 
 	LLFILE* fp = LLFile::fopen(filename, "rb");		/* Flawfinder: ignore */
 	if (!fp)
@@ -416,7 +421,7 @@ void LLViewerRegion::loadCache()
 }
 
 
-void LLViewerRegion::saveCache()
+void LLViewerRegion::saveObjectCache()
 {
 	if (!mCacheLoaded)
 	{
@@ -429,9 +434,8 @@ void LLViewerRegion::saveCache()
 		return;
 	}
 
-	std::string filename;
-	filename = gDirUtilp->getExpandedFilename(LL_PATH_CACHE,"") + gDirUtilp->getDirDelimiter() +
-		llformat("objects_%d_%d.slc", U32(mHandle>>32)/REGION_WIDTH_UNITS, U32(mHandle)/REGION_WIDTH_UNITS );
+	std::string filename = getObjectCacheFilename(mHandle);
+	LL_DEBUGS("ObjectCache") << filename << LL_ENDL;
 
 	LLFILE* fp = LLFile::fopen(filename, "wb");		/* Flawfinder: ignore */
 	if (!fp)
@@ -1456,7 +1460,7 @@ void LLViewerRegion::unpackRegionHandshake()
 
 	// Now that we have the name, we can load the cache file
 	// off disk.
-	loadCache();
+	loadObjectCache();
 
 	// After loading cache, signal that simulator can start
 	// sending data.

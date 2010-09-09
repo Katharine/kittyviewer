@@ -7,7 +7,7 @@ install(DIRECTORY skins app_settings linux_tools
         PATTERN ".svn" EXCLUDE
         )
 
-find_file(IS_ARTWORK_PRESENT NAMES arrow.cur
+find_file(IS_ARTWORK_PRESENT NAMES have_artwork_bundle.marker
           PATHS ${VIEWER_DIR}/newview/res)
 
 if (IS_ARTWORK_PRESENT)

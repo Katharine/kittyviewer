@@ -2,33 +2,26 @@
  * @file llnearbychatbar.cpp
  * @brief LLNearbyChatBar class implementation
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -110,10 +103,10 @@ LLGestureComboList::LLGestureComboList(const LLGestureComboList::Params& p)
 	, mViewAllItemIndex(0)
 	, mGetMoreItemIndex(0)
 {
-	LLButton::Params button_params = p.combo_button;
+	LLBottomtrayButton::Params button_params = p.combo_button;
 	button_params.follows.flags(FOLLOWS_LEFT|FOLLOWS_BOTTOM|FOLLOWS_RIGHT);
 
-	mButton = LLUICtrlFactory::create<LLButton>(button_params);
+	mButton = LLUICtrlFactory::create<LLBottomtrayButton>(button_params);
 	mButton->reshape(getRect().getWidth(),getRect().getHeight());
 	mButton->setCommitCallback(boost::bind(&LLGestureComboList::onButtonCommit, this));
 
@@ -318,9 +311,19 @@ void LLGestureComboList::refreshGestures()
 	
 	if (gestures)
 	{
-		S32 index = gestures->getSelectedValue().asInteger();
-		if(index > 0)
-			gesture = mGestures.at(index);
+		S32 sel_index = gestures->getFirstSelectedIndex();
+		if (sel_index != 0)
+		{
+			S32 index = gestures->getSelectedValue().asInteger();
+			if (index<0 || index >= (S32)mGestures.size())
+			{
+				llwarns << "out of range gesture access" << llendl;
+			}
+			else
+			{
+				gesture = mGestures.at(index);
+			}
+		}
 	}
 	
 	if(gesture && LLGestureMgr::instance().isGesturePlaying(gesture))
@@ -336,13 +339,13 @@ void LLGestureComboList::onCommitGesture()
 	LLCtrlListInterface* gestures = getListInterface();
 	if (gestures)
 	{
-		S32 index = gestures->getFirstSelectedIndex();
-		if (index == 0)
+		S32 sel_index = gestures->getFirstSelectedIndex();
+		if (sel_index == 0)
 		{
 			return;
 		}
 
-		index = gestures->getSelectedValue().asInteger();
+		S32 index = gestures->getSelectedValue().asInteger();
 
 		if (mViewAllItemIndex == index)
 		{
@@ -358,13 +361,20 @@ void LLGestureComboList::onCommitGesture()
 			return;
 		}
 
-		LLMultiGesture* gesture = mGestures.at(index);
-		if(gesture)
+		if (index<0 || index >= (S32)mGestures.size())
 		{
-			LLGestureMgr::instance().playGesture(gesture);
-			if(!gesture->mReplaceText.empty())
+			llwarns << "out of range gesture index" << llendl;
+		}
+		else
+		{
+			LLMultiGesture* gesture = mGestures.at(index);
+			if(gesture)
 			{
-				LLNearbyChatBar::sendChatFromViewer(gesture->mReplaceText, CHAT_TYPE_NORMAL, FALSE);
+				LLGestureMgr::instance().playGesture(gesture);
+				if(!gesture->mReplaceText.empty())
+				{
+					LLNearbyChatBar::sendChatFromViewer(gesture->mReplaceText, CHAT_TYPE_NORMAL, FALSE);
+				}
 			}
 		}
 	}
@@ -373,6 +383,11 @@ void LLGestureComboList::onCommitGesture()
 LLGestureComboList::~LLGestureComboList()
 {
 	LLGestureMgr::instance().removeObserver(this);
+}
+
+LLCtrlListInterface* LLGestureComboList::getListInterface()
+{
+	return mList;
 }
 
 LLNearbyChatBar::LLNearbyChatBar() 
@@ -850,14 +865,30 @@ public:
 	bool handle(const LLSD& tokens, const LLSD& query_map,
 				LLMediaCtrl* web)
 	{
-		if (tokens.size() < 2) return false;
-		S32 channel = tokens[0].asInteger();
-		if (channel < 1) return true; // SNOW-652 Restrict function to chat channels greater than 0.
-		// Send unescaped message, see EXT-6353.
-		std::string unescaped_mesg (LLURI::unescape(tokens[1].asString()));
-
-		send_chat_from_viewer(unescaped_mesg, CHAT_TYPE_NORMAL, channel);
-		return true;
+		bool retval = false;
+		// Need at least 2 tokens to have a valid message.
+		if (tokens.size() < 2)
+		{
+			retval = false;
+		}
+		else
+		{
+			S32 channel = tokens[0].asInteger();
+			// VWR-19499 Restrict function to chat channels greater than 0.
+			if ((channel > 0) && (channel < 2147483647))
+			{
+				retval = true;
+				// Send unescaped message, see EXT-6353.
+				std::string unescaped_mesg (LLURI::unescape(tokens[1].asString()));
+				send_chat_from_viewer(unescaped_mesg, CHAT_TYPE_NORMAL, channel);
+			}
+			else
+			{
+				retval = false;
+				// Tell us this is an unsupported SLurl.
+			}
+		}
+		return retval;
 	}
 };
 

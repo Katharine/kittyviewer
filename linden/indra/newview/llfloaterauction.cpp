@@ -3,33 +3,26 @@
  * @author James Cook, Ian Wilkes
  * @brief Implementation of the auction floater.
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -116,20 +109,20 @@ void LLFloaterAuction::initialize()
 		mParcelID = parcelp->getLocalID();
 		mParcelUpdateCapUrl = region->getCapability("ParcelPropertiesUpdate");
 
-		childSetText("parcel_text", parcelp->getName());
-		childEnable("snapshot_btn");
-		childEnable("reset_parcel_btn");
-		childEnable("start_auction_btn");
+		getChild<LLUICtrl>("parcel_text")->setValue(parcelp->getName());
+		getChildView("snapshot_btn")->setEnabled(TRUE);
+		getChildView("reset_parcel_btn")->setEnabled(TRUE);
+		getChildView("start_auction_btn")->setEnabled(TRUE);
 
 		LLPanelEstateInfo* panel = LLFloaterRegionInfo::getPanelEstate();
 		if (panel)
 		{	// Only enable "Sell to Anyone" on Teen grid or if we don't know the ID yet
 			U32 estate_id = panel->getEstateID();
-			childSetEnabled("sell_to_anyone_btn", (estate_id == ESTATE_TEEN || estate_id == 0));
+			getChildView("sell_to_anyone_btn")->setEnabled((estate_id == ESTATE_TEEN || estate_id == 0));
 		}
 		else
 		{	// Don't have the panel up, so don't know if we're on the teen grid or not.  Default to enabling it
-			childEnable("sell_to_anyone_btn");
+			getChildView("sell_to_anyone_btn")->setEnabled(TRUE);
 		}
 	}
 	else
@@ -137,17 +130,17 @@ void LLFloaterAuction::initialize()
 		mParcelHost.invalidate();
 		if(parcelp && parcelp->getForSale())
 		{
-			childSetText("parcel_text", getString("already for sale"));
+			getChild<LLUICtrl>("parcel_text")->setValue(getString("already for sale"));
 		}
 		else
 		{
-			childSetText("parcel_text", LLStringUtil::null);
+			getChild<LLUICtrl>("parcel_text")->setValue(LLStringUtil::null);
 		}
 		mParcelID = -1;
-		childSetEnabled("snapshot_btn", false);
-		childSetEnabled("reset_parcel_btn", false);
-		childSetEnabled("sell_to_anyone_btn", false);
-		childSetEnabled("start_auction_btn", false);
+		getChildView("snapshot_btn")->setEnabled(false);
+		getChildView("reset_parcel_btn")->setEnabled(false);
+		getChildView("sell_to_anyone_btn")->setEnabled(false);
+		getChildView("start_auction_btn")->setEnabled(false);
 	}
 
 	mImageID.setNull();
@@ -160,9 +153,10 @@ void LLFloaterAuction::draw()
 
 	if(!isMinimized() && mImage.notNull()) 
 	{
-		LLRect rect;
-		if (childGetRect("snapshot_icon", rect))
+		LLView* snapshot_icon = findChildView("snapshot_icon");
+		if (snapshot_icon)
 		{
+			LLRect rect = snapshot_icon->getRect();
 			{
 				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 				gl_rect_2d(rect, LLColor4(0.f, 0.f, 0.f, 1.f));
@@ -189,7 +183,7 @@ void LLFloaterAuction::onClickSnapshot(void* data)
 
 	LLPointer<LLImageRaw> raw = new LLImageRaw;
 
-	gForceRenderLandFence = self->childGetValue("fence_check").asBoolean();
+	gForceRenderLandFence = self->getChild<LLUICtrl>("fence_check")->getValue().asBoolean();
 	BOOL success = gViewerWindow->rawSnapshot(raw,
 											  gViewerWindow->getWindowWidthScaled(),
 											  gViewerWindow->getWindowHeightScaled(),
@@ -237,7 +231,7 @@ void LLFloaterAuction::onClickStartAuction(void* data)
 
 	if(self->mImageID.notNull())
 	{
-		LLSD parcel_name = self->childGetValue("parcel_text");
+		LLSD parcel_name = self->getChild<LLUICtrl>("parcel_text")->getValue();
 
 	// create the asset
 		std::string* name = new std::string(parcel_name.asString());
@@ -346,7 +340,7 @@ void LLFloaterAuction::doResetParcel()
 
 		std::string new_name(parcel_name.str().c_str());
 		body["name"] = new_name;
-		childSetText("parcel_text", new_name);	// Set name in dialog as well, since it won't get updated otherwise
+		getChild<LLUICtrl>("parcel_text")->setValue(new_name);	// Set name in dialog as well, since it won't get updated otherwise
 
 		body["sale_price"] = (S32) 0;
 		body["description"] = empty;

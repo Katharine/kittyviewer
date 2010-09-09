@@ -122,19 +122,6 @@ set(GRID agni CACHE STRING "Target Grid")
 
 set(VIEWER ON CACHE BOOL "Build Second Life viewer.")
 set(VIEWER_CHANNEL "Kitty Viewer Development" CACHE STRING "Viewer Channel Name")
-set(VIEWER_BRANDING_ID "kittyviewer" CACHE STRING "Viewer branding id (currently secondlife|snowglobe)")
-
-# *TODO: break out proper Branding-secondlife.cmake, Branding-snowglobe.cmake, etc
-if (${VIEWER_BRANDING_ID} MATCHES "secondlife")
-  set(VIEWER_BRANDING_NAME "Second Life")
-  set(VIEWER_BRANDING_NAME_CAMELCASE "SecondLife")
-elseif (${VIEWER_BRANDING_ID} MATCHES "snowglobe")
-  set(VIEWER_BRANDING_NAME "Snowglobe")
-  set(VIEWER_BRANDING_NAME_CAMELCASE "Snowglobe")
-elseif (${VIEWER_BRANDING_ID} MATCHES "kittyviewer")
-  set(VIEWER_BRANDING_NAME "Kitty Viewer")
-  set(VIEWER_BRANDING_NAME_CAMELCASE "KittyViewer")
-endif (${VIEWER_BRANDING_ID} MATCHES "secondlife")
 
 # [KITTY VIEWER]
 # Flickr API keys.

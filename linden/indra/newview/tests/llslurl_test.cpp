@@ -4,33 +4,26 @@
  * @date 2009-02-10
  * @brief Test the sec api functionality
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 #include "../llviewerprecompiledheaders.h"
 #include "../llviewernetwork.h"
@@ -80,6 +73,11 @@ LLSD LLControlGroup::getLLSD(const std::string& name)
 	return LLSD();
 }
 
+LLPointer<LLControlVariable> LLControlGroup::getControl(const std::string& name)
+{
+	ctrl_name_table_t::iterator iter = mNameTable.find(name);
+	return iter == mNameTable.end() ? LLPointer<LLControlVariable>() : iter->second;
+}
 
 LLControlGroup gSavedSettings("test");
 
@@ -103,7 +101,7 @@ namespace tut
 	// Tut templating thingamagic: test group, object and test instance
 	typedef test_group<slurlTest> slurlTestFactory;
 	typedef slurlTestFactory::object slurlTestObject;
-	tut::slurlTestFactory tut_test("llslurl");
+	tut::slurlTestFactory tut_test("LLSlurl");
 	
 	// ---------------------------------------------------------------------------------------
 	// Test functions 
@@ -152,6 +150,7 @@ namespace tut
 		ensure_equals(" slurl, region + coords", slurl.getSLURLString(), 
 					  "http://maps.secondlife.com/secondlife/my%20region/1/2/3");	
 		
+		LLGridManager::getInstance()->setGridChoice("my.grid.com");		
 		slurl = LLSLURL("https://my.grid.com/region/my%20region/1/2/3");
 		ensure_equals("grid slurl, region + coords - type", slurl.getType(), LLSLURL::LOCATION);
 		ensure_equals("grid slurl, region + coords", slurl.getSLURLString(), 
@@ -208,6 +207,7 @@ namespace tut
 		ensure_equals("region" , "myregion", slurl.getRegion());
 		ensure_equals("grid4", "util.aditi.lindenlab.com", slurl.getGrid());		
 		
+		LLGridManager::getInstance()->setGridChoice("my.grid.com");
 		slurl = LLSLURL("https://my.grid.com/app/foo/bar?12345");
 		ensure_equals("app", slurl.getType(), LLSLURL::APP);		
 		ensure_equals("appcmd", slurl.getAppCmd(), "foo");
@@ -248,6 +248,7 @@ namespace tut
 	template<> template<>
 	void slurlTestObject::test<3>()
 	{
+		LLGridManager::getInstance()->setGridChoice("my.grid.com");		
 		LLSLURL slurl = LLSLURL("https://my.grid.com/region/my%20region/1/2/3");
 		ensure_equals("login string", slurl.getLoginString(), "uri:my region&amp;1&amp;2&amp;3");
 		ensure_equals("location string", slurl.getLocationString(), "my region/1/2/3");

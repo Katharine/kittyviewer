@@ -11,7 +11,7 @@ https://wiki.lindenlab.com/wiki/User:Phoenix/Library_Installation
 
 $LicenseInfo:firstyear=2007&license=mit$
 
-Copyright (c) 2007-2010, Linden Research, Inc.
+Copyright (c) 2007-2009, Linden Research, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 $/LicenseInfo$
-
 """
 
 import sys
@@ -84,6 +83,18 @@ except ImportError:
 
 from indra.base import llsd
 from indra.util import helpformatter
+
+# *HACK: Necessary for python 2.3. Consider removing this code wart
+# after etch has deployed everywhere. 2008-12-23 Phoenix
+try:
+    sorted = sorted
+except NameError:
+    def sorted(in_list):
+        "Return a list which is a sorted copy of in_list."
+        # Copy the source to be more functional and side-effect free.
+        out_list = copy.copy(in_list)
+        out_list.sort()
+        return out_list
 
 class InstallFile(object):
     "This is just a handy way to throw around details on a file in memory."
@@ -487,7 +498,7 @@ windows/i686/vs/2003 -- specify a windows visual studio 2003 package"""
         for filename in remove_file_list:
             print "rm",filename
             if not self._dryrun:
-                if os.path.lexists(filename):
+                if os.path.exists(filename):
                     remove_dir_set.add(os.path.dirname(filename))
                     try:
                         os.remove(filename)

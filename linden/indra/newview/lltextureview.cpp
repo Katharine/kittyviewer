@@ -2,33 +2,26 @@
  * @file lltextureview.cpp
  * @brief LLTextureView class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -73,8 +66,8 @@ std::set<LLViewerFetchedTexture*> LLTextureView::sDebugImages;
 
 ////////////////////////////////////////////////////////////////////////////
 
-static std::string title_string1a("Tex UUID Area  DDis(Req)  DecodePri(Fetch)     [download]");
-static std::string title_string1b("Tex UUID Area  DDis(Req)  Fetch(DecodePri)     [download]");
+static std::string title_string1a("Tex UUID Area  DDis(Req)  DecodePri(Fetch)     [download] pk/max");
+static std::string title_string1b("Tex UUID Area  DDis(Req)  Fetch(DecodePri)     [download] pk/max");
 static std::string title_string2("State");
 static std::string title_string3("Pkt Bnd");
 static std::string title_string4("  W x H (Dis) Mem");
@@ -219,14 +212,13 @@ void LLTextureBar::draw()
 	}
 	else
 	{
-		tex_str = llformat("%s %7.0f %d(%d) %8.0f(0x%08x) %1.2f",
+		tex_str = llformat("%s %7.0f %d(%d) %8.0f(0x%08x)",
 						   uuid_str.c_str(),
 						   mImagep->mMaxVirtualSize,
 						   mImagep->mDesiredDiscardLevel,
 						   mImagep->mRequestedDiscardLevel,
 						   mImagep->getDecodePriority(),
-						   mImagep->mFetchPriority,
-						   mImagep->mDownloadProgress);
+						   mImagep->mFetchPriority);
 	}
 
 	LLFontGL::getFontMonospace()->renderUTF8(tex_str, 0, title_x1, getRect().getHeight(),
@@ -272,7 +264,7 @@ void LLTextureBar::draw()
 
 	// Draw the progress bar.
 	S32 bar_width = 100;
-	S32 bar_left = 330;
+	S32 bar_left = 260;
 	left = bar_left;
 	right = left + bar_width;
 
@@ -281,23 +273,13 @@ void LLTextureBar::draw()
 
 	F32 data_progress = mImagep->mDownloadProgress;
 	
-	if (data_progress > 0.0f && data_progress <= 1.0f)
+	if (data_progress > 0.0f)
 	{
 		// Downloaded bytes
 		right = left + llfloor(data_progress * (F32)bar_width);
 		if (right > left)
 		{
 			gGL.color4f(0.f, 0.f, 1.f, 0.75f);
-			gl_rect_2d(left, top, right, bottom);
-		}
-	}
-	else if (data_progress > 1.0f)
-	{
-		// Small cached textures generate this oddity.  SNOW-168
-		right = left + bar_width;
-		if (right > left)
-		{
-			gGL.color4f(0.f, 0.33f, 0.f, 0.75f);
 			gl_rect_2d(left, top, right, bottom);
 		}
 	}
@@ -616,26 +598,29 @@ void LLGLTexMemBar::draw()
 #endif
 	//----------------------------------------------------------------------------
 
-	text = llformat("Textures: %d Fetch: %d(%d) Pkts:%d(%d) Cache R/W: %d/%d LFS:%d RAW:%d HTP:%d DEC:%d CRE:%d BW: %.0f/%.0f",
+	text = llformat("Textures: %d Fetch: %d(%d) Pkts:%d(%d) Cache R/W: %d/%d LFS:%d RAW:%d HTP:%d DEC:%d CRE:%d",
 					gTextureList.getNumImages(),
-					LLAppViewer::getTextureFetch()->getNumRequests(),
-					LLAppViewer::getTextureFetch()->getNumDeletes(),
-					LLAppViewer::getTextureFetch()->mPacketCount,
-					LLAppViewer::getTextureFetch()->mBadPacketCount,
-					LLAppViewer::getTextureCache()->getNumReads(),
-					LLAppViewer::getTextureCache()->getNumWrites(),
+					LLAppViewer::getTextureFetch()->getNumRequests(), LLAppViewer::getTextureFetch()->getNumDeletes(),
+					LLAppViewer::getTextureFetch()->mPacketCount, LLAppViewer::getTextureFetch()->mBadPacketCount, 
+					LLAppViewer::getTextureCache()->getNumReads(), LLAppViewer::getTextureCache()->getNumWrites(),
 					LLLFSThread::sLocal->getPending(),
 					LLImageRaw::sRawImageCount,
 					LLAppViewer::getTextureFetch()->getNumHTTPRequests(),
 					LLAppViewer::getImageDecodeThread()->getPending(), 
-					gTextureList.mCreateTextureList.size(),
-					LLAppViewer::getTextureFetch()->getTextureBandwidth(),
-					gSavedSettings.getF32("ThrottleBandwidthKBPS"));
+					gTextureList.mCreateTextureList.size());
 
 	LLFontGL::getFontMonospace()->renderUTF8(text, 0, 0, v_offset + line_height*2,
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
-	left = 600;
+
+	left = 550;
+	F32 bandwidth = LLAppViewer::getTextureFetch()->getTextureBandwidth();
+	F32 max_bandwidth = gSavedSettings.getF32("ThrottleBandwidthKBPS");
+	color = bandwidth > max_bandwidth ? LLColor4::red : bandwidth > max_bandwidth*.75f ? LLColor4::yellow : text_color;
+	color[VALPHA] = text_color[VALPHA];
+	text = llformat("BW:%.0f/%.0f",bandwidth, max_bandwidth);
+	LLFontGL::getFontMonospace()->renderUTF8(text, 0, left, v_offset + line_height*2,
+											 color, LLFontGL::LEFT, LLFontGL::TOP);
 	
 	S32 dx1 = 0;
 	if (LLAppViewer::getTextureFetch()->mDebugPause)

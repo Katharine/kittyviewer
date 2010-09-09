@@ -198,15 +198,6 @@ FUNCTION(LL_ADD_INTEGRATION_TEST
   ADD_EXECUTABLE(INTEGRATION_TEST_${testname} ${source_files})
   SET_TARGET_PROPERTIES(INTEGRATION_TEST_${testname} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXE_STAGING_DIR}")
 
-  # Add include directory for tut/tut.hpp.
-  IF (STANDALONE AND TUT_INCLUDE_DIR)
-	# This is a hack: TARGET_INCLUDE_DIRECTORIES doesn't exist for some reason.
-	# Unfortunately this means that other -I arguments come first and the correct
-	# tut will only be used if it's not ALSO installed in the path of another
-	# library that we need (ie, /usr/local/include). --Aleric
-    SET_TARGET_PROPERTIES(INTEGRATION_TEST_${testname} PROPERTIES COMPILE_FLAGS "-I${TUT_INCLUDE_DIR}")
-  ENDIF (STANDALONE AND TUT_INCLUDE_DIR)
-
   # Add link deps to the executable
   if(TEST_DEBUG)
     message(STATUS "TARGET_LINK_LIBRARIES(INTEGRATION_TEST_${testname} ${libraries})")
@@ -265,10 +256,6 @@ MACRO(SET_TEST_PATH LISTVAR)
     set(${LISTVAR} ${SHARED_LIB_STAGING_DIR}/${CMAKE_CFG_INTDIR}/Resources ${SHARED_LIB_STAGING_DIR}/Release/Resources /usr/lib)
   ELSE(WINDOWS)
     # Linux uses a single staging directory anyway.
-	IF (STANDALONE)
-      set(${LISTVAR} ${CMAKE_BINARY_DIR}/llcommon /usr/lib /usr/local/lib)
-    ELSE (STANDALONE)
-	  set(${LISTVAR} ${SHARED_LIB_STAGING_DIR} /usr/lib)
-    ENDIF (STANDALONE)
+    set(${LISTVAR} ${SHARED_LIB_STAGING_DIR} /usr/lib)
   ENDIF(WINDOWS)
 ENDMACRO(SET_TEST_PATH)

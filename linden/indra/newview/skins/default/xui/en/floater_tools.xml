@@ -2408,7 +2408,7 @@ even though the user gets a free copy.
              name="label shininess"
              left_pad="4"
              text_readonly_color="LabelDisabledColor"
-             top_pad="-36"
+             top_pad="-37"
              width="90">
                 Shininess
             </text>
@@ -2445,7 +2445,7 @@ even though the user gets a free copy.
              left_pad="4"
              name="label bumpiness"
              text_readonly_color="LabelDisabledColor"
-             top_pad="-36"
+             top_pad="-37"
              width="90">
                 Bumpiness
             </text>
@@ -2707,7 +2707,7 @@ even though the user gets a free copy.
          bg_alpha_color="DkGray"
          name="Add_Media"
          left="0"
-         height="48"
+         height="47"
          width="290">
             <text
              type="string"
@@ -2728,7 +2728,7 @@ even though the user gets a free copy.
 			 image_unselected="AddItem_Off"
 			 image_disabled="AddItem_Disabled"
 			 layout="topleft"
-			 left_pad="-85"
+			 left_pad="0"
 			 name="add_media"
 			 tab_stop="false"
 			 top_delta="0"
@@ -2743,7 +2743,7 @@ even though the user gets a free copy.
 			 image_selected="TrashItem_Press"
 			 image_unselected="TrashItem_Off"
 			 layout="topleft"
-			 left_pad="7"
+			 left_pad="5"
 			 name="delete_media"
 			 tool_tip="Delete this media texture"
 			 top_delta="0"
@@ -2793,9 +2793,9 @@ even though the user gets a free copy.
 			 label="Align"
 			 label_selected="Align Media"
 			 layout="topleft"
-			 right="-12"
+			 right="-16"
 			 name="button align"
-			 top_delta="-12"
+			 top_delta="-4"
 			 tool_tip="Align media texture (must load first)"
 			 width="80" />
 		</panel>

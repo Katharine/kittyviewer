@@ -2,33 +2,26 @@
  * @file llflatlistview.cpp
  * @brief LLFlatListView base class and extension to support messages for several cases of an empty list.
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "linden_common.h"
@@ -94,6 +87,9 @@ bool LLFlatListView::addItem(LLPanel * item, const LLSD& value /*= LLUUID::null*
 		mItemsPanel->addChild(item);
 		break;
 	default:
+		LL_WARNS("") << "Unsupported position." << LL_ENDL;
+		delete new_pair;
+		return false;
 		break;
 	}
 	
@@ -616,7 +612,7 @@ void LLFlatListView::onItemMouseClick(item_pair_t* item_pair, MASK mask)
 
 	//only CTRL usage allows to deselect an item, usual clicking on an item cannot deselect it
 	if (mask & MASK_CONTROL)
-		selectItemPair(item_pair, select_item);
+	selectItemPair(item_pair, select_item);
 	else
 		selectItemPair(item_pair, true);
 }
@@ -667,6 +663,14 @@ BOOL LLFlatListView::handleKeyHere(KEY key, MASK mask)
 				// If case we are in accordion tab notify parent to go to the next accordion
 				if( notifyParent(LLSD().with("action","select_next")) > 0 ) //message was processed
 					resetSelection();
+			}
+			break;
+		}
+		case KEY_ESCAPE:
+		{
+			if (mask == MASK_NONE)
+			{
+				setFocus(FALSE); // pass focus to the game area (EXT-8357)
 			}
 			break;
 		}
@@ -1079,25 +1083,6 @@ void LLFlatListView::setNoItemsCommentVisible(bool visible) const
 {
 	if (mNoItemsCommentTextbox)
 	{
-		if (visible)
-		{
-/*
-// *NOTE: MA 2010-02-04
-// Deprecated after params of the comment text box were moved into widget (flat_list_view.xml)
-// can be removed later if nothing happened.
-			// We have to update child rect here because of issues with rect after reshaping while creating LLTextbox
-			// It is possible to have invalid LLRect if Flat List is in LLAccordionTab
-			LLRect comment_rect = getLocalRect();
-
-			// To see comment correctly (EXT - 3244) in mNoItemsCommentTextbox we must get border width
-			// of LLFlatListView (@see getBorderWidth()) and stretch mNoItemsCommentTextbox to this width
-			// But getBorderWidth() returns 0 if LLFlatListView not visible. So we have to get border width
-			// from 'scroll_border'
-			LLViewBorder* scroll_border = getChild<LLViewBorder>("scroll border");
-			comment_rect.stretch(-scroll_border->getBorderWidth());
-			mNoItemsCommentTextbox->setRect(comment_rect);
-*/
-		}
 		mSelectedItemsBorder->setVisible(!visible);
 		mNoItemsCommentTextbox->setVisible(visible);
 	}

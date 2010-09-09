@@ -2,33 +2,26 @@
  * @file llmenugl.cpp
  * @brief LLMenuItemGL base class
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 //*****************************************************************************
@@ -59,6 +52,7 @@
 #include "llbutton.h"
 #include "llfontgl.h"
 #include "llresmgr.h"
+#include "lltrans.h"
 #include "llui.h"
 
 #include "llstl.h"
@@ -76,10 +70,6 @@ S32 MENU_BAR_WIDTH = 0;
 ///============================================================================
 /// Local function declarations, constants, enums, and typedefs
 ///============================================================================
-
-const std::string SEPARATOR_NAME("separator");
-const std::string SEPARATOR_LABEL( "-----------" );
-const std::string VERTICAL_SEPARATOR_LABEL( "|" );
 
 const S32 LABEL_BOTTOM_PAD_PIXELS = 2;
 
@@ -99,10 +89,14 @@ const U32 SEPARATOR_HEIGHT_PIXELS = 8;
 const S32 TEAROFF_SEPARATOR_HEIGHT_PIXELS = 10;
 const S32 MENU_ITEM_PADDING = 4;
 
-const std::string BOOLEAN_TRUE_PREFIX( "\xE2\x9C\x94" ); // U+2714 HEAVY CHECK MARK
-const std::string BRANCH_SUFFIX( "\xE2\x96\xB6" ); // U+25B6 BLACK RIGHT-POINTING TRIANGLE
-const std::string ARROW_UP  ("^^^^^^^");
-const std::string ARROW_DOWN("vvvvvvv");
+const std::string SEPARATOR_NAME("separator");
+const std::string SEPARATOR_LABEL( "-----------" );
+const std::string VERTICAL_SEPARATOR_LABEL( "|" );
+
+const std::string LLMenuGL::BOOLEAN_TRUE_PREFIX( "\xE2\x9C\x94" ); // U+2714 HEAVY CHECK MARK
+const std::string LLMenuGL::BRANCH_SUFFIX( "\xE2\x96\xB6" ); // U+25B6 BLACK RIGHT-POINTING TRIANGLE
+const std::string LLMenuGL::ARROW_UP  ("^^^^^^^");
+const std::string LLMenuGL::ARROW_DOWN("vvvvvvv");
 
 const F32 MAX_MOUSE_SLOPE_SUB_MENU = 0.9f;
 
@@ -921,7 +915,7 @@ void LLMenuItemCheckGL::setValue(const LLSD& value)
 	LLUICtrl::setValue(value);
 	if(value.asBoolean())
 	{
-		mDrawBoolLabel = BOOLEAN_TRUE_PREFIX;
+		mDrawBoolLabel = LLMenuGL::BOOLEAN_TRUE_PREFIX;
 	}
 	else
 	{
@@ -932,6 +926,9 @@ void LLMenuItemCheckGL::setValue(const LLSD& value)
 //virtual
 LLSD LLMenuItemCheckGL::getValue() const
 {
+	// Get our boolean value from the view model.
+	// If we don't override this method then the implementation from
+	// LLMenuItemGL will return a string. (EXT-8501)
 	return LLUICtrl::getValue();
 }
 
@@ -951,7 +948,7 @@ void LLMenuItemCheckGL::buildDrawLabel( void )
 	}
 	if(getValue().asBoolean())
 	{
-		mDrawBoolLabel = BOOLEAN_TRUE_PREFIX;
+		mDrawBoolLabel = LLMenuGL::BOOLEAN_TRUE_PREFIX;
 	}
 	else
 	{
@@ -1061,7 +1058,7 @@ void LLMenuItemBranchGL::buildDrawLabel( void )
 	std::string st = mDrawAccelLabel;
 	appendAcceleratorString( st );
 	mDrawAccelLabel = st;
-	mDrawBranchLabel = BRANCH_SUFFIX;
+	mDrawBranchLabel = LLMenuGL::BRANCH_SUFFIX;
 }
 
 void LLMenuItemBranchGL::onCommit( void )
@@ -2270,8 +2267,9 @@ void LLMenuGL::createSpilloverBranch()
 		// technically, you can't tear off spillover menus, but we're passing the handle
 		// along just to be safe
 		LLMenuGL::Params p;
+		std::string label = LLTrans::getString("More");
 		p.name("More");
-		p.label("More"); // *TODO: Translate
+		p.label(label);
 		p.bg_color(mBackgroundColor);
 		p.bg_visible(true);
 		p.can_tear_off(false);
@@ -2280,7 +2278,7 @@ void LLMenuGL::createSpilloverBranch()
 
 		LLMenuItemBranchGL::Params branch_params;
 		branch_params.name = "More";
-		branch_params.label = "More"; // *TODO: Translate
+		branch_params.label = label;
 		branch_params.branch = mSpilloverMenu;
 		branch_params.font.style = "italic";
 

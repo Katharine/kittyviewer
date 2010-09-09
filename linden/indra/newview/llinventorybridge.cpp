@@ -2,33 +2,26 @@
  * @file llinventorybridge.cpp
  * @brief Implementation of the Inventory-Folder-View-Bridge classes.
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -955,6 +948,8 @@ void LLInvFVBridge::purgeItem(LLInventoryModel *model, const LLUUID &uuid)
 
 BOOL LLInvFVBridge::canShare() const
 {
+	if (!isAgentInventory()) return FALSE;
+
 	const LLInventoryModel* model = getInventoryModel();
 	if (!model) return FALSE;
 
@@ -966,9 +961,10 @@ BOOL LLInvFVBridge::canShare() const
 		return (BOOL)LLGiveInventory::isInventoryGiveAcceptable(item);
 	}
 
-	// All categories can be given.
-	const LLViewerInventoryCategory* cat = model->getCategory(mUUID);
-	return (cat != NULL);
+	// Categories can be given.
+	if (model->getCategory(mUUID)) return TRUE;
+
+	return FALSE;
 }
 
 // +=================================================+
@@ -1270,6 +1266,12 @@ BOOL LLItemBridge::isItemRenameable() const
 		{
 			return FALSE;
 		}
+
+		if (!item->isFinished()) // EXT-8662
+		{
+			return FALSE;
+		}
+
 		return (item->getPermissions().allowModifyBy(gAgent.getID()));
 	}
 	return FALSE;
@@ -2613,12 +2615,6 @@ void LLFolderBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
 	if (!canShare())
 	{
 		mDisabledItems.push_back(std::string("Share"));
-	}
-
-	if (mItems.empty())
-	{
-		mItems.push_back(std::string("--no options--"));
-		mDisabledItems.push_back(std::string("--no options--"));
 	}
 
 	hide_context_entries(menu, mItems, mDisabledItems);
@@ -4047,7 +4043,7 @@ void LLObjectBridge::performAction(LLInventoryModel* model, std::string action)
 		item = (LLViewerInventoryItem*)gInventory.getItem(object_id);
 		if(item && gInventory.isObjectDescendentOf(object_id, gInventory.getRootFolderID()))
 		{
-			rez_attachment(item, NULL);
+			rez_attachment(item, NULL, true); // Replace if "Wear"ing.
 		}
 		else if(item && item->isFinished())
 		{
@@ -4063,23 +4059,16 @@ void LLObjectBridge::performAction(LLInventoryModel* model, std::string action)
 		}
 		gFocusMgr.setKeyboardFocus(NULL);
 	}
+	else if ("wear_add" == action)
+	{
+		LLAppearanceMgr::instance().wearItemOnAvatar(mUUID, true, false); // Don't replace if adding.
+	}
 	else if (isRemoveAction(action))
 	{
 		LLInventoryItem* item = gInventory.getItem(mUUID);
 		if(item)
 		{
-			gMessageSystem->newMessageFast(_PREHASH_DetachAttachmentIntoInv);
-			gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
-			gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-			gMessageSystem->addUUIDFast(_PREHASH_ItemID, item->getLinkedUUID());
-			gMessageSystem->sendReliable( gAgent.getRegion()->getHost());
-
-			// this object might have been selected, so let the selection manager know it's gone now
-			LLViewerObject *found_obj = gObjectList.findObject(item->getLinkedUUID());
-			if (found_obj)
-			{
-				LLSelectMgr::getInstance()->remove(found_obj);
-			}
+			LLVOAvatarSelf::detachAttachmentIntoInventory(item->getLinkedUUID());
 		}
 	}
 	else LLItemBridge::performAction(model, action);
@@ -4096,6 +4085,11 @@ std::string LLObjectBridge::getLabelSuffix() const
 {
 	if (get_is_item_worn(mUUID))
 	{
+		if (!isAgentAvatarValid())
+		{
+			return LLItemBridge::getLabelSuffix() + LLTrans::getString("worn");
+		}
+
 		std::string attachment_point_name = gAgentAvatarp->getAttachedPointName(mUUID);
 
 		// e.g. "(worn on ...)" / "(attached to ...)"
@@ -4109,10 +4103,19 @@ std::string LLObjectBridge::getLabelSuffix() const
 	}
 }
 
-void rez_attachment(LLViewerInventoryItem* item, LLViewerJointAttachment* attachment)
+void rez_attachment(LLViewerInventoryItem* item, LLViewerJointAttachment* attachment, bool replace)
 {
-	LLSD payload;
-	payload["item_id"] = item->getLinkedUUID(); // Wear the base object in case this is a link.
+	const LLUUID& item_id = item->getLinkedUUID();
+
+	// Check for duplicate request.
+	if (isAgentAvatarValid() &&
+		(gAgentAvatarp->attachmentWasRequested(item_id) ||
+		 gAgentAvatarp->isWearingAttachment(item_id)))
+	{
+		llwarns << "duplicate attachment request, ignoring" << llendl;
+		return;
+	}
+	gAgentAvatarp->addAttachmentRequest(item_id);
 
 	S32 attach_pt = 0;
 	if (isAgentAvatarValid() && attachment)
@@ -4128,9 +4131,16 @@ void rez_attachment(LLViewerInventoryItem* item, LLViewerJointAttachment* attach
 		}
 	}
 
+	if (!replace)
+	{
+		attach_pt |= ATTACHMENT_ADD;
+	}
+
+	LLSD payload;
+	payload["item_id"] = item_id; // Wear the base object in case this is a link.
 	payload["attachment_point"] = attach_pt;
 
-	if (!gSavedSettings.getBOOL("MultipleAttachments") &&
+	if (replace &&
 		(attachment && attachment->getNumObjects() > 0))
 	{
 		LLNotificationsUtil::add("ReplaceAttachment", LLSD(), payload, confirm_replace_attachment_rez);
@@ -4154,13 +4164,13 @@ bool confirm_replace_attachment_rez(const LLSD& notification, const LLSD& respon
 	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if (option == 0/*YES*/)
 	{
-		LLViewerInventoryItem* itemp = gInventory.getItem(notification["payload"]["item_id"].asUUID());
+		LLUUID item_id = notification["payload"]["item_id"].asUUID();
+		LLViewerInventoryItem* itemp = gInventory.getItem(item_id);
 
 		if (itemp)
 		{
 			U8 attachment_pt = notification["payload"]["attachment_point"].asInteger();
-			if (gSavedSettings.getBOOL("MultipleAttachments"))
-				attachment_pt |= ATTACHMENT_ADD;
+			
 
 			LLMessageSystem* msg = gMessageSystem;
 			msg->newMessageFast(_PREHASH_RezSingleAttachmentFromInv);
@@ -4217,6 +4227,7 @@ void LLObjectBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
 			{
 				items.push_back(std::string("Wearable And Object Separator"));
 				items.push_back(std::string("Wearable And Object Wear"));
+				items.push_back(std::string("Wearable Add"));
 				items.push_back(std::string("Attach To"));
 				items.push_back(std::string("Attach To HUD"));
 				// commented out for DEV-32347
@@ -4225,6 +4236,7 @@ void LLObjectBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
 				if (!gAgentAvatarp->canAttachMoreObjects())
 				{
 					disabled_items.push_back(std::string("Wearable And Object Wear"));
+					disabled_items.push_back(std::string("Wearable Add"));
 					disabled_items.push_back(std::string("Attach To"));
 					disabled_items.push_back(std::string("Attach To HUD"));
 				}
@@ -4427,19 +4439,7 @@ void remove_inventory_category_from_avatar_step2( BOOL proceed, LLUUID category_
 				LLViewerInventoryItem *obj_item = obj_item_array.get(i);
 				if (get_is_item_worn(obj_item->getUUID()))
 				{
-					gMessageSystem->newMessageFast(_PREHASH_DetachAttachmentIntoInv);
-					gMessageSystem->nextBlockFast(_PREHASH_ObjectData );
-					gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID() );
-					gMessageSystem->addUUIDFast(_PREHASH_ItemID, obj_item->getLinkedUUID() );
-					
-					gMessageSystem->sendReliable( gAgent.getRegion()->getHost() );
-					
-					// this object might have been selected, so let the selection manager know it's gone now
-					LLViewerObject *found_obj = gObjectList.findObject( obj_item->getLinkedUUID());
-					if (found_obj)
-					{
-						LLSelectMgr::getInstance()->remove(found_obj);
-					}
+					LLVOAvatarSelf::detachAttachmentIntoInventory(obj_item->getLinkedUUID());
 				}
 			}
 		}

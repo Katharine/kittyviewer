@@ -27,7 +27,6 @@ include_directories(
     ${LLIMAGE_INCLUDE_DIRS}
     ${LLRENDER_INCLUDE_DIRS}
     ${LLWINDOW_INCLUDE_DIRS}
-    ${LLQTWEBKIT_INCLUDE_DIR}
 )
 
 
@@ -40,14 +39,6 @@ set(media_plugin_webkit_SOURCE_FILES
 set(media_plugin_webkit_HEADER_FILES
     volume_catcher.h
     )
-
-if(NOT WORD_SIZE EQUAL 32)
-  if(WINDOWS)
-    add_definitions(/FIXED:NO)
-  else(WINDOWS) # not windows therefore gcc LINUX and DARWIN
-    add_definitions(-fPIC)
-  endif(WINDOWS)
-endif(NOT WORD_SIZE EQUAL 32)
 
 set(media_plugin_webkit_LINK_LIBRARIES
   ${LLPLUGIN_LIBRARIES}
@@ -62,8 +53,6 @@ set(media_plugin_webkit_LINK_LIBRARIES
 if (LINUX)
   if (PULSEAUDIO)
     list(APPEND media_plugin_webkit_SOURCE_FILES linux_volume_catcher.cpp)
-  else (PULSEAUDIO)
-    list(APPEND media_plugin_webkit_SOURCE_FILES dummy_volume_catcher.cpp)
   endif (PULSEAUDIO)
   list(APPEND media_plugin_webkit_LINK_LIBRARIES
        ${UI_LIBRARIES}     # for glib/GTK

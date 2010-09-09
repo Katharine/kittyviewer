@@ -2,33 +2,26 @@
  * @file llvosky.cpp
  * @brief LLVOSky class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -976,7 +969,10 @@ void LLVOSky::calcAtmospherics(void)
 		}
 
 		temp2.mV[1] = llmax(0.f, lighty);
-		temp2.mV[1] = 1.f / temp2.mV[1];
+		if(temp2.mV[1] > 0.f)
+		{
+			temp2.mV[1] = 1.f / temp2.mV[1];
+		}
 		componentMultBy(sunlight, componentExp((light_atten * -1.f) * temp2.mV[1]));
 
 		// Distance
@@ -1050,7 +1046,7 @@ BOOL LLVOSky::idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time)
 
 BOOL LLVOSky::updateSky()
 {
-	if (mDead || !(gPipeline.hasRenderType(RENDER_TYPE_POOL_SKY)))
+	if (mDead || !(gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_SKY)))
 	{
 		return TRUE;
 	}
@@ -1200,9 +1196,9 @@ LLDrawable *LLVOSky::createDrawable(LLPipeline *pipeline)
 	pipeline->allocDrawable(this);
 	mDrawable->setLit(FALSE);
 
-	LLDrawPoolSky *poolp = (LLDrawPoolSky*) gPipeline.getPool(RENDER_TYPE_POOL_SKY);
+	LLDrawPoolSky *poolp = (LLDrawPoolSky*) gPipeline.getPool(LLDrawPool::POOL_SKY);
 	poolp->setSkyTex(mSkyTex);
-	mDrawable->setRenderType(RENDER_TYPE_POOL_SKY);
+	mDrawable->setRenderType(LLPipeline::RENDER_TYPE_SKY);
 	
 	for (S32 i = 0; i < 6; ++i)
 	{
@@ -1225,7 +1221,7 @@ void LLVOSky::createDummyVertexBuffer()
 {
 	if(!mFace[FACE_DUMMY])
 	{
-		LLDrawPoolSky *poolp = (LLDrawPoolSky*) gPipeline.getPool(RENDER_TYPE_POOL_SKY);
+		LLDrawPoolSky *poolp = (LLDrawPoolSky*) gPipeline.getPool(LLDrawPool::POOL_SKY);
 		mFace[FACE_DUMMY] = mDrawable->addFace(poolp, NULL);
 	}
 
@@ -1269,8 +1265,8 @@ BOOL LLVOSky::updateGeometry(LLDrawable *drawable)
 	LLFastTimer ftm(FTM_GEO_SKY);
 	if (mFace[FACE_REFLECTION] == NULL)
 	{
-		LLDrawPoolWater *poolp = (LLDrawPoolWater*) gPipeline.getPool(RENDER_TYPE_POOL_WATER);
-		if (gPipeline.getPool(RENDER_TYPE_POOL_WATER)->getVertexShaderLevel() != 0)
+		LLDrawPoolWater *poolp = (LLDrawPoolWater*) gPipeline.getPool(LLDrawPool::POOL_WATER);
+		if (gPipeline.getPool(LLDrawPool::POOL_WATER)->getVertexShaderLevel() != 0)
 		{
 			mFace[FACE_REFLECTION] = drawable->addFace(poolp, NULL);
 		}
@@ -1376,7 +1372,7 @@ BOOL LLVOSky::updateGeometry(LLDrawable *drawable)
 	
 	if (height_above_water > 0)
 	{
-		BOOL render_ref = gPipeline.getPool(RENDER_TYPE_POOL_WATER)->getVertexShaderLevel() == 0;
+		BOOL render_ref = gPipeline.getPool(LLDrawPool::POOL_WATER)->getVertexShaderLevel() == 0;
 
 		if (sun_flag)
 		{

@@ -2,33 +2,26 @@
  * @file llface.cpp
  * @brief LLFace class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -149,7 +142,7 @@ void LLFace::init(LLDrawable* drawablep, LLViewerObject* objp)
 	mPixelArea = 16.f;
 	mState      = GLOBAL;
 	mDrawPoolp  = NULL;
-	mPoolType = RENDER_TYPE_NONE;
+	mPoolType = 0;
 	mCenterLocal = objp->getPosition();
 	mCenterAgent = drawablep->getPositionAgent();
 	mDistance	= 0.f;
@@ -434,9 +427,9 @@ void LLFace::renderForSelect(U32 data_mask)
 
 		if (!getPool())
 		{
-			switch (getPoolType().index())
+			switch (getPoolType())
 			{
-			case POOL_ALPHA:
+			case LLDrawPool::POOL_ALPHA:
 				gGL.getTexUnit(0)->bind(getTexture());
 				break;
 			default:
@@ -1142,7 +1135,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 				0.75f
 			};
 			
-			if (getPoolType() != RENDER_TYPE_POOL_ALPHA && (LLPipeline::sRenderDeferred || (LLPipeline::sRenderBump && tep->getShiny())))
+			if (getPoolType() != LLDrawPool::POOL_ALPHA && (LLPipeline::sRenderDeferred || (LLPipeline::sRenderBump && tep->getShiny())))
 			{
 				color.mV[3] = U8 (alpha[tep->getShiny()] * 255);
 			}
@@ -1480,24 +1473,13 @@ F32 LLFace::getTextureVirtualSize()
 		face_area =  mPixelArea / llclamp(texel_area, 0.015625f, 128.f);
 	}
 
-	if(face_area > LLViewerTexture::sMaxSmallImageSize)
+	face_area = LLFace::adjustPixelArea(mImportanceToCamera, face_area) ;
+	if(face_area > LLViewerTexture::sMinLargeImageSize) //if is large image, shrink face_area by considering the partial overlapping.
 	{
-		if(mImportanceToCamera < LEAST_IMPORTANCE) //if the face is not important, do not load hi-res.
-		{
-			static const F32 MAX_LEAST_IMPORTANCE_IMAGE_SIZE = 128.0f * 128.0f ;
-			face_area = llmin(face_area * 0.5f, MAX_LEAST_IMPORTANCE_IMAGE_SIZE) ;
-		}
-		else if(face_area > LLViewerTexture::sMinLargeImageSize) //if is large image, shrink face_area by considering the partial overlapping.
-		{
-			if(mImportanceToCamera < LEAST_IMPORTANCE_FOR_LARGE_IMAGE)//if the face is not important, do not load hi-res.
-			{
-				face_area = LLViewerTexture::sMinLargeImageSize ;
-			}	
-			else if(mTexture.notNull() && mTexture->isLargeImage())
-			{		
-				face_area *= adjustPartialOverlapPixelArea(cos_angle_to_view_dir, radius );
-			}			
-		}
+		if(mImportanceToCamera > LEAST_IMPORTANCE_FOR_LARGE_IMAGE && mTexture.notNull() && mTexture->isLargeImage())
+		{		
+			face_area *= adjustPartialOverlapPixelArea(cos_angle_to_view_dir, radius );
+		}	
 	}
 
 	setVirtualSize(face_area) ;
@@ -1622,6 +1604,28 @@ F32 LLFace::calcImportanceToCamera(F32 cos_angle_to_view_dir, F32 dist)
 	}
 
 	return importance ;
+}
+
+//static 
+F32 LLFace::adjustPixelArea(F32 importance, F32 pixel_area)
+{
+	if(pixel_area > LLViewerTexture::sMaxSmallImageSize)
+	{
+		if(importance < LEAST_IMPORTANCE) //if the face is not important, do not load hi-res.
+		{
+			static const F32 MAX_LEAST_IMPORTANCE_IMAGE_SIZE = 128.0f * 128.0f ;
+			pixel_area = llmin(pixel_area * 0.5f, MAX_LEAST_IMPORTANCE_IMAGE_SIZE) ;
+		}
+		else if(pixel_area > LLViewerTexture::sMinLargeImageSize) //if is large image, shrink face_area by considering the partial overlapping.
+		{
+			if(importance < LEAST_IMPORTANCE_FOR_LARGE_IMAGE)//if the face is not important, do not load hi-res.
+			{
+				pixel_area = LLViewerTexture::sMinLargeImageSize ;
+			}				
+		}
+	}
+
+	return pixel_area ;
 }
 
 BOOL LLFace::verify(const U32* indices_array) const

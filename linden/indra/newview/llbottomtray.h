@@ -2,33 +2,26 @@
 * @file llbottomtray.h
 * @brief LLBottomTray class header file
 *
-* $LicenseInfo:firstyear=2009&license=viewergpl$
-* 
-* Copyright (c) 2009-2010, Linden Research, Inc.
-* 
+* $LicenseInfo:firstyear=2009&license=viewerlgpl$
 * Second Life Viewer Source Code
-* The source code in this file ("Source Code") is provided by Linden Lab
-* to you under the terms of the GNU General Public License, version 2.0
-* ("GPL"), unless you have obtained a separate licensing agreement
-* ("Other License"), formally executed by you and Linden Lab.  Terms of
-* the GPL can be found in doc/GPL-license.txt in this distribution, or
-* online at http://secondlife.com/developers/opensource/gplv2
+* Copyright (C) 2010, Linden Research, Inc.
 * 
-* There are special exceptions to the terms and conditions of the GPL as
-* it is applied to this Source Code. View the full text of the exception
-* in the file doc/FLOSS-exception.txt in this software distribution, or
-* online at
-* http://secondlife.com/developers/opensource/flossexception
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public
+* License as published by the Free Software Foundation;
+* version 2.1 of the License only.
 * 
-* By copying, modifying or distributing this software, you acknowledge
-* that you have read and understood your obligations described above,
-* and agree to abide by those obligations.
+* This library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
 * 
-* ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
-* WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
-* COMPLETENESS OR PERFORMANCE.
+* You should have received a copy of the GNU Lesser General Public
+* License along with this library; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+* 
+* Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
 * $/LicenseInfo$
-* 
 */
 
 #ifndef LL_LLBOTTOMPANEL_H
@@ -53,6 +46,30 @@ class LLBottomTrayLite;
 #ifndef LLBOTTOMTRAY_CPP
 extern template class LLBottomTray* LLSingleton<class LLBottomTray>::getInstance();
 #endif
+
+/**
+ * Class for buttons that should have drag'n'drop ability in bottomtray.
+ * These buttons pass mouse events handling to bottomtray.
+ */
+class LLBottomtrayButton : public LLButton
+{
+public:
+	struct Params : public LLInitParam::Block<Params, LLButton::Params>
+	{
+		Params(){}
+	};
+	/*virtual*/ BOOL handleHover(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL handleMouseUp(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL handleMouseDown(S32 x, S32 y, MASK mask);
+
+protected:
+	LLBottomtrayButton(const Params& p)
+		:	LLButton(p)
+	{
+
+	}
+	friend class LLUICtrlFactory;
+};
 
 class LLBottomTray 
 	: public LLSingleton<LLBottomTray>
@@ -108,6 +125,18 @@ public:
 	 */
 	LLIMChiclet* createIMChiclet(const LLUUID& session_id);
 
+	// Below are methods that were introduced or overriden in bottomtray to handle drag'n'drop
+
+	virtual void draw();
+
+	/**
+	 * These three methods handle drag'n'drop, they may be called directly from child buttons.
+	 */
+	/*virtual*/ BOOL	handleHover(S32 x, S32 y, MASK mask);
+	void onDraggableButtonMouseDown(LLUICtrl* button, S32 x, S32 y, MASK mask);
+	void onDraggableButtonMouseUp(LLUICtrl* button, S32 x, S32 y, MASK mask);
+
+
 private:
 	typedef enum e_resize_status_type
 	{
@@ -141,6 +170,29 @@ private:
 		, RS_BUTTONS_CAN_BE_HIDDEN = RS_BUTTON_SNAPSHOT | RS_BUTTON_CAMERA | RS_BUTTON_MOVEMENT | RS_BUTTON_GESTURES
 									| RS_BUTTON_BUILD | RS_BUTTON_SEARCH | RS_BUTTON_WORLD_MAP | RS_BUTTON_MINI_MAP | RS_BUTTON_SETTINGS
 	}EResizeState;
+
+	// Below are three methods that were introduced to handle drag'n'drop
+
+	/**
+	 * finds a panel under the specified LOCAL point
+	 */
+	LLPanel* findChildPanelByLocalCoords(S32 x, S32 y);
+
+	/**
+	 * checks whether the cursor is over an area where the dragged button may be dropped
+	 */
+	bool isCursorOverDraggableArea(S32 x, S32 y);
+
+	/**
+	 * Updates process(shrink/show/hide) order of buttons and order in which they'll be stored for further save/load.
+	 * It is called when dragged button is dropped
+	 */
+	void updateButtonsOrdersAfterDnD();
+
+	// saves order of buttons to file on disk
+	void saveButtonsOrder();
+	// reads order of buttons from file on disk
+	void loadButtonsOrder();
 
 	/**
 	 * Updates child controls size and visibility when it is necessary to reduce total width.
@@ -368,6 +420,13 @@ private:
 	 * Contains order in which child buttons should be processed in show/hide, extend/shrink methods.
 	 */
 	resize_state_vec_t mButtonsProcessOrder;
+	/**
+	 * Contains order in which child buttons are shown.
+	 * It traces order of all bottomtray buttons that may change place via drag'n'drop and should
+	 * save and load it between sessions. mButtonsProcessOrder is not enough for it because it contains only
+	 * buttons that may be hidden.
+	 */
+	resize_state_vec_t mButtonsOrder;
 
 protected:
 
@@ -389,6 +448,38 @@ protected:
 	LLButton*			mMovementButton;
 	LLBottomTrayLite*   mBottomTrayLite;
 	bool                mIsInLiteMode;
+
+	// Drag'n'Drop
+
+	/**
+	 * Is true if mouse down happened on draggable button.
+	 * Set false whether on drag start or on mouse up.
+	 */
+	bool mCheckForDrag;
+	/**
+	 * These two variables hold corrdinates of mouse down on draggable button.
+	 * They are used to compare with current coordinates of cursor and determine whether drag'n'drop should start.
+	 */
+	S32 mStartX;
+	S32 mStartY;
+	/**
+	 * True if drag'n'drop is happening.
+	 */
+	bool mDragStarted;
+
+	/**
+	 * Pointer to panel which is currently dragged (though it seems to user that button is dragged,
+	 * we are changing place of layout panel).
+	 */
+	LLPanel* mDraggedItem;
+	/**
+	 * Panel before which the dragged button will be inserted.
+	 */
+	LLPanel* mLandingTab;
+	/**
+	 * Image used to show position where dragged button will be dropped.
+	 */
+	LLUIImage* mImageDragIndication;
 };
 
 #endif // LL_LLBOTTOMPANEL_H

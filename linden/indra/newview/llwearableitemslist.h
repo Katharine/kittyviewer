@@ -2,33 +2,26 @@
  * @file llwearableitemslist.h
  * @brief A flat list of wearable items.
  *
- * $LicenseInfo:firstyear=2010&license=viewergpl$
- * 
- * Copyright (c) 2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2010&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_LLWEARABLEITEMSLIST_H
@@ -41,7 +34,6 @@
 // newview
 #include "llinventoryitemslist.h"
 #include "llinventorylistitem.h"
-#include "llinventorymodel.h"
 #include "lllistcontextmenu.h"
 #include "llwearabletype.h"
 
@@ -327,7 +319,7 @@ protected:
 	/**
 	 * All information about sort order is stored in mWearableOrder map
 	 *
-	 * mWearableOrder :      KYES              VALUES
+	 * mWearableOrder :      KEYS              VALUES
 	 *                  [LLAssetType] [struct LLWearableTypeOrder]
 	 *
 	 *---------------------------------------------------------------------------------------------
@@ -341,8 +333,8 @@ protected:
 	 *     For example by spec in MY OUTFITS the order within each items type(LLAssetType) is:
 	 *     1. AT_OBJECTS (abc order)
 	 *     2. AT_CLOTHINGS
-	 *       - by type (types order determined in LLWearableType::EType)
-	 *       - outer layer on top
+	 *         - by type (types order determined in LLWearableType::EType)
+	 *         - outer layer on top
 	 *     3. AT_BODYPARTS  (abc order)
 	 *---------------------------------------------------------------------------------------------
 	 *
@@ -382,6 +374,19 @@ private:
 };
 
 /**
+ * @class LLWearableItemCreationDateComparator
+ *
+ * Comparator for sorting wearable list items by creation date (newest go first).
+ */
+class LLWearableItemCreationDateComparator : public LLWearableItemNameComparator
+{
+	LOG_CLASS(LLWearableItemCreationDateComparator);
+
+protected:
+	/*virtual*/ bool doCompare(const LLPanelInventoryListItemBase* item1, const LLPanelInventoryListItemBase* item2) const;
+};
+
+/**
  * @class LLWearableItemsList
  *
  * A flat list of wearable inventory items.
@@ -391,6 +396,7 @@ private:
  */
 class LLWearableItemsList : public LLInventoryItemsList
 {
+	LOG_CLASS(LLWearableItemsList);
 public:
 	/**
 	 * Context menu.
@@ -420,7 +426,7 @@ public:
 		static void setMenuItemEnabled(LLContextMenu* menu, const std::string& name, bool val);
 		static void updateMask(U32& mask, LLAssetType::EType at);
 		static void createNewWearable(const LLUUID& item_id);
-		static bool canAddWearable(const LLUUID& item_id);
+		static bool canAddWearables(const uuid_vec_t& item_ids);
 
 		LLWearableItemsList*	mParent;
 	};
@@ -433,6 +439,14 @@ public:
 		Params();
 	};
 
+	typedef enum e_sort_order {
+		// Values should be compatible with InventorySortOrder setting.
+		E_SORT_BY_NAME			= 0,
+		E_SORT_BY_MOST_RECENT	= 1,
+		E_SORT_BY_TYPE_LAYER	= 2,
+		E_SORT_BY_TYPE_NAME 	= 3,
+	} ESortOrder;
+
 	virtual ~LLWearableItemsList();
 
 	/*virtual*/ void addNewItem(LLViewerInventoryItem* item, bool rearrange = true);
@@ -443,9 +457,13 @@ public:
 	 * Update items that match UUIDs from changed_items_uuids
 	 * or links that point at such items.
 	 */
-	void updateChangedItems(const LLInventoryModel::changed_items_t& changed_items_uuids);
+	void updateChangedItems(const uuid_vec_t& changed_items_uuids);
 
 	bool isStandalone() const { return mIsStandalone; }
+
+	ESortOrder getSortOrder() const { return mSortOrder; }
+
+	void setSortOrder(ESortOrder sort_order, bool sort_now = true);
 
 protected:
 	friend class LLUICtrlFactory;
@@ -455,6 +473,8 @@ protected:
 
 	bool mIsStandalone;
 	bool mWornIndicationEnabled;
+
+	ESortOrder		mSortOrder;
 };
 
 #endif //LL_LLWEARABLEITEMSLIST_H

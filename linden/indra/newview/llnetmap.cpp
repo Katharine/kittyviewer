@@ -3,33 +3,26 @@
  * @author James Cook
  * @brief Display of surrounding regions, objects, and agents. 
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -53,7 +46,6 @@
 #include "llagentcamera.h"
 #include "llappviewer.h" // for gDisconnected
 #include "llcallingcard.h" // LLAvatarTracker
-#include "llfloaterworldmap.h"
 #include "lltracker.h"
 #include "llsurface.h"
 #include "llviewercamera.h"
@@ -273,7 +265,7 @@ void LLNetMap::draw()
 			mUpdateNow = false;
 
 			// Locate the centre of the object layer, accounting for panning
-			LLVector3 new_center = globalPosToView(gAgentCamera.getCameraPositionGlobal());	
+			LLVector3 new_center = globalPosToView(gAgentCamera.getCameraPositionGlobal());
 			new_center.mV[VX] -= mCurPan.mV[VX];
 			new_center.mV[VY] -= mCurPan.mV[VY];
 			new_center.mV[VZ] = 0.f;
@@ -548,40 +540,17 @@ LLVector3d LLNetMap::viewPosToGlobal( S32 x, S32 y )
 	return pos_global;
 }
 
-BOOL LLNetMap::handleDoubleClick(S32 x, S32 y, MASK mask)
-{
-	LLVector3d pos_global = viewPosToGlobal(x, y);
-	if (!LLTracker::isTracking(NULL))
-	{
-		LLFloaterWorldMap* world_map = LLFloaterWorldMap::getInstance();
-		if (world_map)
-		{
-			world_map->trackLocation(pos_global);
-		}
-	}
-
-	if (gSavedSettings.getBOOL("DoubleClickTeleport"))
-	{
-		gAgent.teleportViaLocationLookAt(pos_global);
-	}
-	else 
-	{
-		LLFloaterReg::showInstance("world_map", "center");
-	}
-	return TRUE;
-}
-
 BOOL LLNetMap::handleScrollWheel(S32 x, S32 y, S32 clicks)
 {
 	// note that clicks are reversed from what you'd think: i.e. > 0  means zoom out, < 0 means zoom in
-	F32 new_scale = mScale * pow(MAP_SCALE_ZOOM_FACTOR, -clicks);	
+	F32 new_scale = mScale * pow(MAP_SCALE_ZOOM_FACTOR, -clicks);
 	F32 old_scale = mScale;
 
 	setScale(new_scale);
 
 	static LLUICachedControl<bool> auto_center("MiniMapAutoCenter", true);
 	if (!auto_center)
-	{		
+	{
 		// Adjust pan to center the zoom on the mouse pointer
 		LLVector2 zoom_offset;
 		zoom_offset.mV[VX] = x - getRect().getWidth() / 2;
@@ -800,10 +769,10 @@ void LLNetMap::createObjectImage()
 BOOL LLNetMap::handleMouseDown( S32 x, S32 y, MASK mask )
 {
 	if (!(mask & MASK_SHIFT)) return FALSE;
-	
+
 	// Start panning
 	gFocusMgr.setMouseCapture(this);
-	
+
 	mStartPan = mCurPan;
 	mMouseDown.mX = x;
 	mMouseDown.mY = y;
@@ -824,12 +793,12 @@ BOOL LLNetMap::handleMouseUp( S32 x, S32 y, MASK mask )
 			clip_rect.stretch(-8);
 			clip_rect.clipPointToRect(mMouseDown.mX, mMouseDown.mY, local_x, local_y);
 			LLUI::setMousePositionLocal(this, local_x, local_y);
-			
+
 			// finish the pan
 			mPanning = false;
-			
+
 			mMouseDown.set(0, 0);
-			
+
 			// auto centre
 			mTargetPan.setZero();
 		}
@@ -845,7 +814,7 @@ bool LLNetMap::outsideSlop( S32 x, S32 y, S32 start_x, S32 start_y, S32 slop )
 {
 	S32 dx = x - start_x;
 	S32 dy = y - start_y;
-	
+
 	return (dx <= -slop || slop <= dx || dy <= -slop || slop <= dy);
 }
 
@@ -861,17 +830,17 @@ BOOL LLNetMap::handleHover( S32 x, S32 y, MASK mask )
 				mPanning = true;
 				gViewerWindow->hideCursor();
 			}
-			
+
 			LLVector2 delta(static_cast<F32>(gViewerWindow->getCurrentMouseDX()),
 							static_cast<F32>(gViewerWindow->getCurrentMouseDY()));
-			
+
 			// Set pan to value at start of drag + offset
 			mCurPan += delta;
 			mTargetPan = mCurPan;
-			
+
 			gViewerWindow->moveCursorToCenter();
 		}
-		
+
 		// Doesn't really matter, cursor should be hidden
 		gViewerWindow->setCursor( UI_CURSOR_TOOLPAN );
 	}
@@ -882,11 +851,11 @@ BOOL LLNetMap::handleHover( S32 x, S32 y, MASK mask )
 			// If shift is held, change the cursor to hint that the map can be dragged
 			gViewerWindow->setCursor( UI_CURSOR_TOOLPAN );
 		}
-		else 
+		else
 		{
 			gViewerWindow->setCursor( UI_CURSOR_CROSS );
 		}
 	}
-	
+
 	return TRUE;
 }

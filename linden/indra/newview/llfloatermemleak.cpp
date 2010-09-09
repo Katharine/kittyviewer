@@ -2,33 +2,26 @@
  * @file llfloatermemleak.cpp
  * @brief LLFloatermemleak class definition
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -65,7 +58,7 @@ LLFloaterMemLeak::LLFloaterMemLeak(const LLSD& key)
 BOOL LLFloaterMemLeak::postBuild(void) 
 {	
 	F32 a, b ;
-	a = childGetValue("leak_speed").asReal();
+	a = getChild<LLUICtrl>("leak_speed")->getValue().asReal();
 	if(a > (F32)(0xFFFFFFFF))
 	{
 		sMemLeakingSpeed = 0xFFFFFFFF ;
@@ -74,7 +67,7 @@ BOOL LLFloaterMemLeak::postBuild(void)
 	{
 		sMemLeakingSpeed = (U32)a ;
 	}
-	b = childGetValue("max_leak").asReal();
+	b = getChild<LLUICtrl>("max_leak")->getValue().asReal();
 	if(b > (F32)0xFFF)
 	{
 		sMaxLeakedMem = 0xFFFFFFFF ;
@@ -151,7 +144,7 @@ void LLFloaterMemLeak::idle()
 void LLFloaterMemLeak::onChangeLeakingSpeed()
 {
 	F32 tmp ;
-	tmp =childGetValue("leak_speed").asReal();
+	tmp =getChild<LLUICtrl>("leak_speed")->getValue().asReal();
 
 	if(tmp > (F32)0xFFFFFFFF)
 	{
@@ -168,7 +161,7 @@ void LLFloaterMemLeak::onChangeMaxMemLeaking()
 {
 
 	F32 tmp ;
-	tmp =childGetValue("max_leak").asReal();
+	tmp =getChild<LLUICtrl>("max_leak")->getValue().asReal();
 	if(tmp > (F32)0xFFF)
 	{
 		sMaxLeakedMem = 0xFFFFFFFF ;
@@ -207,22 +200,22 @@ void LLFloaterMemLeak::draw()
 	{
 		std::string bytes_string;
 		LLResMgr::getInstance()->getIntegerString(bytes_string, sTotalLeaked >> 10 );
-		childSetTextArg("total_leaked_label", "[SIZE]", bytes_string);
+		getChild<LLUICtrl>("total_leaked_label")->setTextArg("[SIZE]", bytes_string);
 	}
 	else
 	{
-		childSetTextArg("total_leaked_label", "[SIZE]", LLStringExplicit("0"));
+		getChild<LLUICtrl>("total_leaked_label")->setTextArg("[SIZE]", LLStringExplicit("0"));
 	}
 
 	if(sbAllocationFailed)
 	{
-		childSetTextArg("note_label_1", "[NOTE1]", LLStringExplicit("Memory leaking simulation stops. Reduce leaking speed or"));
-		childSetTextArg("note_label_2", "[NOTE2]", LLStringExplicit("increase max leaked memory, then press Start to continue."));
+		getChild<LLUICtrl>("note_label_1")->setTextArg("[NOTE1]", LLStringExplicit("Memory leaking simulation stops. Reduce leaking speed or"));
+		getChild<LLUICtrl>("note_label_2")->setTextArg("[NOTE2]", LLStringExplicit("increase max leaked memory, then press Start to continue."));
 	}
 	else
 	{
-		childSetTextArg("note_label_1", "[NOTE1]", LLStringExplicit(""));
-		childSetTextArg("note_label_2", "[NOTE2]", LLStringExplicit(""));
+		getChild<LLUICtrl>("note_label_1")->setTextArg("[NOTE1]", LLStringExplicit(""));
+		getChild<LLUICtrl>("note_label_2")->setTextArg("[NOTE2]", LLStringExplicit(""));
 	}
 
 	LLFloater::draw();

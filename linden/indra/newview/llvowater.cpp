@@ -2,33 +2,26 @@
  * @file llvowater.cpp
  * @brief LLVOWater class implementation
  *
- * $LicenseInfo:firstyear=2005&license=viewergpl$
- * 
- * Copyright (c) 2005-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2005&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -68,8 +61,7 @@ const F32 WAVE_STEP_INV	= (1. / WAVE_STEP);
 
 
 LLVOWater::LLVOWater(const LLUUID &id, const LLPCode pcode, LLViewerRegion *regionp)
-:	LLStaticViewerObject(id, pcode, regionp),
-	mRenderType(RENDER_TYPE_POOL_WATER)
+:	LLStaticViewerObject(id, LL_VO_WATER, regionp)
 {
 	// Terrain must draw during selection passes so it can block objects behind it.
 	mbCanSelect = FALSE;
@@ -78,6 +70,7 @@ LLVOWater::LLVOWater(const LLUUID &id, const LLPCode pcode, LLViewerRegion *regi
 	mUseTexture = TRUE;
 	mIsEdgePatch = FALSE;
 }
+
 
 void LLVOWater::markDead()
 {
@@ -106,7 +99,7 @@ void LLVOWater::updateTextures()
 // Never gets called
 BOOL LLVOWater::idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time)
 {
- 	/*if (mDead || !(gPipeline.hasRenderType(RENDER_TYPE_POOL_WATER)))
+ 	/*if (mDead || !(gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_WATER)))
 	{
 		return TRUE;
 	}
@@ -121,9 +114,9 @@ LLDrawable *LLVOWater::createDrawable(LLPipeline *pipeline)
 {
 	pipeline->allocDrawable(this);
 	mDrawable->setLit(FALSE);
-	mDrawable->setRenderType(mRenderType);
+	mDrawable->setRenderType(LLPipeline::RENDER_TYPE_WATER);
 
-	LLDrawPoolWater *pool = (LLDrawPoolWater*) gPipeline.getPool(RENDER_TYPE_POOL_WATER);
+	LLDrawPoolWater *pool = (LLDrawPoolWater*) gPipeline.getPool(LLDrawPool::POOL_WATER);
 
 	if (mUseTexture)
 	{
@@ -146,7 +139,7 @@ BOOL LLVOWater::updateGeometry(LLDrawable *drawable)
 
 	if (drawable->getNumFaces() < 1)
 	{
-		LLDrawPoolWater *poolp = (LLDrawPoolWater*) gPipeline.getPool(RENDER_TYPE_POOL_WATER);
+		LLDrawPoolWater *poolp = (LLDrawPoolWater*) gPipeline.getPool(LLDrawPool::POOL_WATER);
 		drawable->addFace(poolp, NULL);
 	}
 	face = drawable->getFace(0);
@@ -275,21 +268,10 @@ U32 LLVOWater::getPartitionType() const
 	return LLViewerRegion::PARTITION_WATER; 
 }
 
-U32 LLVOVoidWater::getPartitionType() const
-{
-	return LLViewerRegion::PARTITION_VOIDWATER;
-}
-
 LLWaterPartition::LLWaterPartition()
 : LLSpatialPartition(0, FALSE, 0)
 {
 	mInfiniteFarClip = TRUE;
-	mDrawableType = RENDER_TYPE_POOL_WATER;
+	mDrawableType = LLPipeline::RENDER_TYPE_WATER;
 	mPartitionType = LLViewerRegion::PARTITION_WATER;
-}
-
-LLVoidWaterPartition::LLVoidWaterPartition()
-{
-	mDrawableType = RENDER_TYPE_POOL_VOIDWATER;
-	mPartitionType = LLViewerRegion::PARTITION_VOIDWATER;
 }

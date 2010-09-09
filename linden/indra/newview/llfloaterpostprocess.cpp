@@ -2,33 +2,26 @@
  * @file llfloaterpostprocess.cpp
  * @brief LLFloaterPostProcess class definition
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -213,25 +206,25 @@ void LLFloaterPostProcess::syncMenu()
 	comboBox->selectByValue(gPostProcess->getSelectedEffect());
 
 	/// Sync Color Filter Menu
-	childSetValue("ColorFilterToggle", gPostProcess->tweaks.useColorFilter());
-	//childSetValue("ColorFilterGamma", gPostProcess->tweaks.gamma());
-	childSetValue("ColorFilterBrightness", gPostProcess->tweaks.brightness());
-	childSetValue("ColorFilterSaturation", gPostProcess->tweaks.saturation());
-	childSetValue("ColorFilterContrast", gPostProcess->tweaks.contrast());
-	childSetValue("ColorFilterBaseR", gPostProcess->tweaks.contrastBaseR());
-	childSetValue("ColorFilterBaseG", gPostProcess->tweaks.contrastBaseG());
-	childSetValue("ColorFilterBaseB", gPostProcess->tweaks.contrastBaseB());
-	childSetValue("ColorFilterBaseI", gPostProcess->tweaks.contrastBaseIntensity());
+	getChild<LLUICtrl>("ColorFilterToggle")->setValue(gPostProcess->tweaks.useColorFilter());
+	//getChild<LLUICtrl>("ColorFilterGamma")->setValue(gPostProcess->tweaks.gamma());
+	getChild<LLUICtrl>("ColorFilterBrightness")->setValue(gPostProcess->tweaks.brightness());
+	getChild<LLUICtrl>("ColorFilterSaturation")->setValue(gPostProcess->tweaks.saturation());
+	getChild<LLUICtrl>("ColorFilterContrast")->setValue(gPostProcess->tweaks.contrast());
+	getChild<LLUICtrl>("ColorFilterBaseR")->setValue(gPostProcess->tweaks.contrastBaseR());
+	getChild<LLUICtrl>("ColorFilterBaseG")->setValue(gPostProcess->tweaks.contrastBaseG());
+	getChild<LLUICtrl>("ColorFilterBaseB")->setValue(gPostProcess->tweaks.contrastBaseB());
+	getChild<LLUICtrl>("ColorFilterBaseI")->setValue(gPostProcess->tweaks.contrastBaseIntensity());
 	
 	/// Sync Night Vision Menu
-	childSetValue("NightVisionToggle", gPostProcess->tweaks.useNightVisionShader());
-	childSetValue("NightVisionBrightMult", gPostProcess->tweaks.brightMult());
-	childSetValue("NightVisionNoiseSize", gPostProcess->tweaks.noiseSize());
-	childSetValue("NightVisionNoiseStrength", gPostProcess->tweaks.noiseStrength());
+	getChild<LLUICtrl>("NightVisionToggle")->setValue(gPostProcess->tweaks.useNightVisionShader());
+	getChild<LLUICtrl>("NightVisionBrightMult")->setValue(gPostProcess->tweaks.brightMult());
+	getChild<LLUICtrl>("NightVisionNoiseSize")->setValue(gPostProcess->tweaks.noiseSize());
+	getChild<LLUICtrl>("NightVisionNoiseStrength")->setValue(gPostProcess->tweaks.noiseStrength());
 
 	/// Sync Bloom Menu
-	childSetValue("BloomToggle", LLSD(gPostProcess->tweaks.useBloomShader()));
-	childSetValue("BloomExtract", gPostProcess->tweaks.extractLow());
-	childSetValue("BloomSize", gPostProcess->tweaks.bloomWidth());
-	childSetValue("BloomStrength", gPostProcess->tweaks.bloomStrength());
+	getChild<LLUICtrl>("BloomToggle")->setValue(LLSD(gPostProcess->tweaks.useBloomShader()));
+	getChild<LLUICtrl>("BloomExtract")->setValue(gPostProcess->tweaks.extractLow());
+	getChild<LLUICtrl>("BloomSize")->setValue(gPostProcess->tweaks.bloomWidth());
+	getChild<LLUICtrl>("BloomStrength")->setValue(gPostProcess->tweaks.bloomStrength());
 }

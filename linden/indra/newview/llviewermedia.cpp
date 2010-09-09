@@ -2,33 +2,26 @@
  * @file llviewermedia.cpp
  * @brief Client interface to the media engine
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -66,6 +59,9 @@
 #include "llmutelist.h"
 //#include "llfirstuse.h"
 #include "llwindow.h"
+
+#include <boost/bind.hpp>	// for SkinFolder listener
+#include <boost/signals2.hpp>
 
 /*static*/ const char* LLViewerMedia::AUTO_PLAY_MEDIA_SETTING = "ParcelMediaAutoPlayEnable";
 /*static*/ const char* LLViewerMedia::SHOW_MEDIA_ON_OTHERS_SETTING = "MediaShowOnOthers";
@@ -2194,7 +2190,8 @@ void LLViewerMediaImpl::navigateReload()
 //////////////////////////////////////////////////////////////////////////////////////////
 void LLViewerMediaImpl::navigateHome()
 {
-	navigateTo(mHomeURL, "", true, false);
+	bool rediscover_mimetype = mHomeMimeType.empty();
+	navigateTo(mHomeURL, mHomeMimeType, rediscover_mimetype, false);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -2306,6 +2303,8 @@ void LLViewerMediaImpl::navigateInternal()
 			// which is really not what we want.
 			LLSD headers = LLSD::emptyMap();
 			headers["Accept"] = "*/*";
+			// Allow cookies in the response, to prevent a redirect loop when accessing join.secondlife.com
+			headers["Cookie"] = "";
 			LLHTTPClient::getHeaderOnly( mMediaURL, new LLMimeDiscoveryResponder(this), headers, 10.0f);
 		}
 		else if("data" == scheme || "file" == scheme || "about" == scheme)
@@ -2914,14 +2913,23 @@ void LLViewerMediaImpl::handleMediaEvent(LLPluginClassMedia* plugin, LLPluginCla
 		{
 			LL_DEBUGS("Media") << "MEDIA_EVENT_NAVIGATE_COMPLETE, uri is: " << plugin->getNavigateURI() << LL_ENDL;
 
+			std::string url = plugin->getNavigateURI();
 			if(getNavState() == MEDIANAVSTATE_BEGUN)
 			{
-				mCurrentMediaURL = plugin->getNavigateURI();
-				setNavState(MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED);
+				if(mCurrentMediaURL == url)
+				{
+					// This is a navigate that takes us to the same url as the previous navigate.
+					setNavState(MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED_SPURIOUS);
+				}
+				else
+				{
+					mCurrentMediaURL = url;
+					setNavState(MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED);
+				}
 			}
 			else if(getNavState() == MEDIANAVSTATE_SERVER_BEGUN)
 			{
-				mCurrentMediaURL = plugin->getNavigateURI();
+				mCurrentMediaURL = url;
 				setNavState(MEDIANAVSTATE_SERVER_COMPLETE_BEFORE_LOCATION_CHANGED);
 			}
 			else
@@ -2935,14 +2943,24 @@ void LLViewerMediaImpl::handleMediaEvent(LLPluginClassMedia* plugin, LLPluginCla
 		{
 			LL_DEBUGS("Media") << "MEDIA_EVENT_LOCATION_CHANGED, uri is: " << plugin->getLocation() << LL_ENDL;
 
+			std::string url = plugin->getLocation();
+
 			if(getNavState() == MEDIANAVSTATE_BEGUN)
 			{
-				mCurrentMediaURL = plugin->getLocation();
-				setNavState(MEDIANAVSTATE_FIRST_LOCATION_CHANGED);
+				if(mCurrentMediaURL == url)
+				{
+					// This is a navigate that takes us to the same url as the previous navigate.
+					setNavState(MEDIANAVSTATE_FIRST_LOCATION_CHANGED_SPURIOUS);
+				}
+				else
+				{
+					mCurrentMediaURL = url;
+					setNavState(MEDIANAVSTATE_FIRST_LOCATION_CHANGED);
+				}
 			}
 			else if(getNavState() == MEDIANAVSTATE_SERVER_BEGUN)
 			{
-				mCurrentMediaURL = plugin->getLocation();
+				mCurrentMediaURL = url;
 				setNavState(MEDIANAVSTATE_SERVER_FIRST_LOCATION_CHANGED);
 			}
 			else
@@ -3055,20 +3073,25 @@ void LLViewerMediaImpl::calculateInterest()
 	
 	// Calculate distance from the avatar, for use in the proximity calculation.
 	mProximityDistance = 0.0f;
+	mProximityCamera = 0.0f;
 	if(!mObjectList.empty())
 	{
 		// Just use the first object in the list.  We could go through the list and find the closest object, but this should work well enough.
 		std::list< LLVOVolume* >::iterator iter = mObjectList.begin() ;
 		LLVOVolume* objp = *iter ;
 		llassert_always(objp != NULL) ;
+		
+		// The distance calculation is invalid for HUD attachments -- leave both mProximityDistance and mProximityCamera at 0 for them.
+		if(!objp->isHUDAttachment())
+		{
+			LLVector3d obj_global = objp->getPositionGlobal() ;
+			LLVector3d agent_global = gAgent.getPositionGlobal() ;
+			LLVector3d global_delta = agent_global - obj_global ;
+			mProximityDistance = global_delta.magVecSquared();  // use distance-squared because it's cheaper and sorts the same.
 
-		LLVector3d obj_global = objp->getPositionGlobal() ;
-		LLVector3d agent_global = gAgent.getPositionGlobal() ;
-		LLVector3d global_delta = agent_global - obj_global ;
-		mProximityDistance = global_delta.magVecSquared();  // use distance-squared because it's cheaper and sorts the same.
-
-		LLVector3d camera_delta = gAgentCamera.getCameraPositionGlobal() - obj_global;
-		mProximityCamera = camera_delta.magVec();
+			LLVector3d camera_delta = gAgentCamera.getCameraPositionGlobal() - obj_global;
+			mProximityCamera = camera_delta.magVec();
+		}
 	}
 	
 	if(mNeedsMuteCheck)
@@ -3221,7 +3244,9 @@ void LLViewerMediaImpl::setNavState(EMediaNavState state)
 		case MEDIANAVSTATE_NONE: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_NONE" << llendl; break;
 		case MEDIANAVSTATE_BEGUN: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_BEGUN" << llendl; break;
 		case MEDIANAVSTATE_FIRST_LOCATION_CHANGED: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_FIRST_LOCATION_CHANGED" << llendl; break;
+		case MEDIANAVSTATE_FIRST_LOCATION_CHANGED_SPURIOUS: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_FIRST_LOCATION_CHANGED_SPURIOUS" << llendl; break;
 		case MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED" << llendl; break;
+		case MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED_SPURIOUS: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_COMPLETE_BEFORE_LOCATION_CHANGED_SPURIOUS" << llendl; break;
 		case MEDIANAVSTATE_SERVER_SENT: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_SERVER_SENT" << llendl; break;
 		case MEDIANAVSTATE_SERVER_BEGUN: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_SERVER_BEGUN" << llendl; break;
 		case MEDIANAVSTATE_SERVER_FIRST_LOCATION_CHANGED: LL_DEBUGS("Media") << "Setting nav state to MEDIANAVSTATE_SERVER_FIRST_LOCATION_CHANGED" << llendl; break;

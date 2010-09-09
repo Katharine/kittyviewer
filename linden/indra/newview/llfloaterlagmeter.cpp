@@ -2,33 +2,26 @@
  * @file llfloaterlagmeter.cpp
  * @brief The "Lag-o-Meter" floater used to tell users what is causing lag.
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -330,9 +323,9 @@ void LLFloaterLagMeter::updateControls(bool shrink)
 		setRect(r);
 		reshape(mMaxWidth, getRect().getHeight());
 		
-		childSetText("client", getString("client_text_msg", mStringArgs) + ":");
-		childSetText("network", getString("network_text_msg",mStringArgs) + ":");
-		childSetText("server", getString("server_text_msg", mStringArgs) + ":");
+		getChild<LLUICtrl>("client")->setValue(getString("client_text_msg", mStringArgs) + ":");
+		getChild<LLUICtrl>("network")->setValue(getString("network_text_msg",mStringArgs) + ":");
+		getChild<LLUICtrl>("server")->setValue(getString("server_text_msg", mStringArgs) + ":");
 
 		// usually "<<"
 		button->setLabel( getString("smaller_label", mStringArgs) );
@@ -345,9 +338,9 @@ void LLFloaterLagMeter::updateControls(bool shrink)
 		setRect(r);
 		reshape(mMinWidth, getRect().getHeight());
 		
-		childSetText("client", getString("client_text_msg", mStringArgs) );
-		childSetText("network",getString("network_text_msg",mStringArgs) );
-		childSetText("server", getString("server_text_msg", mStringArgs) );
+		getChild<LLUICtrl>("client")->setValue(getString("client_text_msg", mStringArgs) );
+		getChild<LLUICtrl>("network")->setValue(getString("network_text_msg",mStringArgs) );
+		getChild<LLUICtrl>("server")->setValue(getString("server_text_msg", mStringArgs) );
 
 		// usually ">>"
 		button->setLabel( getString("bigger_label", mStringArgs) );
@@ -357,15 +350,15 @@ void LLFloaterLagMeter::updateControls(bool shrink)
 
 //	self->mClientText->setVisible(self->mShrunk);
 //	self->mClientCause->setVisible(self->mShrunk);
-//	self->childSetVisible("client_help", self->mShrunk);
+//	self->getChildView("client_help")->setVisible( self->mShrunk);
 
 //	self->mNetworkText->setVisible(self->mShrunk);
 //	self->mNetworkCause->setVisible(self->mShrunk);
-//	self->childSetVisible("network_help", self->mShrunk);
+//	self->getChildView("network_help")->setVisible( self->mShrunk);
 
 //	self->mServerText->setVisible(self->mShrunk);
 //	self->mServerCause->setVisible(self->mShrunk);
-//	self->childSetVisible("server_help", self->mShrunk);
+//	self->getChildView("server_help")->setVisible( self->mShrunk);
 
 //	self->mShrunk = !self->mShrunk;
 }

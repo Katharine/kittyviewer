@@ -31,6 +31,7 @@ include_directories(
 
 set(test_SOURCE_FILES
     io.cpp
+#    llapp_tut.cpp                      # Temporarily removed until thread issues can be solved
     llblowfish_tut.cpp
     llbuffer_tut.cpp
     lldoubledispatch_tut.cpp
@@ -76,6 +77,7 @@ endif (NOT WINDOWS)
 
 if (NOT DARWIN)
   list(APPEND test_SOURCE_FILES
+    lldatabase_tut.cpp
     )
 endif (NOT DARWIN)
 

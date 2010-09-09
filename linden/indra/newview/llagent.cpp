@@ -2,33 +2,26 @@
  * @file llagent.cpp
  * @brief LLAgent class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -174,7 +167,6 @@ LLAgent::LLAgent() :
 
 	mbAlwaysRun(false),
 	mbRunning(false),
-	mbTeleportKeepsLookAt(false),
 
 	mAgentAccess(gSavedSettings),
 	mTeleportState( TELEPORT_NONE ),
@@ -564,14 +556,6 @@ void LLAgent::standUp()
 	setControlFlags(AGENT_CONTROL_STAND_UP);
 }
 
-void LLAgent::sitDown()
-{
-	setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
-
-	// Might be first sit
-	//LLFirstUse::useSit(); // not in use anymore?
-}
-
 
 //-----------------------------------------------------------------------------
 // setRegion()
@@ -841,6 +825,11 @@ LLVector3d LLAgent::getPosGlobalFromAgent(const LLVector3 &pos_agent) const
 	LLVector3d pos_agent_d;
 	pos_agent_d.setVec(pos_agent);
 	return pos_agent_d + mAgentOriginGlobal;
+}
+
+void LLAgent::sitDown()
+{
+	setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
 }
 
 
@@ -1240,9 +1229,7 @@ void LLAgent::startAutoPilotGlobal(const LLVector3d &target_global, const std::s
 		// Do not force flying for "Sit" behavior to prevent flying after pressing "Stand"
 		// from an object. See EXT-1655.
 		if ("Sit" != mAutoPilotBehaviorName)
-		{
 			mAutoPilotFlyOnStop = TRUE;
-		}
 	}
 
 	mAutoPilot = TRUE;
@@ -3262,11 +3249,7 @@ bool LLAgent::teleportCore(bool is_local)
 
 	// local logic
 	LLViewerStats::getInstance()->incStat(LLViewerStats::ST_TELEPORT_COUNT);
-	if (is_local)
-	{
-		gAgent.setTeleportState( LLAgent::TELEPORT_LOCAL );
-	}
-	else
+	if (!is_local)
 	{
 		gTeleportDisplay = TRUE;
 		gAgent.setTeleportState( LLAgent::TELEPORT_START );
@@ -3285,14 +3268,12 @@ bool LLAgent::teleportCore(bool is_local)
 
 void LLAgent::teleportRequest(
 	const U64& region_handle,
-	const LLVector3& pos_local,
-	bool look_at_from_camera)
+	const LLVector3& pos_local)
 {
 	LLViewerRegion* regionp = getRegion();
-	bool is_local = (region_handle == to_region_handle(getPositionGlobal()));
-	if(regionp && teleportCore(is_local))
+	if(regionp && teleportCore())
 	{
-		llinfos << "TeleportLocationRequest: '" << region_handle << "':" << pos_local
+		llinfos << "TeleportRequest: '" << region_handle << "':" << pos_local
 				<< llendl;
 		LLMessageSystem* msg = gMessageSystem;
 		msg->newMessage("TeleportLocationRequest");
@@ -3303,10 +3284,6 @@ void LLAgent::teleportRequest(
 		msg->addU64("RegionHandle", region_handle);
 		msg->addVector3("Position", pos_local);
 		LLVector3 look_at(0,1,0);
-		if (look_at_from_camera)
-		{
-			look_at = LLViewerCamera::getInstance()->getAtAxis();
-		}
 		msg->addVector3("LookAt", look_at);
 		sendReliableMessage();
 	}
@@ -3418,26 +3395,12 @@ void LLAgent::teleportViaLocation(const LLVector3d& pos_global)
 	}
 }
 
-// Teleport to global position, but keep facing in the same direction 
-void LLAgent::teleportViaLocationLookAt(const LLVector3d& pos_global)
-{
-	mbTeleportKeepsLookAt = true;
-	gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);	// detach camera form avatar, so it keeps direction
-	U64 region_handle = to_region_handle(pos_global);
-	LLVector3 pos_local = (LLVector3)(pos_global - from_region_handle(region_handle));
-	teleportRequest(region_handle, pos_local, getTeleportKeepsLookAt());
-}
-
 void LLAgent::setTeleportState(ETeleportState state)
 {
 	mTeleportState = state;
 	if (mTeleportState > TELEPORT_NONE && gSavedSettings.getBOOL("FreezeTime"))
 	{
 		LLFloaterReg::hideInstance("snapshot");
-	}
-	if (mTeleportState == TELEPORT_NONE)
-	{
-		mbTeleportKeepsLookAt = false;
 	}
 	if (mTeleportState == TELEPORT_MOVING)
 	{

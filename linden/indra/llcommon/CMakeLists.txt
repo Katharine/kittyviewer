@@ -273,15 +273,6 @@ else(LLCOMMON_LINK_SHARED)
     add_library (llcommon ${llcommon_SOURCE_FILES})
 endif(LLCOMMON_LINK_SHARED)
 
-# SNOW-512 64 bit systems require -fPIC to use LL_COMMON as a DSO or in a DSO
-if(NOT WORD_SIZE EQUAL 32)
-  if(WINDOWS)
-    add_definitions(/FIXED:NO)
-  else(WINDOWS) # not windows therefore gcc LINUX and DARWIN
-    add_definitions(-fPIC)
-  endif(WINDOWS)
-endif(NOT WORD_SIZE EQUAL 32)
-
 target_link_libraries(
     llcommon
     ${BREAKPAD_EXCEPTION_HANDLER_LIBRARIES}
@@ -299,9 +290,6 @@ target_link_libraries(
 add_dependencies(llcommon stage_third_party_libs)
 
 if (LL_TESTS)
-  if (STANDALONE)
-    find_package(Tut)
-  endif (STANDALONE)
   include(LLAddBuildTest)
   SET(llcommon_TEST_SOURCE_FILES
     # unit-testing llcommon is not possible right now as the test-harness *itself* depends upon llcommon, causing a circular dependency.  Add your 'unit' tests as integration tests for now.

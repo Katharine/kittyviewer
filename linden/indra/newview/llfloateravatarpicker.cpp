@@ -1,33 +1,26 @@
 /** 
  * @file llfloateravatarpicker.cpp
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -95,14 +88,14 @@ BOOL LLFloaterAvatarPicker::postBuild()
 	getChild<LLLineEditor>("Edit")->setKeystrokeCallback( boost::bind(&LLFloaterAvatarPicker::editKeystroke, this, _1, _2),NULL);
 
 	childSetAction("Find", boost::bind(&LLFloaterAvatarPicker::onBtnFind, this));
-	childDisable("Find");
+	getChildView("Find")->setEnabled(FALSE);
 	childSetAction("Refresh", boost::bind(&LLFloaterAvatarPicker::onBtnRefresh, this));
 	getChild<LLUICtrl>("near_me_range")->setCommitCallback(boost::bind(&LLFloaterAvatarPicker::onRangeAdjust, this));
 	
 	LLScrollListCtrl* searchresults = getChild<LLScrollListCtrl>("SearchResults");
 	searchresults->setDoubleClickCallback( boost::bind(&LLFloaterAvatarPicker::onBtnSelect, this));
 	searchresults->setCommitCallback(boost::bind(&LLFloaterAvatarPicker::onList, this));
-	childDisable("SearchResults");
+	getChildView("SearchResults")->setEnabled(FALSE);
 	
 	LLScrollListCtrl* nearme = getChild<LLScrollListCtrl>("NearMe");
 	nearme->setDoubleClickCallback(boost::bind(&LLFloaterAvatarPicker::onBtnSelect, this));
@@ -113,10 +106,10 @@ BOOL LLFloaterAvatarPicker::postBuild()
 	getChild<LLUICtrl>("Friends")->setCommitCallback(boost::bind(&LLFloaterAvatarPicker::onList, this));
 
 	childSetAction("ok_btn", boost::bind(&LLFloaterAvatarPicker::onBtnSelect, this));
-	childDisable("ok_btn");
+	getChildView("ok_btn")->setEnabled(FALSE);
 	childSetAction("cancel_btn", boost::bind(&LLFloaterAvatarPicker::onBtnClose, this));
 
-	childSetFocus("Edit");
+	getChild<LLUICtrl>("Edit")->setFocus(TRUE);
 
 	LLPanel* search_panel = getChild<LLPanel>("SearchPanel");
 	if (search_panel)
@@ -146,7 +139,7 @@ void LLFloaterAvatarPicker::setOkBtnEnableCb(validate_callback_t cb)
 
 void LLFloaterAvatarPicker::onTabChanged()
 {
-	childSetEnabled("ok_btn", isSelectBtnEnabled());
+	getChildView("ok_btn")->setEnabled(isSelectBtnEnabled());
 }
 
 // Destroys the object
@@ -185,7 +178,7 @@ void LLFloaterAvatarPicker::onBtnSelect()
 	{
 		std::string acvtive_panel_name;
 		LLScrollListCtrl* list =  NULL;
-		LLPanel* active_panel = childGetVisibleTab("ResidentChooserTabs");
+		LLPanel* active_panel = getChild<LLTabContainer>("ResidentChooserTabs")->getCurrentPanel();
 		if(active_panel)
 		{
 			acvtive_panel_name = active_panel->getName();
@@ -240,7 +233,7 @@ void LLFloaterAvatarPicker::onRangeAdjust()
 
 void LLFloaterAvatarPicker::onList()
 {
-	childSetEnabled("ok_btn", isSelectBtnEnabled());
+	getChildView("ok_btn")->setEnabled(isSelectBtnEnabled());
 }
 
 void LLFloaterAvatarPicker::populateNearMe()
@@ -274,14 +267,14 @@ void LLFloaterAvatarPicker::populateNearMe()
 
 	if (empty)
 	{
-		childDisable("NearMe");
-		childDisable("ok_btn");
+		getChildView("NearMe")->setEnabled(FALSE);
+		getChildView("ok_btn")->setEnabled(FALSE);
 		near_me_scroller->setCommentText(getString("no_one_near"));
 	}
 	else 
 	{
-		childEnable("NearMe");
-		childEnable("ok_btn");
+		getChildView("NearMe")->setEnabled(TRUE);
+		getChildView("ok_btn")->setEnabled(TRUE);
 		near_me_scroller->selectFirstItem();
 		onList();
 		near_me_scroller->setFocus(TRUE);
@@ -328,7 +321,7 @@ void LLFloaterAvatarPicker::draw()
 	}
 
 	LLFloater::draw();
-	if (!mNearMeListComplete && childGetVisibleTab("ResidentChooserTabs") == getChild<LLPanel>("NearMePanel"))
+	if (!mNearMeListComplete && getChild<LLTabContainer>("ResidentChooserTabs")->getCurrentPanel() == getChild<LLPanel>("NearMePanel"))
 	{
 		populateNearMe();
 	}
@@ -336,7 +329,7 @@ void LLFloaterAvatarPicker::draw()
 
 BOOL LLFloaterAvatarPicker::visibleItemsSelected() const
 {
-	LLPanel* active_panel = childGetVisibleTab("ResidentChooserTabs");
+	LLPanel* active_panel = getChild<LLTabContainer>("ResidentChooserTabs")->getCurrentPanel();
 
 	if(active_panel == getChild<LLPanel>("SearchPanel"))
 	{
@@ -355,7 +348,7 @@ BOOL LLFloaterAvatarPicker::visibleItemsSelected() const
 
 void LLFloaterAvatarPicker::find()
 {
-	std::string text = childGetValue("Edit").asString();
+	std::string text = getChild<LLUICtrl>("Edit")->getValue().asString();
 
 	mQueryID.generate();
 
@@ -374,7 +367,7 @@ void LLFloaterAvatarPicker::find()
 	getChild<LLScrollListCtrl>("SearchResults")->deleteAllItems();
 	getChild<LLScrollListCtrl>("SearchResults")->setCommentText(getString("searching"));
 	
-	childSetEnabled("ok_btn", FALSE);
+	getChildView("ok_btn")->setEnabled(FALSE);
 	mNumResultsReturned = 0;
 }
 
@@ -389,7 +382,7 @@ LLScrollListCtrl* LLFloaterAvatarPicker::getActiveList()
 {
 	std::string acvtive_panel_name;
 	LLScrollListCtrl* list = NULL;
-	LLPanel* active_panel = childGetVisibleTab("ResidentChooserTabs");
+	LLPanel* active_panel = getChild<LLTabContainer>("ResidentChooserTabs")->getCurrentPanel();
 	if(active_panel)
 	{
 		acvtive_panel_name = active_panel->getName();
@@ -503,10 +496,10 @@ void LLFloaterAvatarPicker::processAvatarPickerReply(LLMessageSystem* msg, void*
 		if (avatar_id.isNull())
 		{
 			LLStringUtil::format_map_t map;
-			map["[TEXT]"] = floater->childGetText("Edit");
+			map["[TEXT]"] = floater->getChild<LLUICtrl>("Edit")->getValue().asString();
 			avatar_name = floater->getString("not_found", map);
 			search_results->setEnabled(FALSE);
-			floater->childDisable("ok_btn");
+			floater->getChildView("ok_btn")->setEnabled(FALSE);
 		}
 		else
 		{
@@ -522,7 +515,7 @@ void LLFloaterAvatarPicker::processAvatarPickerReply(LLMessageSystem* msg, void*
 
 	if (found_one)
 	{
-		floater->childEnable("ok_btn");
+		floater->getChildView("ok_btn")->setEnabled(TRUE);
 		search_results->selectFirstItem();
 		floater->onList();
 		search_results->setFocus(TRUE);
@@ -532,7 +525,7 @@ void LLFloaterAvatarPicker::processAvatarPickerReply(LLMessageSystem* msg, void*
 //static
 void LLFloaterAvatarPicker::editKeystroke(LLLineEditor* caller, void* user_data)
 {
-	childSetEnabled("Find", caller->getText().size() >= 3);
+	getChildView("Find")->setEnabled(caller->getText().size() >= 3);
 }
 
 // virtual
@@ -540,7 +533,7 @@ BOOL LLFloaterAvatarPicker::handleKeyHere(KEY key, MASK mask)
 {
 	if (key == KEY_RETURN && mask == MASK_NONE)
 	{
-		if (childHasFocus("Edit"))
+		if (getChild<LLUICtrl>("Edit")->hasFocus())
 		{
 			onBtnFind();
 		}
@@ -567,7 +560,7 @@ bool LLFloaterAvatarPicker::isSelectBtnEnabled()
 	{
 		std::string acvtive_panel_name;
 		LLScrollListCtrl* list =  NULL;
-		LLPanel* active_panel = childGetVisibleTab("ResidentChooserTabs");
+		LLPanel* active_panel = getChild<LLTabContainer>("ResidentChooserTabs")->getCurrentPanel();
 
 		if(active_panel)
 		{

@@ -57,7 +57,7 @@ if(LL_TESTS)
   #add unit tests
   INCLUDE(LLAddBuildTest)
   SET(llprimitive_TEST_SOURCE_FILES
-    llmediaentry.cpp
-    )
+      llmediaentry.cpp
+      )
   LL_ADD_PROJECT_UNIT_TESTS(llprimitive "${llprimitive_TEST_SOURCE_FILES}")
 endif(LL_TESTS)

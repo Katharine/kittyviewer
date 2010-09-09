@@ -2,33 +2,26 @@
  * @file llpanelpick.cpp
  * @brief LLPanelPick class implementation
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 // Display of a "Top Pick" used both for the global top picks in the 
@@ -211,6 +204,9 @@ void LLPanelPickInfo::sendParcelInfoRequest()
 {
 	if (mParcelId != mRequestedId)
 	{
+        //ext-4655, remove now incase this gets called twice without a remove
+        LLRemoteParcelInfoProcessor::getInstance()->removeObserver(mRequestedId, this);
+        
 		LLRemoteParcelInfoProcessor::getInstance()->addObserver(mParcelId, this);
 		LLRemoteParcelInfoProcessor::getInstance()->sendParcelInfoRequest(mParcelId);
 
@@ -248,13 +244,13 @@ void LLPanelPickInfo::resetControls()
 {
 	if(getAvatarId() == gAgent.getID())
 	{
-		childSetEnabled("edit_btn", TRUE);
-		childSetVisible("edit_btn", TRUE);
+		getChildView("edit_btn")->setEnabled(TRUE);
+		getChildView("edit_btn")->setVisible( TRUE);
 	}
 	else
 	{
-		childSetEnabled("edit_btn", FALSE);
-		childSetVisible("edit_btn", FALSE);
+		getChildView("edit_btn")->setEnabled(FALSE);
+		getChildView("edit_btn")->setVisible( FALSE);
 	}
 }
 
@@ -307,17 +303,17 @@ void LLPanelPickInfo::setSnapshotId(const LLUUID& id)
 
 void LLPanelPickInfo::setPickName(const std::string& name)
 {
-	childSetValue(XML_NAME, name);
+	getChild<LLUICtrl>(XML_NAME)->setValue(name);
 }
 
 void LLPanelPickInfo::setPickDesc(const std::string& desc)
 {
-	childSetValue(XML_DESC, desc);
+	getChild<LLUICtrl>(XML_DESC)->setValue(desc);
 }
 
 void LLPanelPickInfo::setPickLocation(const std::string& location)
 {
-	childSetValue(XML_LOCATION, location);
+	getChild<LLUICtrl>(XML_LOCATION)->setValue(location);
 }
 
 void LLPanelPickInfo::onClickMap()
@@ -400,8 +396,8 @@ void LLPanelPickEdit::onOpen(const LLSD& key)
 		}
 
 		setParcelID(parcel_id);
-		childSetValue("pick_name", pick_name.empty() ? region_name : pick_name);
-		childSetValue("pick_desc", pick_desc);
+		getChild<LLUICtrl>("pick_name")->setValue(pick_name.empty() ? region_name : pick_name);
+		getChild<LLUICtrl>("pick_desc")->setValue(pick_desc);
 		setSnapshotId(snapshot_id);
 		setPickLocation(createLocationText(getLocationNotice(), pick_name, region_name, getPosGlobal()));
 
@@ -429,8 +425,8 @@ void LLPanelPickEdit::setPickData(const LLPickData* pick_data)
 	mNeedData = false;
 
 	setParcelID(pick_data->parcel_id);
-	childSetValue("pick_name", pick_data->name);
-	childSetValue("pick_desc", pick_data->desc);
+	getChild<LLUICtrl>("pick_name")->setValue(pick_data->name);
+	getChild<LLUICtrl>("pick_desc")->setValue(pick_data->desc);
 	setSnapshotId(pick_data->snapshot_id);
 	setPosGlobal(pick_data->pos_global);
 	setPickLocation(createLocationText(LLStringUtil::null, pick_data->name,
@@ -512,8 +508,8 @@ void LLPanelPickEdit::sendUpdate()
 	//legacy var  need to be deleted
 	pick_data.top_pick = FALSE; 
 	pick_data.parcel_id = mParcelId;
-	pick_data.name = childGetValue(XML_NAME).asString();
-	pick_data.desc = childGetValue(XML_DESC).asString();
+	pick_data.name = getChild<LLUICtrl>(XML_NAME)->getValue().asString();
+	pick_data.desc = getChild<LLUICtrl>(XML_DESC)->getValue().asString();
 	pick_data.snapshot_id = mSnapshotCtrl->getImageAssetID();
 	pick_data.pos_global = getPosGlobal();
 	pick_data.sort_order = 0;
@@ -548,7 +544,7 @@ void LLPanelPickEdit::resetData()
 
 void LLPanelPickEdit::enableSaveButton(bool enable)
 {
-	childSetEnabled(XML_BTN_SAVE, enable);
+	getChildView(XML_BTN_SAVE)->setEnabled(enable);
 }
 
 void LLPanelPickEdit::onClickSetLocation()

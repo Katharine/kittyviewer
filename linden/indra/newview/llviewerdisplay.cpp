@@ -2,33 +2,26 @@
  * @file llviewerdisplay.cpp
  * @brief LLViewerDisplay class implementation
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -92,7 +85,6 @@ LLPointer<LLViewerTexture> gDisconnectedImagep = NULL;
 // used to toggle renderer back on after teleport
 const F32 TELEPORT_RENDER_DELAY = 20.f; // Max time a teleport is allowed to take before we raise the curtain
 const F32 TELEPORT_ARRIVAL_DELAY = 2.f; // Time to preload the world before raising the curtain after we've actually already arrived.
-const F32 TELEPORT_LOCAL_DELAY = 1.0f;  // Delay to prevent teleports after starting an in-sim teleport.
 BOOL		 gTeleportDisplay = FALSE;
 LLFrameTimer gTeleportDisplayTimer;
 LLFrameTimer gTeleportArrivalTimer;
@@ -414,18 +406,6 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot)
 			}
 			break;
 
-		case LLAgent::TELEPORT_LOCAL:
-			// Short delay when teleporting in the same sim (progress screen active but not shown - did not
-			// fall-through from TELEPORT_START)
-			{
-				if( gTeleportDisplayTimer.getElapsedTimeF32() > TELEPORT_LOCAL_DELAY )
-				{
-					//LLFirstUse::useTeleport();
-					gAgent.setTeleportState( LLAgent::TELEPORT_NONE );
-				}
-			}
-			break;
-
 		case LLAgent::TELEPORT_NONE:
 			// No teleport in progress
 			gViewerWindow->setShowProgress(FALSE);
@@ -542,14 +522,14 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot)
 	{
 		LLMemType mt_du(LLMemType::MTYPE_DISPLAY_UPDATE);
 		LLAppViewer::instance()->pingMainloopTimeout("Display:Update");
-		if (gPipeline.hasRenderType(RENDER_TYPE_HUD))
+		if (gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_HUD))
 		{ //don't draw hud objects in this frame
-			gPipeline.toggleRenderType(RENDER_TYPE_HUD);
+			gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_HUD);
 		}
 
-		if (gPipeline.hasRenderType(RENDER_TYPE_HUD_PARTICLES))
+		if (gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_HUD_PARTICLES))
 		{ //don't draw hud particles in this frame
-			gPipeline.toggleRenderType(RENDER_TYPE_HUD_PARTICLES);
+			gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_HUD_PARTICLES);
 		}
 
 		//upkeep gl name pools
@@ -580,8 +560,7 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot)
 
 		S32 water_clip = 0;
 		if ((LLViewerShaderMgr::instance()->getVertexShaderLevel(LLViewerShaderMgr::SHADER_ENVIRONMENT) > 1) &&
-			 (gPipeline.hasRenderType(RENDER_TYPE_POOL_WATER) ||
-			  gPipeline.hasRenderType(RENDER_TYPE_POOL_VOIDWATER)))
+			 gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_WATER))
 		{
 			if (LLViewerCamera::getInstance()->cameraUnderWater())
 			{
@@ -941,23 +920,23 @@ void render_hud_attachments()
 		hud_cam.setAxes(LLVector3(1,0,0), LLVector3(0,1,0), LLVector3(0,0,1));
 		LLViewerCamera::updateFrustumPlanes(hud_cam, TRUE);
 
-		bool render_particles = gPipeline.hasRenderType(RENDER_TYPE_PARTICLES) && gSavedSettings.getBOOL("RenderHUDParticles");
+		bool render_particles = gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_PARTICLES) && gSavedSettings.getBOOL("RenderHUDParticles");
 		
 		//only render hud objects
 		gPipeline.pushRenderTypeMask();
 		
 		// turn off everything
-		gPipeline.andRenderTypeMask(RENDER_TYPE_END_RENDER_TYPES);
+		gPipeline.andRenderTypeMask(LLPipeline::END_RENDER_TYPES);
 		// turn on HUD
-		gPipeline.toggleRenderType(RENDER_TYPE_HUD);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_HUD);
 		// turn on HUD particles
-		gPipeline.toggleRenderType(RENDER_TYPE_HUD_PARTICLES);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_HUD_PARTICLES);
 
 		// if particles are off, turn off hud-particles as well
 		if (!render_particles)
 		{
 			// turn back off HUD particles
-			gPipeline.toggleRenderType(RENDER_TYPE_HUD_PARTICLES);
+			gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_HUD_PARTICLES);
 		}
 
 		bool has_ui = gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI);
@@ -977,20 +956,20 @@ void render_hud_attachments()
 		LLViewerCamera::sCurCameraID = LLViewerCamera::CAMERA_WORLD;
 		gPipeline.updateCull(hud_cam, result);
 
-		gPipeline.toggleRenderType(RENDER_TYPE_POOL_BUMP);
-		gPipeline.toggleRenderType(RENDER_TYPE_POOL_SIMPLE);
-		gPipeline.toggleRenderType(RENDER_TYPE_VOLUME);
-		gPipeline.toggleRenderType(RENDER_TYPE_POOL_ALPHA);
-		gPipeline.toggleRenderType(RENDER_TYPE_POOL_FULLBRIGHT);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_ALPHA);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_ALPHA_MASK);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_BUMP);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_FULLBRIGHT);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_FULLBRIGHT_ALPHA_MASK);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_FULLBRIGHT_SHINY);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_SHINY);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_INVISIBLE);
-		gPipeline.toggleRenderType(RENDER_TYPE_PASS_INVISI_SHINY);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_BUMP);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_SIMPLE);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_VOLUME);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_ALPHA);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_FULLBRIGHT);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_ALPHA);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_ALPHA_MASK);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_BUMP);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_FULLBRIGHT);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_FULLBRIGHT_ALPHA_MASK);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_FULLBRIGHT_SHINY);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_SHINY);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_INVISIBLE);
+		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_INVISI_SHINY);
 		
 		gPipeline.stateSort(hud_cam, result);
 

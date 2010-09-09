@@ -2,33 +2,26 @@
  * @file lldatapacker.cpp
  * @brief Data packer implementation.
  *
- * $LicenseInfo:firstyear=2006&license=viewergpl$
- * 
- * Copyright (c) 2006-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2006&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "linden_common.h"
@@ -186,395 +179,370 @@ BOOL LLDataPacker::unpackFixed(F32 &value, const char *name,
 
 BOOL LLDataPackerBinaryBuffer::packString(const std::string& value, const char *name)
 {
-	S32 length = value.length()+1;	// String length + the NULL termination character
-	if (!verifyLength(length, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	S32 length = value.length()+1;
+
+	success &= verifyLength(length, name);
+
 	if (mWriteEnabled) 
 	{
 		htonmemcpy(mCurBufferp, value.c_str(), MVT_VARIABLE, length);  
 	}
 	mCurBufferp += length;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackString(std::string& value, const char *name)
 {
-	// Verify there's at least one valid byte accessible in that buffer 
-	// and run the assert buffer consistency checks.
-	// Note that warning output are done in verifyLength() already
-	if (!verifyLength(1, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	S32 length = (S32)strlen((char *)mCurBufferp) + 1; /*Flawfinder: ignore*/
 
-	// Compute the length of the mCurBufferp string *without* assuming NULL termination of that string (avoids attempt to read beyond mBufferp boundary)
-	U8 *pos = mCurBufferp;
-	U8 *end = mBufferp + mBufferSize;
-	while (pos < end)
-	{
-		if ((*pos) == '\0')
-			break;
-		++pos;
-	}
+	success &= verifyLength(length, name);
 
-	if (pos == end)
-	{
-		llwarns << "Null termination not found in BinaryBuffer unpackString, possible client exploit! field name " << name << " !" << llendl;
-		llwarns << "Current pos in buffer: " << (int)(mCurBufferp - mBufferp) << ", Buffer size: " << mBufferSize << llendl;
-		return FALSE;
-	}
-
-	S32 length = pos - mCurBufferp + 1;			// mCurBufferp string length including NULL terminator
-
-	value = std::string((char*)mCurBufferp);	// We're sure the string is NULL terminated at that point
+	value = std::string((char*)mCurBufferp); // We already assume NULL termination calling strlen()
+	
 	mCurBufferp += length;
-	return TRUE;
+	return success;
 }
 
 BOOL LLDataPackerBinaryBuffer::packBinaryData(const U8 *value, S32 size, const char *name)
 {
-	if (!verifyLength(size + sizeof(S32), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(size + 4, name);
 
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &size, MVT_S32, sizeof(S32));  
+		htonmemcpy(mCurBufferp, &size, MVT_S32, 4);  
 	}
-	mCurBufferp += sizeof(S32);
+	mCurBufferp += 4;
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value, MVT_VARIABLE, size);  
 	}
 	mCurBufferp += size;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackBinaryData(U8 *value, S32 &size, const char *name)
 {
-    if (!verifyLength(sizeof(S32), name))
+	BOOL success = TRUE;
+	success &= verifyLength(4, name);
+	htonmemcpy(&size, mCurBufferp, MVT_S32, 4);
+	mCurBufferp += 4;
+	success &= verifyLength(size, name);
+	if (success)
 	{
-		return FALSE;
+		htonmemcpy(value, mCurBufferp, MVT_VARIABLE, size);
+		mCurBufferp += size;
 	}
-
-	htonmemcpy(&size, mCurBufferp, MVT_S32, sizeof(S32));
-	mCurBufferp += sizeof(S32);
-	
-    if (!verifyLength(size, name))
+	else
 	{
-		return FALSE;
+		llwarns << "LLDataPackerBinaryBuffer::unpackBinaryData would unpack invalid data, aborting!" << llendl;
+		success = FALSE;
 	}
-
-	htonmemcpy(value, mCurBufferp, MVT_VARIABLE, size);
-	mCurBufferp += size;
-	return TRUE;	
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packBinaryDataFixed(const U8 *value, S32 size, const char *name)
 {
-	if (!verifyLength(size, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(size, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value, MVT_VARIABLE, size);  
 	}
 	mCurBufferp += size;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackBinaryDataFixed(U8 *value, S32 size, const char *name)
 {
-    if (!verifyLength(size, name))
-	{
-		return FALSE;
-	}
-
+	BOOL success = TRUE;
+	success &= verifyLength(size, name);
 	htonmemcpy(value, mCurBufferp, MVT_VARIABLE, size);
 	mCurBufferp += size;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packU8(const U8 value, const char *name)
 {
-	if (!verifyLength(sizeof(U8), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U8), name);
+
 	if (mWriteEnabled) 
 	{
 		*mCurBufferp = value;
 	}
-	mCurBufferp += sizeof(U8);
-	return TRUE;
+	mCurBufferp++;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackU8(U8 &value, const char *name)
 {
-	if (!verifyLength(sizeof(U8), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U8), name);
+
 	value = *mCurBufferp;
-	mCurBufferp += sizeof(U8);
-	return TRUE;
+	mCurBufferp++;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packU16(const U16 value, const char *name)
 {
-	if (!verifyLength(sizeof(U16), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U16), name);
+
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &value, MVT_U16, sizeof(U16));  
+		htonmemcpy(mCurBufferp, &value, MVT_U16, 2);  
 	}
-	mCurBufferp += sizeof(U16);
-	return TRUE;
+	mCurBufferp += 2;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackU16(U16 &value, const char *name)
 {
-	
-	if (!verifyLength(sizeof(U16), name))
-	{
-		return FALSE;
-	}
-	htonmemcpy(&value, mCurBufferp, MVT_U16, sizeof(U16));
-	mCurBufferp += sizeof(U16);
-	return TRUE;
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U16), name);
+
+	htonmemcpy(&value, mCurBufferp, MVT_U16, 2);
+	mCurBufferp += 2;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packU32(const U32 value, const char *name)
 {
-	if (!verifyLength(sizeof(U32), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U32), name);
+
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &value, MVT_U32, sizeof(U32));  
+		htonmemcpy(mCurBufferp, &value, MVT_U32, 4);  
 	}
-	mCurBufferp += sizeof(U32);
-	return TRUE;
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackU32(U32 &value, const char *name)
 {
-	if (!verifyLength(sizeof(U32), name))
-	{
-		return FALSE;
-	}
-	htonmemcpy(&value, mCurBufferp, MVT_U32, sizeof(U32));
-	mCurBufferp += sizeof(U32);
-	return TRUE;
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(U32), name);
+
+	htonmemcpy(&value, mCurBufferp, MVT_U32, 4);
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packS32(const S32 value, const char *name)
 {
-	if (!verifyLength(sizeof(S32), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(S32), name);
+
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &value, MVT_S32, sizeof(S32)); 
+		htonmemcpy(mCurBufferp, &value, MVT_S32, 4); 
 	}
-	mCurBufferp += sizeof(S32);
-	return TRUE;
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackS32(S32 &value, const char *name)
 {
-	if (!verifyLength(sizeof(S32), name))
-	{
-		return FALSE;
-	}
-	htonmemcpy(&value, mCurBufferp, MVT_S32, sizeof(S32));
-	mCurBufferp += sizeof(S32);
-	return TRUE;
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(S32), name);
+
+	htonmemcpy(&value, mCurBufferp, MVT_S32, 4);
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packF32(const F32 value, const char *name)
 {
-	if (!verifyLength(sizeof(F32), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(F32), name);
+
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &value, MVT_F32, sizeof(F32)); 
+		htonmemcpy(mCurBufferp, &value, MVT_F32, 4); 
 	}
-	mCurBufferp += sizeof(F32);
-	return TRUE;
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackF32(F32 &value, const char *name)
 {
-	if (!verifyLength(sizeof(F32), name))
-	{
-		return FALSE;
-	}
-	htonmemcpy(&value, mCurBufferp, MVT_F32, sizeof(F32));
-	mCurBufferp += sizeof(F32);
-	return TRUE;
+	BOOL success = TRUE;
+	success &= verifyLength(sizeof(F32), name);
+
+	htonmemcpy(&value, mCurBufferp, MVT_F32, 4);
+	mCurBufferp += 4;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packColor4(const LLColor4 &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value.mV, MVT_LLVector4, 16); 
 	}
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackColor4(LLColor4 &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	htonmemcpy(value.mV, mCurBufferp, MVT_LLVector4, 16);
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packColor4U(const LLColor4U &value, const char *name)
 {
-	if (!verifyLength(4, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(4, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value.mV, MVT_VARIABLE, 4);  
 	}
 	mCurBufferp += 4;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackColor4U(LLColor4U &value, const char *name)
 {
-	if (!verifyLength(4, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(4, name);
+
 	htonmemcpy(value.mV, mCurBufferp, MVT_VARIABLE, 4);
 	mCurBufferp += 4;
-	return TRUE;
+	return success;
 }
+
+
 
 BOOL LLDataPackerBinaryBuffer::packVector2(const LLVector2 &value, const char *name)
 {
-	if (!verifyLength(2*sizeof(F32), name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(8, name);
+
 	if (mWriteEnabled) 
 	{ 
-		htonmemcpy(mCurBufferp, &value.mV[0], MVT_F32, sizeof(F32));  
-		htonmemcpy(mCurBufferp+sizeof(F32), &value.mV[1], MVT_F32, sizeof(F32));  
+		htonmemcpy(mCurBufferp, &value.mV[0], MVT_F32, 4);  
+		htonmemcpy(mCurBufferp+4, &value.mV[1], MVT_F32, 4);  
 	}
-	mCurBufferp += 2*sizeof(F32);
-	return TRUE;
+	mCurBufferp += 8;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackVector2(LLVector2 &value, const char *name)
 {
-	if (!verifyLength(2*sizeof(F32), name))
-	{
-		return FALSE;
-	}
-	htonmemcpy(&value.mV[0], mCurBufferp, MVT_F32, sizeof(F32));
-	htonmemcpy(&value.mV[1], mCurBufferp+sizeof(F32), MVT_F32, sizeof(F32));
-	mCurBufferp += 2*sizeof(F32);
-	return TRUE;
+	BOOL success = TRUE;
+	success &= verifyLength(8, name);
+
+	htonmemcpy(&value.mV[0], mCurBufferp, MVT_F32, 4);
+	htonmemcpy(&value.mV[1], mCurBufferp+4, MVT_F32, 4);
+	mCurBufferp += 8;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::packVector3(const LLVector3 &value, const char *name)
 {
-	if (!verifyLength(12, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(12, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value.mV, MVT_LLVector3, 12);  
 	}
 	mCurBufferp += 12;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackVector3(LLVector3 &value, const char *name)
 {
-	if (!verifyLength(12, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(12, name);
+
 	htonmemcpy(value.mV, mCurBufferp, MVT_LLVector3, 12);
 	mCurBufferp += 12;
-	return TRUE;
+	return success;
 }
 
 BOOL LLDataPackerBinaryBuffer::packVector4(const LLVector4 &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value.mV, MVT_LLVector4, 16);  
 	}
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackVector4(LLVector4 &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	htonmemcpy(value.mV, mCurBufferp, MVT_LLVector4, 16);
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
 
 BOOL LLDataPackerBinaryBuffer::packUUID(const LLUUID &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	if (mWriteEnabled) 
 	{ 
 		htonmemcpy(mCurBufferp, value.mData, MVT_LLUUID, 16);  
 	}
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
+
 
 BOOL LLDataPackerBinaryBuffer::unpackUUID(LLUUID &value, const char *name)
 {
-	if (!verifyLength(16, name))
-	{
-		return FALSE;
-	}
+	BOOL success = TRUE;
+	success &= verifyLength(16, name);
+
 	htonmemcpy(value.mData, mCurBufferp, MVT_LLUUID, 16);
 	mCurBufferp += 16;
-	return TRUE;
+	return success;
 }
 
 const LLDataPackerBinaryBuffer&	LLDataPackerBinaryBuffer::operator=(const LLDataPackerBinaryBuffer &a)
@@ -623,11 +591,11 @@ BOOL LLDataPackerAsciiBuffer::packString(const std::string& value, const char *n
 	int numCopied = 0;
 	if (mWriteEnabled) 
 	{
-		numCopied = snprintf(mCurBufferp, getBufferSize() - getCurrentSize(), "%s\n", value.c_str());		/* Flawfinder: ignore */
+		numCopied = snprintf(mCurBufferp,getBufferSize()-getCurrentSize(),"%s\n", value.c_str());		/* Flawfinder: ignore */
 	}
 	else
 	{
-		numCopied = value.length() + 1; /*Flawfinder: ignore*/ // value.length() + \n
+		numCopied = value.length() + 1; /*Flawfinder: ignore*/
 	}
 
 	// snprintf returns number of bytes that would have been written
@@ -636,12 +604,11 @@ BOOL LLDataPackerAsciiBuffer::packString(const std::string& value, const char *n
 	// to detect truncation, and if there is any, only account for the
 	// actual number of bytes written..and not what could have been
 	// written.
-	if ((numCopied < 0) || (numCopied > (getBufferSize() - getCurrentSize())))
+	if (numCopied < 0 || numCopied > getBufferSize()-getCurrentSize())
 	{
 		// *NOTE: I believe we need to mark a failure bit at this point.
-	    numCopied = getBufferSize() - getCurrentSize();
+	    numCopied = getBufferSize()-getCurrentSize();
 		llwarns << "LLDataPackerAsciiBuffer::packString: string truncated: " << value << llendl;
-		success = FALSE;
 	}
 	mCurBufferp += numCopied;
 	return success;
@@ -1335,7 +1302,7 @@ void LLDataPackerAsciiBuffer::writeIndentedName(const char *name)
 		int numCopied = 0;
 		if (mWriteEnabled)
 		{
-			numCopied = snprintf(mCurBufferp, getBufferSize() - getCurrentSize(), "%s\t", name);	/* Flawfinder: ignore */
+			numCopied = snprintf(mCurBufferp,getBufferSize()-getCurrentSize(),"%s\t", name);	/* Flawfinder: ignore */
 		}
 		else
 		{
@@ -1348,11 +1315,12 @@ void LLDataPackerAsciiBuffer::writeIndentedName(const char *name)
 		// to detect truncation, and if there is any, only account for the
 		// actual number of bytes written..and not what could have been
 		// written.
-		if ((numCopied < 0) || (numCopied > (getBufferSize() - getCurrentSize())))
+		if (numCopied < 0 || numCopied > getBufferSize()-getCurrentSize())
 		{
-			numCopied = getBufferSize() - getCurrentSize();
-			llwarns << "LLDataPackerAsciiBuffer::writeIndentedName: truncated : " << name << llendl;
+			numCopied = getBufferSize()-getCurrentSize();
+			llwarns << "LLDataPackerAsciiBuffer::writeIndentedName: truncated: " << llendl;
 		}
+
 		mCurBufferp += numCopied;
 	}
 }
@@ -1362,11 +1330,11 @@ BOOL LLDataPackerAsciiBuffer::getValueStr(const char *name, char *out_value, S32
 	BOOL success = TRUE;
 	char buffer[DP_BUFSIZE];	/* Flawfinder: ignore */
 	char keyword[DP_BUFSIZE];	/* Flawfinder: ignore */
-	char value[DP_BUFSIZE];		/* Flawfinder: ignore */
+	char value[DP_BUFSIZE];	/* Flawfinder: ignore */
 
-	buffer[0]  = '\0';
+	buffer[0] = '\0';
 	keyword[0] = '\0';
-	value[0]   = '\0';
+	value[0] = '\0';
 
 	if (mIncludeNames)
 	{
@@ -1380,7 +1348,7 @@ BOOL LLDataPackerAsciiBuffer::getValueStr(const char *name, char *out_value, S32
 		if (strcmp(keyword, name))
 		{
 			llwarns << "Data packer expecting keyword of type " << name << ", got " << keyword << " instead!" << llendl;
-			success = FALSE;
+			return FALSE;
 		}
 	}
 	else
@@ -1391,13 +1359,10 @@ BOOL LLDataPackerAsciiBuffer::getValueStr(const char *name, char *out_value, S32
 		mCurBufferp += (S32)strlen(value) + 1;	/* Flawfinder: ignore */
 	}
 
-	if (success)
-	{
-		S32 in_value_len = (S32)strlen(value)+1;	/* Flawfinder: ignore */
-		S32 min_len = llmin(in_value_len, value_len);
-		memcpy(out_value, value, min_len);	/* Flawfinder: ignore */
-		out_value[min_len-1] = '\0';
-	}
+	S32 in_value_len = (S32)strlen(value)+1;	/* Flawfinder: ignore */
+	S32 min_len = llmin(in_value_len, value_len);
+	memcpy(out_value, value, min_len);	/* Flawfinder: ignore */
+	out_value[min_len-1] = 0;
 
 	return success;
 }

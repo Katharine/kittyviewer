@@ -41,9 +41,9 @@
 ##   driver bug, try enabling this option and report whether it helps:
 #export LL_ATI_MOUSE_CURSOR_BUG=x
 
-## - If you experience crashes with streaming video and music, you can
-##   disable these by enabling this option:
-#export LL_DISABLE_GSTREAMER=x
+if [ "`uname -m`" = "x86_64" ]; then
+    echo '64-bit Linux detected.'
+fi
 
 ## Everything below this line is just for advanced troubleshooters.
 ##-------------------------------------------------------------------
@@ -110,9 +110,8 @@ if [ -n "$LL_TCMALLOC" ]; then
     fi
 fi
 
-export VIEWER_BINARY='kittyviewer-do-not-run-directly'
 export SL_ENV='LD_LIBRARY_PATH="`pwd`"/lib:"${LD_LIBRARY_PATH}"'
-export SL_CMD='$LL_WRAPPER bin/$VIEWER_BINARY'
+export SL_CMD='$LL_WRAPPER bin/do-not-directly-run-kittyviewer-bin'
 export SL_OPT="`cat etc/gridargs.dat` $@"
 
 # Run the program
@@ -131,7 +130,7 @@ if [ -n "$LL_RUN_ERR" ]; then
 			cat << EOFMARKER
 You are running the Second Life Viewer on a x86_64 platform.  The
 most common problems when launching the Viewer (particularly
-'bin/$VIEWER_BINARY: not found' and 'error while
+'bin/do-not-directly-run-kittyviewer-bin: not found' and 'error while
 loading shared libraries') may be solved by installing your Linux
 distribution's 32-bit compatibility packages.
 For example, on Ubuntu and other Debian-based Linuxes you might run:

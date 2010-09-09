@@ -2,33 +2,26 @@
  * @file llfloatertools.cpp
  * @brief The edit tools, including move, position, land, etc.
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -229,13 +222,13 @@ BOOL	LLFloaterTools::postBuild()
 	mTitleMedia			= getChild<LLMediaCtrl>("title_media");
 	
 	mCheckSelectIndividual	= getChild<LLCheckBoxCtrl>("checkbox edit linked parts");	
-	childSetValue("checkbox edit linked parts",(BOOL)gSavedSettings.getBOOL("EditLinkedParts"));
+	getChild<LLUICtrl>("checkbox edit linked parts")->setValue((BOOL)gSavedSettings.getBOOL("EditLinkedParts"));
 	mCheckSnapToGrid		= getChild<LLCheckBoxCtrl>("checkbox snap to grid");
-	childSetValue("checkbox snap to grid",(BOOL)gSavedSettings.getBOOL("SnapEnabled"));
+	getChild<LLUICtrl>("checkbox snap to grid")->setValue((BOOL)gSavedSettings.getBOOL("SnapEnabled"));
 	mCheckStretchUniform	= getChild<LLCheckBoxCtrl>("checkbox uniform");
-	childSetValue("checkbox uniform",(BOOL)gSavedSettings.getBOOL("ScaleUniform"));
+	getChild<LLUICtrl>("checkbox uniform")->setValue((BOOL)gSavedSettings.getBOOL("ScaleUniform"));
 	mCheckStretchTexture	= getChild<LLCheckBoxCtrl>("checkbox stretch textures");
-	childSetValue("checkbox stretch textures",(BOOL)gSavedSettings.getBOOL("ScaleStretchTextures"));
+	getChild<LLUICtrl>("checkbox stretch textures")->setValue((BOOL)gSavedSettings.getBOOL("ScaleStretchTextures"));
 	mComboGridMode			= getChild<LLComboBox>("combobox grid mode");
 	mCheckStretchUniformLabel = getChild<LLTextBox>("checkbox uniform label");
 
@@ -255,21 +248,21 @@ BOOL	LLFloaterTools::postBuild()
 		}
 	}
 	mCheckCopySelection = getChild<LLCheckBoxCtrl>("checkbox copy selection");
-	childSetValue("checkbox copy selection",(BOOL)gSavedSettings.getBOOL("CreateToolCopySelection"));
+	getChild<LLUICtrl>("checkbox copy selection")->setValue((BOOL)gSavedSettings.getBOOL("CreateToolCopySelection"));
 	mCheckSticky = getChild<LLCheckBoxCtrl>("checkbox sticky");
-	childSetValue("checkbox sticky",(BOOL)gSavedSettings.getBOOL("CreateToolKeepSelected"));
+	getChild<LLUICtrl>("checkbox sticky")->setValue((BOOL)gSavedSettings.getBOOL("CreateToolKeepSelected"));
 	mCheckCopyCenters = getChild<LLCheckBoxCtrl>("checkbox copy centers");
-	childSetValue("checkbox copy centers",(BOOL)gSavedSettings.getBOOL("CreateToolCopyCenters"));
+	getChild<LLUICtrl>("checkbox copy centers")->setValue((BOOL)gSavedSettings.getBOOL("CreateToolCopyCenters"));
 	mCheckCopyRotates = getChild<LLCheckBoxCtrl>("checkbox copy rotates");
-	childSetValue("checkbox copy rotates",(BOOL)gSavedSettings.getBOOL("CreateToolCopyRotates"));
+	getChild<LLUICtrl>("checkbox copy rotates")->setValue((BOOL)gSavedSettings.getBOOL("CreateToolCopyRotates"));
 
 	mRadioGroupLand			= getChild<LLRadioGroup>("land_radio_group");
 	mBtnApplyToSelection	= getChild<LLButton>("button apply to selection");
 	mSliderDozerSize		= getChild<LLSlider>("slider brush size");
-	childSetValue( "slider brush size", gSavedSettings.getF32("LandBrushSize"));
+	getChild<LLUICtrl>("slider brush size")->setValue(gSavedSettings.getF32("LandBrushSize"));
 	mSliderDozerForce		= getChild<LLSlider>("slider force");
 	// the setting stores the actual force multiplier, but the slider is logarithmic, so we convert here
-	childSetValue( "slider force", log10(gSavedSettings.getF32("LandBrushForce")));
+	getChild<LLUICtrl>("slider force")->setValue(log10(gSavedSettings.getF32("LandBrushForce")));
 
 	mTab = getChild<LLTabContainer>("Object Info Tabs");
 	if(mTab)
@@ -422,25 +415,25 @@ void LLFloaterTools::refresh()
 	LLLocale locale(LLLocale::USER_LOCALE);
 	std::string obj_count_string;
 	LLResMgr::getInstance()->getIntegerString(obj_count_string, LLSelectMgr::getInstance()->getSelection()->getRootObjectCount());
-	childSetTextArg("obj_count",  "[COUNT]", obj_count_string);	
+	getChild<LLUICtrl>("obj_count")->setTextArg("[COUNT]", obj_count_string);	
 	std::string prim_count_string;
 	LLResMgr::getInstance()->getIntegerString(prim_count_string, LLSelectMgr::getInstance()->getSelection()->getObjectCount());
-	childSetTextArg("prim_count", "[COUNT]", prim_count_string);
+	getChild<LLUICtrl>("prim_count")->setTextArg("[COUNT]", prim_count_string);
 
 	// calculate selection rendering cost
 	if (sShowObjectCost)
 	{
 		std::string prim_cost_string;
 		LLResMgr::getInstance()->getIntegerString(prim_cost_string, calcRenderCost());
-		childSetTextArg("RenderingCost", "[COUNT]", prim_cost_string);
+		getChild<LLUICtrl>("RenderingCost")->setTextArg("[COUNT]", prim_cost_string);
 	}
 
 
 	// disable the object and prim counts if nothing selected
 	bool have_selection = ! LLSelectMgr::getInstance()->getSelection()->isEmpty();
-	childSetEnabled("obj_count", have_selection);
-	childSetEnabled("prim_count", have_selection);
-	childSetEnabled("RenderingCost", have_selection && sShowObjectCost);
+	getChildView("obj_count")->setEnabled(have_selection);
+	getChildView("prim_count")->setEnabled(have_selection);
+	getChildView("RenderingCost")->setEnabled(have_selection && sShowObjectCost);
 
 	// Refresh child tabs
 	mPanelPermissions->refresh();
@@ -508,8 +501,8 @@ void LLFloaterTools::updatePopup(LLCoordGL center, MASK mask)
 	mBtnFocus	->setToggleState( focus_visible );
 
 	mRadioGroupFocus->setVisible( focus_visible );
-	childSetVisible("slider zoom", focus_visible);
-	childSetEnabled("slider zoom", gCameraBtnZoom);
+	getChildView("slider zoom")->setVisible( focus_visible);
+	getChildView("slider zoom")->setEnabled(gCameraBtnZoom);
 
 	if (!gCameraBtnOrbit &&
 		!gCameraBtnPan &&
@@ -534,7 +527,7 @@ void LLFloaterTools::updatePopup(LLCoordGL center, MASK mask)
 	}
 
 	// multiply by correction factor because volume sliders go [0, 0.5]
-	childSetValue( "slider zoom", gAgentCamera.getCameraZoomFraction() * 0.5f);
+	getChild<LLUICtrl>("slider zoom")->setValue(gAgentCamera.getCameraZoomFraction() * 0.5f);
 
 	// Move buttons
 	BOOL move_visible = (tool == LLToolGrab::getInstance());
@@ -572,7 +565,7 @@ void LLFloaterTools::updatePopup(LLCoordGL center, MASK mask)
 	mBtnEdit	->setToggleState( edit_visible );
 	mRadioGroupEdit->setVisible( edit_visible );
 	bool linked_parts = gSavedSettings.getBOOL("EditLinkedParts");
-	childSetVisible("RenderingCost", !linked_parts && (edit_visible || focus_visible || move_visible) && sShowObjectCost);
+	getChildView("RenderingCost")->setVisible( !linked_parts && (edit_visible || focus_visible || move_visible) && sShowObjectCost);
 
 	if (mCheckSelectIndividual)
 	{
@@ -715,17 +708,17 @@ void LLFloaterTools::updatePopup(LLCoordGL center, MASK mask)
 	if (mSliderDozerSize)
 	{
 		mSliderDozerSize	->setVisible( land_visible );
-		childSetVisible("Bulldozer:", land_visible);
-		childSetVisible("Dozer Size:", land_visible);
+		getChildView("Bulldozer:")->setVisible( land_visible);
+		getChildView("Dozer Size:")->setVisible( land_visible);
 	}
 	if (mSliderDozerForce)
 	{
 		mSliderDozerForce	->setVisible( land_visible );
-		childSetVisible("Strength:", land_visible);
+		getChildView("Strength:")->setVisible( land_visible);
 	}
 
-	childSetVisible("obj_count", !land_visible);
-	childSetVisible("prim_count", !land_visible);
+	getChildView("obj_count")->setVisible( !land_visible);
+	getChildView("prim_count")->setVisible( !land_visible);
 	mTab->setVisible(!land_visible);
 	mPanelLandInfo->setVisible(land_visible);
 }
@@ -1092,7 +1085,7 @@ void LLFloaterTools::getMediaState()
 		  &&first_object->permModify() 
 	      ))
 	{
-		childSetEnabled("Add_Media",  FALSE);
+		getChildView("Add_Media")->setEnabled(FALSE);
 		media_info->clear();
 		clearMediaSettings();
 		return;
@@ -1103,7 +1096,7 @@ void LLFloaterTools::getMediaState()
 	
 	if(!has_media_capability)
 	{
-		childSetEnabled("Add_Media",  FALSE);
+		getChildView("Add_Media")->setEnabled(FALSE);
 		LL_WARNS("LLFloaterTools: media") << "Media not enabled (no capability) in this region!" << LL_ENDL;
 		clearMediaSettings();
 		return;
@@ -1195,7 +1188,7 @@ void LLFloaterTools::getMediaState()
 	// update UI depending on whether "object" (prim or face) has media
 	// and whether or not you are allowed to edit it.
 	
-	childSetEnabled("Add_Media",  editable);
+	getChildView("Add_Media")->setEnabled(editable);
 	// IF all the faces have media (or all dont have media)
 	if ( LLFloaterMediaSettings::getInstance()->mIdenticalHasMediaInfo )
 	{
@@ -1222,10 +1215,10 @@ void LLFloaterTools::getMediaState()
 			mNeedMediaTitle = false;
 		}
 		
-		childSetEnabled("media_tex",  bool_has_media && editable);
-		childSetEnabled( "edit_media", bool_has_media && LLFloaterMediaSettings::getInstance()->mIdenticalHasMediaInfo && editable );
-		childSetEnabled( "delete_media", bool_has_media && editable );
-		childSetEnabled( "add_media", ( ! bool_has_media ) && editable );
+		getChildView("media_tex")->setEnabled(bool_has_media && editable);
+		getChildView("edit_media")->setEnabled(bool_has_media && LLFloaterMediaSettings::getInstance()->mIdenticalHasMediaInfo && editable );
+		getChildView("delete_media")->setEnabled(bool_has_media && editable );
+		getChildView("add_media")->setEnabled(( ! bool_has_media ) && editable );
 			// TODO: display a list of all media on the face - use 'identical' flag
 	}
 	else // not all face has media but at least one does.
@@ -1252,10 +1245,10 @@ void LLFloaterTools::getMediaState()
 			}
 		}
 		
-		childSetEnabled("media_tex",  TRUE);
-		childSetEnabled( "edit_media", LLFloaterMediaSettings::getInstance()->mIdenticalHasMediaInfo);
-		childSetEnabled( "delete_media", TRUE);
-		childSetEnabled( "add_media", FALSE );
+		getChildView("media_tex")->setEnabled(TRUE);
+		getChildView("edit_media")->setEnabled(LLFloaterMediaSettings::getInstance()->mIdenticalHasMediaInfo);
+		getChildView("delete_media")->setEnabled(TRUE);
+		getChildView("add_media")->setEnabled(FALSE );
 	}
 	media_info->setText(media_title);
 	

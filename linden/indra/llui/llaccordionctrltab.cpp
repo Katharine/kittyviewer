@@ -2,38 +2,32 @@
  * @file LLAccordionCtrlTab.cpp
  * @brief Collapsible control implementation
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "linden_common.h"
 
 #include "llaccordionctrltab.h"
+#include "llaccordionctrl.h"
 
 #include "lllocalcliprect.h"
 #include "llscrollbar.h"
@@ -373,9 +367,11 @@ LLAccordionCtrlTab::LLAccordionCtrlTab(const LLAccordionCtrlTab::Params&p)
 	mHeader = LLUICtrlFactory::create<LLAccordionCtrlTabHeader>(headerParams);
 	addChild(mHeader, 1);
 
-	if (mSelectionEnabled)
+	LLFocusableElement::setFocusReceivedCallback(boost::bind(&LLAccordionCtrlTab::selectOnFocusReceived, this));
+
+	if (!p.selection_enabled)
 	{
-		LLFocusableElement::setFocusReceivedCallback(boost::bind(&LLAccordionCtrlTab::selectOnFocusReceived, this));
+		LLFocusableElement::setFocusLostCallback(boost::bind(&LLAccordionCtrlTab::deselectOnFocusLost, this));
 	}
 
 	reshape(100, 200,FALSE);
@@ -600,6 +596,15 @@ void LLAccordionCtrlTab::selectOnFocusReceived()
 		getParent()->notifyParent(LLSD().with("action", "select_current"));
 }
 
+void LLAccordionCtrlTab::deselectOnFocusLost()
+{
+	if(getParent()) // A parent may not be set if tabs are added dynamically.
+	{
+		getParent()->notifyParent(LLSD().with("action", "deselect_current"));
+	}
+
+}
+
 S32 LLAccordionCtrlTab::getHeaderHeight()
 {
 	return mHeaderVisible?HEADER_HEIGHT:0; 
@@ -700,7 +705,7 @@ S32	LLAccordionCtrlTab::notifyParent(const LLSD& info)
 				setRect(panel_rect);
 			}
 			
-			//LLAccordionCtrl should rearrange accodion tab if one of accordion change its size
+			//LLAccordionCtrl should rearrange accordion tab if one of accordion change its size
 			if (getParent()) // A parent may not be set if tabs are added dynamically.
 				getParent()->notifyParent(info);
 			return 1;
@@ -711,6 +716,27 @@ S32	LLAccordionCtrlTab::notifyParent(const LLSD& info)
 			return 1;
 		}
 	}
+	else if (info.has("scrollToShowRect"))
+	{
+		LLAccordionCtrl* parent = dynamic_cast<LLAccordionCtrl*>(getParent());
+		if (parent && parent->getFitParent())
+		{
+			//	EXT-8285 ('No attachments worn' text appears at the bottom of blank 'Attachments' accordion)
+			//	The problem was in passing message "scrollToShowRect" IN LLAccordionCtrlTab::notifyParent
+			//	FROM child LLScrollContainer TO parent LLAccordionCtrl with "it_parent" set to true.
+
+			//	It is wrong notification for parent accordion which leads to recursive call of adjustContainerPanel
+			//	As the result of recursive call of adjustContainerPanel we got LLAccordionCtrlTab
+			//	that reshaped and re-sized with different rectangles.
+
+			//	LLAccordionCtrl has own scrollContainer and LLAccordionCtrlTab has own scrollContainer
+			//	both should handle own scroll container's event.
+			//	So, if parent accordion "fit_parent" accordion tab should handle its scroll container events itself.
+
+			return 1;
+		}
+	}
+
 	return LLUICtrl::notifyParent(info);
 }
 

@@ -2,33 +2,26 @@
  * @file llfloaterpreference.cpp
  * @brief Global preferences with and without persistence.
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 /*
@@ -145,7 +138,7 @@ LLVoiceSetKeyDialog::LLVoiceSetKeyDialog(const LLSD& key)
 BOOL LLVoiceSetKeyDialog::postBuild()
 {
 	childSetAction("Cancel", onCancel, this);
-	childSetFocus("Cancel");
+	getChild<LLUICtrl>("Cancel")->setFocus(TRUE);
 	
 	gFocusMgr.setKeystrokesOnly(TRUE);
 	
@@ -331,7 +324,7 @@ BOOL LLFloaterPreference::postBuild()
 		tabcontainer->selectFirstTab();
 
 	std::string cache_location = gDirUtilp->getExpandedFilename(LL_PATH_CACHE, "");
-	childSetText("cache_location", cache_location);
+	getChild<LLUICtrl>("cache_location")->setValue(cache_location);
 
 	// if floater is opened before login set default localized busy message
 	if (LLStartUp::getStartupState() < STATE_STARTED)
@@ -427,28 +420,28 @@ void LLFloaterPreference::apply()
 	fov_slider->setMaxValue(LLViewerCamera::getInstance()->getMaxView());
 	
 	std::string cache_location = gDirUtilp->getExpandedFilename(LL_PATH_CACHE, "");
-	childSetText("cache_location", cache_location);		
+	getChild<LLUICtrl>("cache_location")->setValue(cache_location);		
 	
-	LLViewerMedia::setCookiesEnabled(childGetValue("cookies_enabled"));
+	LLViewerMedia::setCookiesEnabled(getChild<LLUICtrl>("cookies_enabled")->getValue());
 	
 	if(hasChild("web_proxy_enabled") &&hasChild("web_proxy_editor") && hasChild("web_proxy_port"))
 	{
-		bool proxy_enable = childGetValue("web_proxy_enabled");
-		std::string proxy_address = childGetValue("web_proxy_editor");
-		int proxy_port = childGetValue("web_proxy_port");
+		bool proxy_enable = getChild<LLUICtrl>("web_proxy_enabled")->getValue();
+		std::string proxy_address = getChild<LLUICtrl>("web_proxy_editor")->getValue();
+		int proxy_port = getChild<LLUICtrl>("web_proxy_port")->getValue();
 		LLViewerMedia::setProxyConfig(proxy_enable, proxy_address, proxy_port);
 	}
 	
 //	LLWString busy_response = utf8str_to_wstring(getChild<LLUICtrl>("busy_response")->getValue().asString());
 //	LLWStringUtil::replaceTabsWithSpaces(busy_response, 4);
 
-	gSavedSettings.setBOOL("PlainTextChatHistory", childGetValue("plain_text_chat_history").asBoolean());
+	gSavedSettings.setBOOL("PlainTextChatHistory", getChild<LLUICtrl>("plain_text_chat_history")->getValue().asBoolean());
 	
 	if(mGotPersonalInfo)
 	{ 
 //		gSavedSettings.setString("BusyModeResponse2", std::string(wstring_to_utf8str(busy_response)));
-		bool new_im_via_email = childGetValue("send_im_to_email").asBoolean();
-		bool new_hide_online = childGetValue("online_visibility").asBoolean();		
+		bool new_im_via_email = getChild<LLUICtrl>("send_im_to_email")->getValue().asBoolean();
+		bool new_hide_online = getChild<LLUICtrl>("online_visibility")->getValue().asBoolean();		
 	
 		if((new_im_via_email != mOriginalIMViaEmail)
 			||(new_hide_online != mOriginalHideOnlineStatus))
@@ -546,13 +539,13 @@ void LLFloaterPreference::onOpen(const LLSD& key)
 				maturity_list->deleteItems(LLSD(SIM_ACCESS_ADULT));
 			}
 		}
-		childSetVisible("maturity_desired_combobox", true);
-		childSetVisible("maturity_desired_textbox", false);
+		getChildView("maturity_desired_combobox")->setVisible( true);
+		getChildView("maturity_desired_textbox")->setVisible( false);
 	}
 	else
 	{
-		childSetText("maturity_desired_textbox",  maturity_combo->getSelectedItemLabel());
-		childSetVisible("maturity_desired_combobox", false);
+		getChild<LLUICtrl>("maturity_desired_textbox")->setValue(maturity_combo->getSelectedItemLabel());
+		getChildView("maturity_desired_combobox")->setVisible( false);
 	}
 
 	// Display selected maturity icons.
@@ -931,7 +924,7 @@ void LLFloaterPreference::refreshEnabledState()
 	// now turn off any features that are unavailable
 	disableUnavailableSettings();
 
-	childSetEnabled ("block_list", LLLoginInstance::getInstance()->authSuccess());
+	getChildView("block_list")->setEnabled(LLLoginInstance::getInstance()->authSuccess());
 }
 
 void LLFloaterPreference::disableUnavailableSettings()
@@ -1102,7 +1095,7 @@ void LLFloaterPreference::onClickSetKey()
 
 void LLFloaterPreference::setKey(KEY key)
 {
-	childSetValue("modifier_combo", LLKeyboard::stringFromKey(key));
+	getChild<LLUICtrl>("modifier_combo")->setValue(LLKeyboard::stringFromKey(key));
 	// update the control right away since we no longer wait for apply
 	getChild<LLUICtrl>("modifier_combo")->onCommit();
 }
@@ -1215,47 +1208,46 @@ void LLFloaterPreference::setPersonalInfo(const std::string& visibility, bool im
 	if(visibility == VISIBILITY_DEFAULT)
 	{
 		mOriginalHideOnlineStatus = false;
-		childEnable("online_visibility"); 	 
+		getChildView("online_visibility")->setEnabled(TRUE); 	 
 	}
 	else if(visibility == VISIBILITY_HIDDEN)
 	{
 		mOriginalHideOnlineStatus = true;
-		childEnable("online_visibility"); 	 
+		getChildView("online_visibility")->setEnabled(TRUE); 	 
 	}
 	else
 	{
 		mOriginalHideOnlineStatus = true;
 	}
 	
-	childEnable("include_im_in_chat_history");
-	childEnable("show_timestamps_check_im");
-	childEnable("friends_online_notify_checkbox");
+	getChildView("include_im_in_chat_history")->setEnabled(TRUE);
+	getChildView("show_timestamps_check_im")->setEnabled(TRUE);
+	getChildView("friends_online_notify_checkbox")->setEnabled(TRUE);
 	
-	childSetValue("online_visibility", mOriginalHideOnlineStatus); 	 
-	childSetLabelArg("online_visibility", "[DIR_VIS]", mDirectoryVisibility);
-	childEnable("send_im_to_email");
-	childSetValue("send_im_to_email", im_via_email);
-	childEnable("plain_text_chat_history");
-	childSetValue("plain_text_chat_history", gSavedSettings.getBOOL("PlainTextChatHistory"));
-	childEnable("log_instant_messages");
-//	childEnable("log_chat");
-//	childEnable("busy_response");
-//	childEnable("log_instant_messages_timestamp");
-//	childEnable("log_chat_timestamp");
-	childEnable("log_chat_IM");
-	childEnable("log_date_timestamp");
+	getChild<LLUICtrl>("online_visibility")->setValue(mOriginalHideOnlineStatus); 	 
+	getChild<LLUICtrl>("online_visibility")->setLabelArg("[DIR_VIS]", mDirectoryVisibility);
+	getChildView("send_im_to_email")->setEnabled(TRUE);
+	getChild<LLUICtrl>("send_im_to_email")->setValue(im_via_email);
+	getChildView("plain_text_chat_history")->setEnabled(TRUE);
+	getChild<LLUICtrl>("plain_text_chat_history")->setValue(gSavedSettings.getBOOL("PlainTextChatHistory"));
+	getChildView("log_instant_messages")->setEnabled(TRUE);
+//	getChildView("log_chat")->setEnabled(TRUE);
+//	getChildView("busy_response")->setEnabled(TRUE);
+//	getChildView("log_instant_messages_timestamp")->setEnabled(TRUE);
+//	getChildView("log_chat_timestamp")->setEnabled(TRUE);
+	getChildView("log_chat_IM")->setEnabled(TRUE);
+	getChildView("log_date_timestamp")->setEnabled(TRUE);
 	
-//	childSetText("busy_response", gSavedSettings.getString("BusyModeResponse2"));
+//	getChild<LLUICtrl>("busy_response")->setValue(gSavedSettings.getString("BusyModeResponse2"));
 	
-	childEnable("log_nearby_chat");
-	childEnable("log_instant_messages");
-	childEnable("show_timestamps_check_im");
-	childDisable("log_path_string");// LineEditor becomes readonly in this case.
-	childEnable("log_path_button");
-	childEnable("logfile_name_datestamp");
+	getChildView("log_nearby_chat")->setEnabled(TRUE);
+	getChildView("log_instant_messages")->setEnabled(TRUE);
+	getChildView("show_timestamps_check_im")->setEnabled(TRUE);
+	getChildView("log_path_string")->setEnabled(FALSE);// LineEditor becomes readonly in this case.
+	getChildView("log_path_button")->setEnabled(TRUE);
 	
 	std::string display_email(email);
-	childSetText("email_address",display_email);
+	getChild<LLUICtrl>("email_address")->setValue(display_email);
 
 }
 
@@ -1354,8 +1346,8 @@ BOOL LLPanelPreference::postBuild()
 	if(hasChild("voice_unavailable"))
 	{
 		BOOL voice_disabled = gSavedSettings.getBOOL("CmdLineDisableVoice");
-		childSetVisible("voice_unavailable", voice_disabled);
-		childSetVisible("enable_voice_check", !voice_disabled);
+		getChildView("voice_unavailable")->setVisible( voice_disabled);
+		getChildView("enable_voice_check")->setVisible( !voice_disabled);
 	}
 	
 	//////////////////////PanelSkins ///////////////////
@@ -1375,8 +1367,8 @@ BOOL LLPanelPreference::postBuild()
 
 	if(hasChild("online_visibility") && hasChild("send_im_to_email"))
 	{
-		childSetText("email_address",getString("log_in_to_change") );
-//		childSetText("busy_response", getString("log_in_to_change"));		
+		getChild<LLUICtrl>("email_address")->setValue(getString("log_in_to_change") );
+//		getChild<LLUICtrl>("busy_response")->setValue(getString("log_in_to_change"));		
 	}
 	
 	//////////////////////PanelPrivacy ///////////////////
@@ -1400,9 +1392,9 @@ BOOL LLPanelPreference::postBuild()
 	if (hasChild("modifier_combo"))
 	{
 		//localizing if push2talk button is set to middle mouse
-		if (MIDDLE_MOUSE_CV == childGetValue("modifier_combo").asString())
+		if (MIDDLE_MOUSE_CV == getChild<LLUICtrl>("modifier_combo")->getValue().asString())
 		{
-			childSetValue("modifier_combo", getString("middle_mouse"));
+			getChild<LLUICtrl>("modifier_combo")->setValue(getString("middle_mouse"));
 		}
 	}
 

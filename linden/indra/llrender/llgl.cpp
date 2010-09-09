@@ -2,33 +2,26 @@
  * @file llgl.cpp
  * @brief LLGL implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 // This file sets some global GL parameters, and implements some 
@@ -357,6 +350,8 @@ LLGLManager::LLGLManager() :
 
 	mHasSeparateSpecularColor(FALSE),
 
+	mDebugGPU(FALSE),
+
 	mDriverVersionMajor(1),
 	mDriverVersionMinor(0),
 	mDriverVersionRelease(0),
@@ -524,9 +519,21 @@ bool LLGLManager::initGL()
 		return false;
 	}
 	
+	setToDebugGPU();
 
 	initGLStates();
 	return true;
+}
+
+void LLGLManager::setToDebugGPU()
+{
+	//"MOBILE INTEL(R) 965 EXPRESS CHIP", 
+	if (mGLRenderer.find("INTEL") != std::string::npos && mGLRenderer.find("965") != std::string::npos)
+	{
+		mDebugGPU = TRUE ;
+	}
+
+	return ;
 }
 
 void LLGLManager::getGLInfo(LLSD& info)
@@ -603,46 +610,41 @@ void LLGLManager::shutdownGL()
 void LLGLManager::initExtensions()
 {
 #if LL_MESA_HEADLESS
-# ifdef GL_ARB_multitexture
+# if GL_ARB_multitexture
 	mHasMultitexture = TRUE;
 # else
 	mHasMultitexture = FALSE;
 # endif
-# ifdef GL_ARB_texture_env_combine
+# if GL_ARB_texture_env_combine
 	mHasARBEnvCombine = TRUE;	
 # else
 	mHasARBEnvCombine = FALSE;
 # endif
-# ifdef GL_ARB_texture_compression
+# if GL_ARB_texture_compression
 	mHasCompressedTextures = TRUE;
 # else
 	mHasCompressedTextures = FALSE;
 # endif
-# ifdef GL_ARB_vertex_buffer_object
+# if GL_ARB_vertex_buffer_object
 	mHasVertexBufferObject = TRUE;
 # else
 	mHasVertexBufferObject = FALSE;
 # endif
-# ifdef GL_EXT_framebuffer_object
+# if GL_EXT_framebuffer_object
 	mHasFramebufferObject = TRUE;
 # else
 	mHasFramebufferObject = FALSE;
 # endif
-# ifdef GL_EXT_framebuffer_multisample
+# if GL_EXT_framebuffer_multisample
 	mHasFramebufferMultisample = TRUE;
 # else
 	mHasFramebufferMultisample = FALSE;
 # endif
-# ifdef GL_ARB_draw_buffers
+# if GL_ARB_draw_buffers
 	mHasDrawBuffers = TRUE;
 #else
 	mHasDrawBuffers = FALSE;
 # endif
-# if defined(GL_NV_depth_clamp) || defined(GL_ARB_depth_clamp)
-	mHasDepthClamp = TRUE;
-#else
-	mHasDepthClamp = FALSE;
-#endif
 # if GL_EXT_blend_func_separate
 	mHasBlendFuncSeparate = TRUE;
 #else
@@ -674,7 +676,6 @@ void LLGLManager::initExtensions()
 		&& ExtensionExists("GL_EXT_packed_depth_stencil", gGLHExts.mSysExts);
 	mHasFramebufferMultisample = mHasFramebufferObject && ExtensionExists("GL_EXT_framebuffer_multisample", gGLHExts.mSysExts);
 	mHasDrawBuffers = ExtensionExists("GL_ARB_draw_buffers", gGLHExts.mSysExts);
-	mHasDepthClamp = ExtensionExists("GL_ARB_depth_clamp", gGLHExts.mSysExts) || ExtensionExists("GL_NV_depth_clamp", gGLHExts.mSysExts);
 	mHasBlendFuncSeparate = ExtensionExists("GL_EXT_blend_func_separate", gGLHExts.mSysExts);
 	mHasTextureRectangle = ExtensionExists("GL_ARB_texture_rectangle", gGLHExts.mSysExts);
 #if !LL_DARWIN
@@ -699,7 +700,6 @@ void LLGLManager::initExtensions()
 		mHasFramebufferObject = FALSE;
 		mHasFramebufferMultisample = FALSE;
 		mHasDrawBuffers = FALSE;
-		mHasDepthClamp = FALSE;
 		mHasBlendFuncSeparate = FALSE;
 		mHasMipMapGeneration = FALSE;
 		mHasSeparateSpecularColor = FALSE;
@@ -754,13 +754,11 @@ void LLGLManager::initExtensions()
 		if (strchr(blacklist,'r')) mHasDrawBuffers = FALSE;//S
 		if (strchr(blacklist,'s')) mHasFramebufferMultisample = FALSE;
 		if (strchr(blacklist,'t')) mHasTextureRectangle = FALSE;
-		if (strchr(blacklist,'u')) mHasDepthClamp = FALSE;
-
 		if (strchr(blacklist,'u')) mHasBlendFuncSeparate = FALSE;//S
 		
 	}
 #endif // LL_LINUX || LL_SOLARIS
-
+	
 	if (!mHasMultitexture)
 	{
 		LL_INFOS("RenderInit") << "Couldn't initialize multitexturing" << LL_ENDL;
@@ -1132,7 +1130,7 @@ void clear_glerror()
 //
 
 // Static members
-std::map<LLGLenum, LLGLboolean> LLGLState::sStateMap;
+boost::unordered_map<LLGLenum, LLGLboolean> LLGLState::sStateMap;
 
 GLboolean LLGLDepthTest::sDepthEnabled = GL_FALSE; // OpenGL default
 GLenum LLGLDepthTest::sDepthFunc = GL_LESS; // OpenGL default
@@ -1180,7 +1178,7 @@ void LLGLState::resetTextureStates()
 void LLGLState::dumpStates() 
 {
 	LL_INFOS("RenderState") << "GL States:" << LL_ENDL;
-	for (std::map<LLGLenum, LLGLboolean>::iterator iter = sStateMap.begin();
+	for (boost::unordered_map<LLGLenum, LLGLboolean>::iterator iter = sStateMap.begin();
 		 iter != sStateMap.end(); ++iter)
 	{
 		LL_INFOS("RenderState") << llformat(" 0x%04x : %s",(S32)iter->first,iter->second?"TRUE":"FALSE") << LL_ENDL;
@@ -1216,7 +1214,7 @@ void LLGLState::checkStates(const std::string& msg)
 		}
 	}
 	
-	for (std::map<LLGLenum, LLGLboolean>::iterator iter = sStateMap.begin();
+	for (boost::unordered_map<LLGLenum, LLGLboolean>::iterator iter = sStateMap.begin();
 		 iter != sStateMap.end(); ++iter)
 	{
 		LLGLenum state = iter->first;
@@ -2039,7 +2037,7 @@ void LLGLDepthTest::checkState()
 	}
 }
 
-LLGLSquashToFarClip::LLGLSquashToFarClip(glh::matrix4f P)
+LLGLClampToFarClip::LLGLClampToFarClip(glh::matrix4f P)
 {
 	for (U32 i = 0; i < 4; i++)
 	{
@@ -2052,7 +2050,7 @@ LLGLSquashToFarClip::LLGLSquashToFarClip(glh::matrix4f P)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-LLGLSquashToFarClip::~LLGLSquashToFarClip()
+LLGLClampToFarClip::~LLGLClampToFarClip()
 {
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

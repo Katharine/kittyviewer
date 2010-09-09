@@ -240,14 +240,14 @@ if (LL_TESTS)
       ${GOOGLEMOCK_LIBRARIES}
     )
 
-#  LL_ADD_INTEGRATION_TEST(
-#    llsdmessage
-#    "llsdmessage.cpp"
-#    "${test_libs}"
-#    ${PYTHON_EXECUTABLE}
-#    "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_llsdmessage_peer.py"
-#    )
-#
+  LL_ADD_INTEGRATION_TEST(
+    llsdmessage
+    "llsdmessage.cpp"
+    "${test_libs}"
+    ${PYTHON_EXECUTABLE}
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_llsdmessage_peer.py"
+    )
+
   LL_ADD_INTEGRATION_TEST(llhost "" "${test_libs}")
   LL_ADD_INTEGRATION_TEST(llpartdata "" "${test_libs}")
   LL_ADD_INTEGRATION_TEST(llxfer_file "" "${test_libs}")

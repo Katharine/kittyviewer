@@ -2,33 +2,26 @@
  * @file llviewermessage.cpp
  * @brief Dumping ground for viewer-side message system callbacks.
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -84,12 +77,10 @@
 #include "llimview.h"
 #include "llspeakers.h"
 #include "lltrans.h"
-#include "lltranslate.h"
 #include "llviewerfoldertype.h"
 #include "lluri.h"
 #include "llviewergenericmessage.h"
 #include "llviewermenu.h"
-#include "llviewerjoystick.h"
 #include "llviewerobjectlist.h"
 #include "llviewerparcelmgr.h"
 #include "llviewerstats.h"
@@ -2198,7 +2189,9 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
 			std::string saved;
 			if(offline == IM_OFFLINE)
 			{
-				saved = llformat("(Saved %s) ", formatted_time(timestamp).c_str());
+				LLStringUtil::format_map_t args;
+				args["[LONG_TIMESTAMP]"] = formatted_time(timestamp);
+				saved = LLTrans::getString("Saved_message", args);
 			}
 			buffer = saved + message;
 
@@ -2666,7 +2659,7 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
 			{
 				LLVector3 pos, look_at;
 				U64 region_handle;
-				U8 region_access = SIM_ACCESS_MIN;	// Just stop 'used uninitialized' warning (overwritten by parse_lure_bucket).
+				U8 region_access = SIM_ACCESS_MIN;
 				std::string region_info = ll_safe_string((char*)binary_bucket, binary_bucket_size);
 				std::string region_access_str = LLStringUtil::null;
 				std::string region_access_icn = LLStringUtil::null;
@@ -2922,50 +2915,6 @@ void process_decline_callingcard(LLMessageSystem* msg, void**)
 	LLNotificationsUtil::add("CallingCardDeclined");
 }
 
-class ChatTranslationReceiver : public LLTranslate::TranslationReceiver
-{
-public :
-	ChatTranslationReceiver(const std::string &from_lang, const std::string &to_lang, const std::string &mesg,
-							const LLChat &chat, const LLSD &toast_args)
-		: LLTranslate::TranslationReceiver(from_lang, to_lang),
-		m_chat(chat),
-		m_toastArgs(toast_args),
-		m_origMesg(mesg)
-	{
-	}
-
-	static boost::intrusive_ptr<ChatTranslationReceiver> build(const std::string &from_lang, const std::string &to_lang, const std::string &mesg, const LLChat &chat, const LLSD &toast_args)
-	{
-		return boost::intrusive_ptr<ChatTranslationReceiver>(new ChatTranslationReceiver(from_lang, to_lang, mesg, chat, toast_args));
-	}
-
-protected:
-	void handleResponse(const std::string &translation, const std::string &detected_language)
-	{
-		// filter out non-interesting responeses
-		if ( !translation.empty()
-			&& (m_toLang != detected_language)
-			&& (LLStringUtil::compareInsensitive(translation, m_origMesg) != 0) )
-		{
-			m_chat.mText += " (" + translation + ")";
-		}
-
-		LLNotificationsUI::LLNotificationManager::instance().onChat(m_chat, m_toastArgs);
-	}
-
-	void handleFailure()
-	{
-		LLTranslate::TranslationReceiver::handleFailure();
-		m_chat.mText += " (?)";
-
-		LLNotificationsUI::LLNotificationManager::instance().onChat(m_chat, m_toastArgs);
-	}
-
-private:
-	LLChat m_chat;
-	std::string m_origMesg;
-	LLSD m_toastArgs;		
-};
 
 void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
 {
@@ -3170,22 +3119,7 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
 		args["type"] = LLNotificationsUI::NT_NEARBYCHAT;
 		chat.mOwnerID = owner_id;
 
-		if (gSavedSettings.getBOOL("TranslateChat") && chat.mSourceType != CHAT_SOURCE_SYSTEM)
-		{
-			if (chat.mChatStyle == CHAT_STYLE_IRC)
-			{
-				mesg = mesg.substr(4, std::string::npos);
-			}
-			const std::string from_lang = ""; // leave empty to trigger autodetect
-			const std::string to_lang = LLTranslate::getTranslateLanguage();
-
-			LLHTTPClient::ResponderPtr result = ChatTranslationReceiver::build(from_lang, to_lang, mesg, chat, args);
-			LLTranslate::translateMessage(result, from_lang, to_lang, mesg);
-		}
-		else
-		{
-			LLNotificationsUI::LLNotificationManager::instance().onChat(chat, args);
-		}
+		LLNotificationsUI::LLNotificationManager::instance().onChat(chat, args);
 	}
 }
 
@@ -3200,8 +3134,6 @@ void process_teleport_start(LLMessageSystem *msg, void**)
 {
 	U32 teleport_flags = 0x0;
 	msg->getU32("Info", "TeleportFlags", teleport_flags);
-
-	LL_DEBUGS("Messaging") << "Got TeleportStart with TeleportFlags=" << teleport_flags << ". gTeleportDisplay: " << gTeleportDisplay << ", gAgent.mTeleportState: " << gAgent.getTeleportState() << LL_ENDL;
 
 	if (teleport_flags & TELEPORT_FLAGS_DISABLE_CANCEL)
 	{
@@ -3221,7 +3153,6 @@ void process_teleport_start(LLMessageSystem *msg, void**)
 		gAgent.setTeleportState( LLAgent::TELEPORT_START );
 		make_ui_sound("UISndTeleportOut");
 		
-		LL_INFOS("Messaging") << "Teleport initiated by remote TeleportStart message with TeleportFlags: " <<  teleport_flags << LL_ENDL;
 		// Don't call LLFirstUse::useTeleport here because this could be
 		// due to being killed, which would send you home, not to a Telehub
 	}
@@ -3563,12 +3494,6 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 
 	if( is_teleport )
 	{
-		if (gAgent.getTeleportKeepsLookAt())
-		{
-			// *NOTE: the LookAt data we get from the sim here doesn't
-			// seem to be useful, so get it from the camera instead
-			look_at = LLViewerCamera::getInstance()->getAtAxis();
-		}
 		// Force the camera back onto the agent, don't animate.
 		gAgentCamera.setFocusOnAvatar(TRUE, FALSE);
 		gAgentCamera.slamLookAt(look_at);
@@ -3615,7 +3540,7 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 		{
 			LLTracker::stopTracking(NULL);
 		}
-		else if ( is_teleport && !gAgent.getTeleportKeepsLookAt() )
+		else if ( is_teleport )
 		{
 			//look at the beacon
 			LLVector3 global_agent_pos = agent_pos;
@@ -4224,11 +4149,13 @@ void process_preload_sound(LLMessageSystem *msg, void **user_data)
 
 	// Don't play sounds from a region with maturity above current agent maturity
 	LLVector3d pos_global = objectp->getPositionGlobal();
-	if (gAgent.canAccessMaturityAtGlobal(pos_global))
+	if( !gAgent.canAccessMaturityAtGlobal( pos_global ) )
 	{
-		// Add audioData starts a transfer internally.
-		sourcep->addAudioData(datap, FALSE);
+		return;
 	}
+	
+	// Add audioData starts a transfer internally.
+	sourcep->addAudioData(datap, FALSE);
 }
 
 void process_attached_sound(LLMessageSystem *msg, void **user_data)
@@ -4622,7 +4549,7 @@ void process_avatar_sit_response(LLMessageSystem *mesgsys, void **user_data)
 	if (object)
 	{
 		LLVector3 sit_spot = object->getPositionAgent() + (sitPosition * object->getRotation());
-		if (!use_autopilot || (isAgentAvatarValid() && gAgentAvatarp->isSitting() && gAgentAvatarp->getRoot() == object->getRoot()))
+		if (!use_autopilot || isAgentAvatarValid() && gAgentAvatarp->isSitting() && gAgentAvatarp->getRoot() == object->getRoot())
 		{
 			//we're already sitting on this object, so don't autopilot
 		}
@@ -5395,10 +5322,10 @@ void process_economy_data(LLMessageSystem *msg, void** /*user_data*/)
 
 	LL_INFOS_ONCE("Messaging") << "EconomyData message arrived; upload cost is L$" << upload_cost << LL_ENDL;
 
-	gMenuHolder->childSetLabelArg("Upload Image", "[COST]", llformat("%d", upload_cost));
-	gMenuHolder->childSetLabelArg("Upload Sound", "[COST]", llformat("%d", upload_cost));
-	gMenuHolder->childSetLabelArg("Upload Animation", "[COST]", llformat("%d", upload_cost));
-	gMenuHolder->childSetLabelArg("Bulk Upload", "[COST]", llformat("%d", upload_cost));
+	gMenuHolder->getChild<LLUICtrl>("Upload Image")->setLabelArg("[COST]", llformat("%d", upload_cost));
+	gMenuHolder->getChild<LLUICtrl>("Upload Sound")->setLabelArg("[COST]", llformat("%d", upload_cost));
+	gMenuHolder->getChild<LLUICtrl>("Upload Animation")->setLabelArg("[COST]", llformat("%d", upload_cost));
+	gMenuHolder->getChild<LLUICtrl>("Bulk Upload")->setLabelArg("[COST]", llformat("%d", upload_cost));
 }
 
 void notify_cautioned_script_question(const LLSD& notification, const LLSD& response, S32 orig_questions, BOOL granted)
@@ -5885,18 +5812,7 @@ void process_teleport_local(LLMessageSystem *msg,void**)
 
 	if( gAgent.getTeleportState() != LLAgent::TELEPORT_NONE )
 	{
-		if( gAgent.getTeleportState() == LLAgent::TELEPORT_LOCAL )
-		{
-			// To prevent TeleportStart messages re-activating the progress screen right
-			// after tp, keep the teleport state and let progress screen clear it after a short delay
-			// (progress screen is active but not visible)  *TODO: remove when SVC-5290 is fixed
-			gTeleportDisplayTimer.reset();
-			gTeleportDisplay = TRUE;
-		}
-		else
-		{
-			gAgent.setTeleportState( LLAgent::TELEPORT_NONE );
-		}
+		gAgent.setTeleportState( LLAgent::TELEPORT_NONE );
 	}
 
 	// Sim tells us whether the new position is off the ground
@@ -5912,10 +5828,8 @@ void process_teleport_local(LLMessageSystem *msg,void**)
 	gAgent.setPositionAgent(pos);
 	gAgentCamera.slamLookAt(look_at);
 
-	if ( !(gAgent.getTeleportKeepsLookAt() && LLViewerJoystick::getInstance()->getOverrideCamera()) )
-	{
-		gAgentCamera.resetView(TRUE, TRUE);
-	}
+	// likewise make sure the camera is behind the avatar
+	gAgentCamera.resetView(TRUE, TRUE);
 
 	// send camera update to new region
 	gAgentCamera.updateCamera();

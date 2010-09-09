@@ -2,33 +2,26 @@
  * @file llpanelavatar.cpp
  * @brief LLPanelAvatar and related class implementations
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -177,14 +170,14 @@ void LLPanelAvatarNotes::onOpen(const LLSD& key)
 	fillRightsData();
 
 	//Disable "Add Friend" button for friends.
-	childSetEnabled("add_friend", !LLAvatarActions::isFriend(getAvatarId()));
+	getChildView("add_friend")->setEnabled(!LLAvatarActions::isFriend(getAvatarId()));
 }
 
 void LLPanelAvatarNotes::fillRightsData()
 {
-	childSetValue("status_check", FALSE);
-	childSetValue("map_check", FALSE);
-	childSetValue("objects_check", FALSE);
+	getChild<LLUICtrl>("status_check")->setValue(FALSE);
+	getChild<LLUICtrl>("map_check")->setValue(FALSE);
+	getChild<LLUICtrl>("objects_check")->setValue(FALSE);
 
 	const LLRelationship* relation = LLAvatarTracker::instance().getBuddyInfo(getAvatarId());
 	// If true - we are viewing friend's profile, enable check boxes and set values.
@@ -192,9 +185,9 @@ void LLPanelAvatarNotes::fillRightsData()
 	{
 		S32 rights = relation->getRightsGrantedTo();
 
-		childSetValue("status_check",LLRelationship::GRANT_ONLINE_STATUS & rights ? TRUE : FALSE);
-		childSetValue("map_check",LLRelationship::GRANT_MAP_LOCATION & rights ? TRUE : FALSE);
-		childSetValue("objects_check",LLRelationship::GRANT_MODIFY_OBJECTS & rights ? TRUE : FALSE);
+		getChild<LLUICtrl>("status_check")->setValue(LLRelationship::GRANT_ONLINE_STATUS & rights ? TRUE : FALSE);
+		getChild<LLUICtrl>("map_check")->setValue(LLRelationship::GRANT_MAP_LOCATION & rights ? TRUE : FALSE);
+		getChild<LLUICtrl>("objects_check")->setValue(LLRelationship::GRANT_MODIFY_OBJECTS & rights ? TRUE : FALSE);
 
 	}
 
@@ -203,7 +196,7 @@ void LLPanelAvatarNotes::fillRightsData()
 
 void LLPanelAvatarNotes::onCommitNotes()
 {
-	std::string notes = childGetValue("notes_edit").asString();
+	std::string notes = getChild<LLUICtrl>("notes_edit")->getValue().asString();
 	LLAvatarPropertiesProcessor::getInstance()-> sendNotes(getAvatarId(),notes);
 }
 
@@ -218,8 +211,8 @@ void LLPanelAvatarNotes::rightsConfirmationCallback(const LLSD& notification,
 	}
 	else
 	{
-		childSetValue("objects_check",
-				childGetValue("objects_check").asBoolean() ? FALSE : TRUE);
+		getChild<LLUICtrl>("objects_check")->setValue(
+				getChild<LLUICtrl>("objects_check")->getValue().asBoolean() ? FALSE : TRUE);
 	}
 }
 
@@ -262,14 +255,14 @@ void LLPanelAvatarNotes::onCommitRights()
 
 	S32 rights = 0;
 
-	if(childGetValue("status_check").asBoolean())
+	if(getChild<LLUICtrl>("status_check")->getValue().asBoolean())
 		rights |= LLRelationship::GRANT_ONLINE_STATUS;
-	if(childGetValue("map_check").asBoolean())
+	if(getChild<LLUICtrl>("map_check")->getValue().asBoolean())
 		rights |= LLRelationship::GRANT_MAP_LOCATION;
-	if(childGetValue("objects_check").asBoolean())
+	if(getChild<LLUICtrl>("objects_check")->getValue().asBoolean())
 		rights |= LLRelationship::GRANT_MODIFY_OBJECTS;
 
-	bool allow_modify_objects = childGetValue("objects_check").asBoolean();
+	bool allow_modify_objects = getChild<LLUICtrl>("objects_check")->getValue().asBoolean();
 
 	// if modify objects checkbox clicked
 	if (buddy_relationship->isRightGrantedTo(
@@ -292,8 +285,8 @@ void LLPanelAvatarNotes::processProperties(void* data, EAvatarProcessorType type
 		LLAvatarNotes* avatar_notes = static_cast<LLAvatarNotes*>(data);
 		if(avatar_notes && getAvatarId() == avatar_notes->target_id)
 		{
-			childSetValue("notes_edit",avatar_notes->notes);
-			childSetEnabled("notes edit", true);
+			getChild<LLUICtrl>("notes_edit")->setValue(avatar_notes->notes);
+			getChildView("notes edit")->setEnabled(true);
 
 			LLAvatarPropertiesProcessor::getInstance()->removeObserver(getAvatarId(),this);
 		}
@@ -302,15 +295,15 @@ void LLPanelAvatarNotes::processProperties(void* data, EAvatarProcessorType type
 
 void LLPanelAvatarNotes::resetData()
 {
-	childSetValue("notes_edit",LLStringUtil::null);
+	getChild<LLUICtrl>("notes_edit")->setValue(LLStringUtil::null);
 	// Default value is TRUE
-	childSetValue("status_check", TRUE);
+	getChild<LLUICtrl>("status_check")->setValue(TRUE);
 }
 
 void LLPanelAvatarNotes::resetControls()
 {
 	//Disable "Add Friend" button for friends.
-	childSetEnabled("add_friend", TRUE);
+	getChildView("add_friend")->setEnabled(TRUE);
 
 	enableCheckboxes(false);
 }
@@ -342,9 +335,9 @@ void LLPanelAvatarNotes::onShareButtonClick()
 
 void LLPanelAvatarNotes::enableCheckboxes(bool enable)
 {
-	childSetEnabled("status_check", enable);
-	childSetEnabled("map_check", enable);
-	childSetEnabled("objects_check", enable);
+	getChildView("status_check")->setEnabled(enable);
+	getChildView("map_check")->setEnabled(enable);
+	getChildView("objects_check")->setEnabled(enable);
 }
 
 LLPanelAvatarNotes::~LLPanelAvatarNotes()
@@ -362,7 +355,7 @@ LLPanelAvatarNotes::~LLPanelAvatarNotes()
 // virtual, called by LLAvatarTracker
 void LLPanelAvatarNotes::changed(U32 mask)
 {
-	childSetEnabled("teleport", LLAvatarTracker::instance().isBuddyOnline(getAvatarId()));
+	getChildView("teleport")->setEnabled(LLAvatarTracker::instance().isBuddyOnline(getAvatarId()));
 
 	// update rights to avoid have checkboxes enabled when friendship is terminated. EXT-4947.
 	fillRightsData();
@@ -376,7 +369,7 @@ void LLPanelAvatarNotes::onChange(EStatusType status, const std::string &channel
 		return;
 	}
 
-	childSetEnabled("call", LLVoiceClient::getInstance()->voiceEnabled() && LLVoiceClient::getInstance()->isVoiceWorking());
+	getChildView("call")->setEnabled(LLVoiceClient::getInstance()->voiceEnabled() && LLVoiceClient::getInstance()->isVoiceWorking());
 }
 
 void LLPanelAvatarNotes::setAvatarId(const LLUUID& id)
@@ -458,17 +451,17 @@ void LLPanelProfileTab::updateButtons()
 	
 	if(LLAvatarActions::isFriend(getAvatarId()))
 	{
-		childSetEnabled("teleport", is_buddy_online);
+		getChildView("teleport")->setEnabled(is_buddy_online);
 	}
 	else
 	{
-		childSetEnabled("teleport", true);
+		getChildView("teleport")->setEnabled(true);
 	}
 
 	bool enable_map_btn = (is_buddy_online &&
 			       is_agent_mappable(getAvatarId()))
 		|| gAgent.isGodlike();
-	childSetEnabled("show_on_map_btn", enable_map_btn);
+	getChildView("show_on_map_btn")->setEnabled(enable_map_btn);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -529,7 +522,7 @@ void LLPanelAvatarProfile::onOpen(const LLSD& key)
 	mGroups.clear();
 
 	//Disable "Add Friend" button for friends.
-	childSetEnabled("add_friend", !LLAvatarActions::isFriend(getAvatarId()));
+	getChildView("add_friend")->setEnabled(!LLAvatarActions::isFriend(getAvatarId()));
 }
 
 void LLPanelAvatarProfile::updateData()
@@ -545,32 +538,32 @@ void LLPanelAvatarProfile::updateData()
 
 void LLPanelAvatarProfile::resetControls()
 {
-	childSetVisible("status_panel", true);
-	childSetVisible("profile_buttons_panel", true);
-	childSetVisible("title_groups_text", true);
-	childSetVisible("sl_groups", true);
-	childSetEnabled("add_friend", true);
+	getChildView("status_panel")->setVisible( true);
+	getChildView("profile_buttons_panel")->setVisible( true);
+	getChildView("title_groups_text")->setVisible( true);
+	getChildView("sl_groups")->setVisible( true);
+	getChildView("add_friend")->setEnabled(true);
 
-	childSetVisible("status_me_panel", false);
-	childSetVisible("profile_me_buttons_panel", false);
-	childSetVisible("account_actions_panel", false);
+	getChildView("status_me_panel")->setVisible( false);
+	getChildView("profile_me_buttons_panel")->setVisible( false);
+	getChildView("account_actions_panel")->setVisible( false);
 }
 
 void LLPanelAvatarProfile::resetData()
 {
 	mGroups.clear();
-	childSetValue("2nd_life_pic",LLUUID::null);
-	childSetValue("real_world_pic",LLUUID::null);
-	childSetValue("online_status",LLStringUtil::null);
-	childSetValue("status_message",LLStringUtil::null);
-	childSetValue("sl_description_edit",LLStringUtil::null);
-	childSetValue("fl_description_edit",LLStringUtil::null);
-	childSetValue("sl_groups",LLStringUtil::null);
-	childSetValue("homepage_edit",LLStringUtil::null);
-	childSetValue("register_date",LLStringUtil::null);
-	childSetValue("acc_status_text",LLStringUtil::null);
-	childSetTextArg("partner_text", "[FIRST]", LLStringUtil::null);
-	childSetTextArg("partner_text", "[LAST]", LLStringUtil::null);
+	getChild<LLUICtrl>("2nd_life_pic")->setValue(LLUUID::null);
+	getChild<LLUICtrl>("real_world_pic")->setValue(LLUUID::null);
+	getChild<LLUICtrl>("online_status")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("status_message")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("sl_description_edit")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("fl_description_edit")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("sl_groups")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("homepage_edit")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("register_date")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("acc_status_text")->setValue(LLStringUtil::null);
+	getChild<LLUICtrl>("partner_text")->setTextArg("[FIRST]", LLStringUtil::null);
+	getChild<LLUICtrl>("partner_text")->setTextArg("[LAST]", LLStringUtil::null);
 }
 
 void LLPanelAvatarProfile::processProperties(void* data, EAvatarProcessorType type)
@@ -632,7 +625,7 @@ void LLPanelAvatarProfile::processGroupProperties(const LLAvatarGroups* avatar_g
 		groups += group_url;
 	}
 
-	childSetValue("sl_groups", groups);
+	getChild<LLUICtrl>("sl_groups")->setValue(groups);
 }
 
 void LLPanelAvatarProfile::fillCommonData(const LLAvatarData* avatar_data)
@@ -648,15 +641,15 @@ void LLPanelAvatarProfile::fillCommonData(const LLAvatarData* avatar_data)
 	}
 	args["[AGE]"] = LLDateUtil::ageFromDate( avatar_data->born_on, LLDate::now());
 	std::string register_date = getString("RegisterDateFormat", args);
-	childSetValue("register_date", register_date );
-	childSetValue("sl_description_edit", avatar_data->about_text);
-	childSetValue("fl_description_edit",avatar_data->fl_about_text);
-	childSetValue("2nd_life_pic", avatar_data->image_id);
-	childSetValue("real_world_pic", avatar_data->fl_image_id);
-	childSetValue("homepage_edit", avatar_data->profile_url);
+	getChild<LLUICtrl>("register_date")->setValue(register_date );
+	getChild<LLUICtrl>("sl_description_edit")->setValue(avatar_data->about_text);
+	getChild<LLUICtrl>("fl_description_edit")->setValue(avatar_data->fl_about_text);
+	getChild<LLUICtrl>("2nd_life_pic")->setValue(avatar_data->image_id);
+	getChild<LLUICtrl>("real_world_pic")->setValue(avatar_data->fl_image_id);
+	getChild<LLUICtrl>("homepage_edit")->setValue(avatar_data->profile_url);
 
 	// Hide home page textbox if no page was set to fix "homepage URL appears clickable without URL - EXT-4734"
-	childSetVisible("homepage_edit", !avatar_data->profile_url.empty());
+	getChildView("homepage_edit")->setVisible( !avatar_data->profile_url.empty());
 }
 
 void LLPanelAvatarProfile::fillPartnerData(const LLAvatarData* avatar_data)
@@ -682,7 +675,7 @@ void LLPanelAvatarProfile::fillAccountStatus(const LLAvatarData* avatar_data)
 	// dataserver/lldataavatar.cpp for privacy considerations
 	args["[AGEVERIFICATION]"] = "";
 	std::string caption_text = getString("CaptionTextAcctInfo", args);
-	childSetValue("acc_status_text", caption_text);
+	getChild<LLUICtrl>("acc_status_text")->setValue(caption_text);
 }
 
 void LLPanelAvatarProfile::pay()
@@ -798,7 +791,7 @@ LLPanelAvatarProfile::~LLPanelAvatarProfile()
 // virtual, called by LLAvatarTracker
 void LLPanelAvatarProfile::changed(U32 mask)
 {
-	childSetEnabled("teleport", LLAvatarTracker::instance().isBuddyOnline(getAvatarId()));
+	getChildView("teleport")->setEnabled(LLAvatarTracker::instance().isBuddyOnline(getAvatarId()));
 }
 
 // virtual
@@ -809,7 +802,7 @@ void LLPanelAvatarProfile::onChange(EStatusType status, const std::string &chann
 		return;
 	}
 
-	childSetEnabled("call", LLVoiceClient::getInstance()->voiceEnabled() && LLVoiceClient::getInstance()->isVoiceWorking());
+	getChildView("call")->setEnabled(LLVoiceClient::getInstance()->voiceEnabled() && LLVoiceClient::getInstance()->isVoiceWorking());
 }
 
 void LLPanelAvatarProfile::setAvatarId(const LLUUID& id)
@@ -862,12 +855,12 @@ void LLPanelMyProfile::processProfileProperties(const LLAvatarData* avatar_data)
 
 void LLPanelMyProfile::resetControls()
 {
-	childSetVisible("status_panel", false);
-	childSetVisible("profile_buttons_panel", false);
-	childSetVisible("title_groups_text", false);
-	childSetVisible("sl_groups", false);
-	childSetVisible("status_me_panel", true);
-	childSetVisible("profile_me_buttons_panel", true);
+	getChildView("status_panel")->setVisible( false);
+	getChildView("profile_buttons_panel")->setVisible( false);
+	getChildView("title_groups_text")->setVisible( false);
+	getChildView("sl_groups")->setVisible( false);
+	getChildView("status_me_panel")->setVisible( true);
+	getChildView("profile_me_buttons_panel")->setVisible( true);
 }
 
 

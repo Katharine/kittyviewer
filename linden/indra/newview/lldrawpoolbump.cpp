@@ -2,33 +2,26 @@
  * @file lldrawpoolbump.cpp
  * @brief LLDrawPoolBump class implementation
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -189,7 +182,7 @@ void LLStandardBumpmap::destroyGL()
 ////////////////////////////////////////////////////////////////
 
 LLDrawPoolBump::LLDrawPoolBump() 
-:  LLRenderPass(RENDER_TYPE_POOL_BUMP)
+:  LLRenderPass(LLDrawPool::POOL_BUMP)
 {
 	mShiny = FALSE;
 }
@@ -267,7 +260,7 @@ void LLDrawPoolBump::render(S32 pass)
 {
 	LLFastTimer t(FTM_RENDER_BUMP);
 	
-	if (!gPipeline.hasRenderType(RENDER_TYPE_POOL_SIMPLE))
+	if (!gPipeline.hasRenderType(LLDrawPool::POOL_SIMPLE))
 	{
 		return;
 	}
@@ -327,8 +320,8 @@ void LLDrawPoolBump::endRenderPass(S32 pass)
 void LLDrawPoolBump::beginShiny(bool invisible)
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if ((!invisible && !gPipeline.hasRenderBatches(PASS_SHINY))||
-		(invisible && !gPipeline.hasRenderBatches(PASS_INVISI_SHINY)))
+	if ((!invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_SHINY))|| 
+		(invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY)))
 	{
 		return;
 	}
@@ -402,8 +395,8 @@ void LLDrawPoolBump::beginShiny(bool invisible)
 void LLDrawPoolBump::renderShiny(bool invisible)
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if ((!invisible && !gPipeline.hasRenderBatches(PASS_SHINY))||
-		(invisible && !gPipeline.hasRenderBatches(PASS_INVISI_SHINY)))
+	if ((!invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_SHINY))|| 
+		(invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY)))
 	{
 		return;
 	}
@@ -413,15 +406,15 @@ void LLDrawPoolBump::renderShiny(bool invisible)
 		LLGLEnable blend_enable(GL_BLEND);
 		if (!invisible && mVertexShaderLevel > 1)
 		{
-			LLRenderPass::renderTexture(RENDER_TYPE_PASS_SHINY, sVertexMask);
+			LLRenderPass::renderTexture(LLRenderPass::PASS_SHINY, sVertexMask);
 		}
 		else if (!invisible)
 		{
-			renderGroups(RENDER_TYPE_PASS_SHINY, sVertexMask);
+			renderGroups(LLRenderPass::PASS_SHINY, sVertexMask);
 		}
 		else // invisible
 		{
-			renderGroups(RENDER_TYPE_PASS_INVISI_SHINY, sVertexMask);
+			renderGroups(LLRenderPass::PASS_INVISI_SHINY, sVertexMask);
 		}
 	}
 }
@@ -429,8 +422,8 @@ void LLDrawPoolBump::renderShiny(bool invisible)
 void LLDrawPoolBump::endShiny(bool invisible)
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if ((!invisible && !gPipeline.hasRenderBatches(PASS_SHINY))||
-		(invisible && !gPipeline.hasRenderBatches(PASS_INVISI_SHINY)))
+	if ((!invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_SHINY))|| 
+		(invisible && !gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY)))
 	{
 		return;
 	}
@@ -469,7 +462,7 @@ void LLDrawPoolBump::endShiny(bool invisible)
 void LLDrawPoolBump::beginFullbrightShiny()
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if (!gPipeline.hasRenderBatches(PASS_FULLBRIGHT_SHINY))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_FULLBRIGHT_SHINY))
 	{
 		return;
 	}
@@ -518,7 +511,7 @@ void LLDrawPoolBump::beginFullbrightShiny()
 void LLDrawPoolBump::renderFullbrightShiny()
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if (!gPipeline.hasRenderBatches(PASS_FULLBRIGHT_SHINY))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_FULLBRIGHT_SHINY))
 	{
 		return;
 	}
@@ -526,14 +519,14 @@ void LLDrawPoolBump::renderFullbrightShiny()
 	if( gSky.mVOSkyp->getCubeMap() )
 	{
 		LLGLEnable blend_enable(GL_BLEND);
-		LLRenderPass::renderTexture(RENDER_TYPE_PASS_FULLBRIGHT_SHINY, sVertexMask);
+		LLRenderPass::renderTexture(LLRenderPass::PASS_FULLBRIGHT_SHINY, sVertexMask);
 	}
 }
 
 void LLDrawPoolBump::endFullbrightShiny()
 {
 	LLFastTimer t(FTM_RENDER_SHINY);
-	if (!gPipeline.hasRenderBatches(PASS_FULLBRIGHT_SHINY))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_FULLBRIGHT_SHINY))
 	{
 		return;
 	}
@@ -563,7 +556,7 @@ void LLDrawPoolBump::endFullbrightShiny()
 	mShiny = FALSE;
 }
 
-void LLDrawPoolBump::renderGroup(LLSpatialGroup* group, LLRenderType const& type, U32 mask, BOOL texture = TRUE)
+void LLDrawPoolBump::renderGroup(LLSpatialGroup* group, U32 type, U32 mask, BOOL texture = TRUE)
 {					
 	LLSpatialGroup::drawmap_elem_t& draw_info = group->mDrawMap[type];	
 	
@@ -636,9 +629,9 @@ BOOL LLDrawPoolBump::bindBumpMap(LLDrawInfo& params, S32 channel)
 }
 
 //static
-void LLDrawPoolBump::beginBump(LLRenderType pass)
+void LLDrawPoolBump::beginBump(U32 pass)
 {	
-	if (!gPipeline.hasRenderBatches(pass.index()))
+	if (!gPipeline.hasRenderBatches(pass))
 	{
 		return;
 	}
@@ -681,9 +674,9 @@ void LLDrawPoolBump::beginBump(LLRenderType pass)
 }
 
 //static
-void LLDrawPoolBump::renderBump(LLRenderType pass)
+void LLDrawPoolBump::renderBump(U32 pass)
 {
-	if (!gPipeline.hasRenderBatches(pass.index()))
+	if (!gPipeline.hasRenderBatches(pass))
 	{
 		return;
 	}
@@ -700,9 +693,9 @@ void LLDrawPoolBump::renderBump(LLRenderType pass)
 }
 
 //static
-void LLDrawPoolBump::endBump(LLRenderType pass)
+void LLDrawPoolBump::endBump(U32 pass)
 {
-	if (!gPipeline.hasRenderBatches(pass.index()))
+	if (!gPipeline.hasRenderBatches(pass))
 	{
 		return;
 	}
@@ -733,7 +726,7 @@ S32 LLDrawPoolBump::getNumDeferredPasses()
 
 void LLDrawPoolBump::beginDeferredPass(S32 pass)
 {
-	if (!gPipeline.hasRenderBatches(PASS_BUMP))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_BUMP))
 	{
 		return;
 	}
@@ -748,7 +741,7 @@ void LLDrawPoolBump::beginDeferredPass(S32 pass)
 
 void LLDrawPoolBump::endDeferredPass(S32 pass)
 {
-	if (!gPipeline.hasRenderBatches(PASS_BUMP))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_BUMP))
 	{
 		return;
 	}
@@ -762,13 +755,13 @@ void LLDrawPoolBump::endDeferredPass(S32 pass)
 
 void LLDrawPoolBump::renderDeferred(S32 pass)
 {
-	if (!gPipeline.hasRenderBatches(PASS_BUMP))
+	if (!gPipeline.hasRenderBatches(LLRenderPass::PASS_BUMP))
 	{
 		return;
 	}
 	LLFastTimer ftm(FTM_RENDER_BUMP);
 
-	LLRenderType type = RENDER_TYPE_PASS_BUMP;
+	U32 type = LLRenderPass::PASS_BUMP;
 	LLCullResult::drawinfo_list_t::iterator begin = gPipeline.beginRenderMap(type);
 	LLCullResult::drawinfo_list_t::iterator end = gPipeline.endRenderMap(type);
 
@@ -791,7 +784,7 @@ void LLDrawPoolBump::beginPostDeferredPass(S32 pass)
 		beginFullbrightShiny();
 		break;
 	case 1:
-		beginBump(RENDER_TYPE_PASS_POST_BUMP);
+		beginBump(LLRenderPass::PASS_POST_BUMP);
 		break;
 	}
 }
@@ -804,7 +797,7 @@ void LLDrawPoolBump::endPostDeferredPass(S32 pass)
 		endFullbrightShiny();
 		break;
 	case 1:
-		endBump(RENDER_TYPE_PASS_POST_BUMP);
+		endBump(LLRenderPass::PASS_POST_BUMP);
 		break;
 	}
 }
@@ -817,7 +810,7 @@ void LLDrawPoolBump::renderPostDeferred(S32 pass)
 		renderFullbrightShiny();
 		break;
 	case 1:
-		renderBump(RENDER_TYPE_PASS_POST_BUMP);
+		renderBump(LLRenderPass::PASS_POST_BUMP);
 		break;
 	}
 }
@@ -1233,7 +1226,7 @@ void LLBumpImageList::onSourceLoaded( BOOL success, LLViewerTexture *src_vi, LLI
 	}
 }
 
-void LLDrawPoolBump::renderBump(LLRenderType const& type, U32 mask)
+void LLDrawPoolBump::renderBump(U32 type, U32 mask)
 {	
 	LLCullResult::drawinfo_list_t::iterator begin = gPipeline.beginRenderMap(type);
 	LLCullResult::drawinfo_list_t::iterator end = gPipeline.endRenderMap(type);
@@ -1317,11 +1310,11 @@ void LLDrawPoolInvisible::render(S32 pass)
 	U32 invisi_mask = LLVertexBuffer::MAP_VERTEX;
 	glStencilMask(0);
 	gGL.setColorMask(false, false);
-	pushBatches(RENDER_TYPE_PASS_INVISIBLE, invisi_mask, FALSE);
+	pushBatches(LLRenderPass::PASS_INVISIBLE, invisi_mask, FALSE);
 	gGL.setColorMask(true, false);
 	glStencilMask(0xFFFFFFFF);
 
-	if (gPipeline.hasRenderBatches(PASS_INVISI_SHINY))
+	if (gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY))
 	{
 		beginShiny(true);
 		renderShiny(true);
@@ -1347,12 +1340,12 @@ void LLDrawPoolInvisible::renderDeferred( S32 pass )
 	glStencilMask(0);
 	glStencilOp(GL_ZERO, GL_KEEP, GL_REPLACE);
 	gGL.setColorMask(false, false);
-	pushBatches(RENDER_TYPE_PASS_INVISIBLE, invisi_mask, FALSE);
+	pushBatches(LLRenderPass::PASS_INVISIBLE, invisi_mask, FALSE);
 	gGL.setColorMask(true, true);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFFFFFFFF);
 	
-	if (gPipeline.hasRenderBatches(PASS_INVISI_SHINY))
+	if (gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY))
 	{
 		beginShiny(true);
 		renderShiny(true);

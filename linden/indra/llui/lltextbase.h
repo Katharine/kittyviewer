@@ -3,33 +3,26 @@
  * @author Martin Reddy
  * @brief The base class of text box/editor, providing Url handling support
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #ifndef LL_LLTEXTBASE_H
@@ -146,10 +139,25 @@ protected:
 	boost::signals2::connection mImageLoadedConnection;
 };
 
+// Text segment that changes it's style depending of mouse pointer position ( is it inside or outside segment)
+class LLOnHoverChangeableTextSegment : public LLNormalTextSegment
+{
+public:
+	LLOnHoverChangeableTextSegment( LLStyleConstSP style, LLStyleConstSP normal_style, S32 start, S32 end, LLTextBase& editor );
+	/*virtual*/ F32 draw(S32 start, S32 end, S32 selection_start, S32 selection_end, const LLRect& draw_rect);
+	/*virtual*/ BOOL handleHover(S32 x, S32 y, MASK mask);
+protected:
+	// Style used for text when mouse pointer is over segment
+	LLStyleConstSP		mHoveredStyle;
+	// Style used for text when mouse pointer is outside segment
+	LLStyleConstSP		mNormalStyle;
+
+};
+
 class LLIndexSegment : public LLTextSegment
 {
 public:
-	LLIndexSegment(S32 pos) : LLTextSegment(pos, pos) {}
+	LLIndexSegment() : LLTextSegment(0, 0) {}
 };
 
 class LLInlineViewSegment : public LLTextSegment
@@ -444,7 +452,7 @@ protected:
 	S32								insertStringNoUndo(S32 pos, const LLWString &wstr, segment_vec_t* segments = NULL); // returns num of chars actually inserted
 	S32 							removeStringNoUndo(S32 pos, S32 length);
 	S32								overwriteCharNoUndo(S32 pos, llwchar wc);
-	void							appendAndHighlightText(const std::string &new_text, S32 highlight_part, const LLStyle::Params& stylep);
+	void							appendAndHighlightText(const std::string &new_text, S32 highlight_part, const LLStyle::Params& stylep, bool underline_on_hover_only = false);
 
 
 	// manage segments 
@@ -487,7 +495,7 @@ protected:
 	void							replaceUrlLabel(const std::string &url, const std::string &label);
 	
 	void							appendTextImpl(const std::string &new_text, const LLStyle::Params& input_params = LLStyle::Params());
-	void							appendAndHighlightTextImpl(const std::string &new_text, S32 highlight_part, const LLStyle::Params& style_params);
+	void							appendAndHighlightTextImpl(const std::string &new_text, S32 highlight_part, const LLStyle::Params& style_params, bool underline_on_hover_only = false);
 	
 
 protected:

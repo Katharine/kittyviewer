@@ -1,8 +1,7 @@
 Kitty Viewer
 ============
-Kitty Viewer is a fork of the Snowglobe trunk. This is likely to change
-in future to track Linden Lab's [viewer development][] repo, depending on what the current
-status of the Snowglobe project is (I'm unclear).
+Kitty Viewer is a fork of Linden Lab's [viewer development][] repo with a small number of
+interesting features added.
 
 Binaries
 --------
@@ -15,13 +14,13 @@ Nightly builds may be provided if I ever manage to assemble the necessary infras
 
 Features
 --------
-Kitty Viewer is, ultimately, Viewer 2 based, with some added niceties from Snowglobe
-(such as Google translation, double click teleporting). Additionally, I have added the following:
+Kitty Viewer is, ultimately, Viewer 2 based, with the following extra features:
 
 - Direct Flickr uploads when taking snapshots
 - WindLight in inventory, via specially named notecards (\*.wl, \*.ww)
 - [Growl][] notifications (OS X only, for now)
 - "Now playing" notifications for the current stream (inspired by, but not taken from, [Imprudence][])
+- "Viewer profiles", which allow you to quickly swap between different sets of settings.
 - (more is coming)
 
 Additionally, there are some minor usability tweaks to Viewer 2:
@@ -31,10 +30,13 @@ Additionally, there are some minor usability tweaks to Viewer 2:
 - The "Nearby" tab in the sidebar gives distance to everyone
 - Agent UUIDs show in profiles, and can be copied from the mouse hover floater
 
+And, of course, we pick up LL's new work pretty fast. For instance, we have detachable sidebar tabs
+already.
+
 Transparency
 ------------
 All work on this viewer will be made available here, including the website. Source will be
-added continuously, rather than waiting for a release as in some [other viewers][Emerald].
+added continuously, rather than waiting for a release.
 
 However, I will not, necessarily, immediately push the branches I am currently working in. If
 you wish to see what I'm currently working on, you can ask me (on [Twitter][] or similar),
@@ -52,6 +54,5 @@ and will look into changing the system at some point.
 [Imprudence]: http://imprudenceviewer.org/
 [Growl]: http://growl.info/
 [Viewer Development]: http://hg.secondlife.com/viewer-development
-[Emerald]: http://emerald.modularsystems.sl/
 [Twitter]: http://twitter.com/KatharineBerry
 [Downloads]: http://github.com/Katharine/kittyviewer/downloads

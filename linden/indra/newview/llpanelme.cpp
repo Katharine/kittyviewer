@@ -2,33 +2,26 @@
  * @file llpanelme.cpp
  * @brief Side tray "Me" (My Profile) panel
  *
- * $LicenseInfo:firstyear=2009&license=viewergpl$
- * 
- * Copyright (c) 2009-2010, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlife.com/developers/opensource/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlife.com/developers/opensource/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
- * 
  */
 
 #include "llviewerprecompiledheaders.h"
@@ -148,10 +141,10 @@ void LLPanelMe::onSaveChangesClicked()
 	data.avatar_id = gAgent.getID();
 	data.image_id = mEditPanel->getChild<LLTextureCtrl>(PICKER_SECOND_LIFE)->getImageAssetID();
 	data.fl_image_id = mEditPanel->getChild<LLTextureCtrl>(PICKER_FIRST_LIFE)->getImageAssetID();
-	data.about_text = mEditPanel->childGetValue("sl_description_edit").asString();
-	data.fl_about_text = mEditPanel->childGetValue("fl_description_edit").asString();
-	data.profile_url = mEditPanel->childGetValue("homepage_edit").asString();
-	data.allow_publish = mEditPanel->childGetValue("show_in_search_checkbox");
+	data.about_text = mEditPanel->getChild<LLUICtrl>("sl_description_edit")->getValue().asString();
+	data.fl_about_text = mEditPanel->getChild<LLUICtrl>("fl_description_edit")->getValue().asString();
+	data.profile_url = mEditPanel->getChild<LLUICtrl>("homepage_edit")->getValue().asString();
+	data.allow_publish = mEditPanel->getChild<LLUICtrl>("show_in_search_checkbox")->getValue();
 
 	LLAvatarPropertiesProcessor::getInstance()->sendAvatarPropertiesUpdate(&data);
 	togglePanel(mEditPanel); // close
@@ -207,20 +200,20 @@ void LLPanelMyProfileEdit::processProfileProperties(const LLAvatarData* avatar_d
 
 	// 'Home page' was hidden in LLPanelAvatarProfile::fillCommonData() to fix  EXT-4734
 	// Show 'Home page' in Edit My Profile (EXT-4873)
-	childSetVisible("homepage_edit", true);
+	getChildView("homepage_edit")->setVisible( true);
 
 	fillPartnerData(avatar_data);
 
 	fillAccountStatus(avatar_data);
 
-	childSetValue("show_in_search_checkbox", (BOOL)(avatar_data->flags & AVATAR_ALLOW_PUBLISH));
+	getChild<LLUICtrl>("show_in_search_checkbox")->setValue((BOOL)(avatar_data->flags & AVATAR_ALLOW_PUBLISH));
 
 	std::string first, last;
 	BOOL found = gCacheName->getName(avatar_data->avatar_id, first, last);
 	if (found)
 	{
-		childSetTextArg("name_text", "[FIRST]", first);
-		childSetTextArg("name_text", "[LAST]", last);
+		getChild<LLUICtrl>("name_text")->setTextArg("[FIRST]", first);
+		getChild<LLUICtrl>("name_text")->setTextArg("[LAST]", last);
 	}
 }
 
@@ -228,8 +221,8 @@ BOOL LLPanelMyProfileEdit::postBuild()
 {
 	initTexturePickerMouseEvents();
 
-	childSetTextArg("partner_edit_link", "[URL]", getString("partner_edit_link_url"));
-	childSetTextArg("my_account_link", "[URL]", getString("my_account_link_url"));
+	getChild<LLUICtrl>("partner_edit_link")->setTextArg("[URL]", getString("partner_edit_link_url"));
+	getChild<LLUICtrl>("my_account_link")->setTextArg("[URL]", getString("my_account_link_url"));
 
 	return LLPanelAvatarProfile::postBuild();
 }
@@ -258,8 +251,8 @@ void LLPanelMyProfileEdit::resetData()
 {
 	LLPanelMyProfile::resetData();
 
-	childSetTextArg("name_text", "[FIRST]", LLStringUtil::null);
-	childSetTextArg("name_text", "[LAST]", LLStringUtil::null);
+	getChild<LLUICtrl>("name_text")->setTextArg("[FIRST]", LLStringUtil::null);
+	getChild<LLUICtrl>("name_text")->setTextArg("[LAST]", LLStringUtil::null);
 }
 
 void LLPanelMyProfileEdit::onTexturePickerMouseEnter(LLUICtrl* ctrl)
@@ -273,10 +266,10 @@ void LLPanelMyProfileEdit::onTexturePickerMouseLeave(LLUICtrl* ctrl)
 
 void LLPanelMyProfileEdit::enableEditing(bool enable)
 {
-	childSetEnabled("2nd_life_pic", enable);
-	childSetEnabled("real_world_pic", enable);
-	childSetEnabled("sl_description_edit", enable);
-	childSetEnabled("fl_description_edit", enable);
-	childSetEnabled("homepage_edit", enable);
-	childSetEnabled("show_in_search_checkbox", enable);
+	getChildView("2nd_life_pic")->setEnabled(enable);
+	getChildView("real_world_pic")->setEnabled(enable);
+	getChildView("sl_description_edit")->setEnabled(enable);
+	getChildView("fl_description_edit")->setEnabled(enable);
+	getChildView("homepage_edit")->setEnabled(enable);
+	getChildView("show_in_search_checkbox")->setEnabled(enable);
 }
