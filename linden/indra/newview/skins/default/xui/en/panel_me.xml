@@ -3,7 +3,7 @@
  background_visible="true"
  border="false"
  follows="all"
- height="570"
+ height="550"
  label="My Profile"
  layout="topleft"
  left="0"

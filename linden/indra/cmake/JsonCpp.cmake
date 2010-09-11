@@ -10,7 +10,7 @@ if (STANDALONE)
 else (STANDALONE)
   use_prebuilt_binary(jsoncpp)
   if (WINDOWS)
- 	set(JSONCPP_LIBRARIES
+    set(JSONCPP_LIBRARIES 
       debug json_vc80d
       optimized json_vc80)
   elseif (DARWIN)
